@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Http\Requests\Org;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class UpdateEmployeRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'nom'           => ['sometimes', 'string', 'max:100'],
+            'prenom'        => ['sometimes', 'string', 'max:100'],
+            'email'         => ['nullable', 'email', 'max:255'],
+            'telephone'     => ['nullable', 'string', 'max:20'],
+            'poste'         => ['nullable', 'string', 'max:100'],
+            'date_embauche' => ['nullable', 'date'],
+            'statut'        => ['sometimes', 'in:actif,inactif'],
+        ];
+    }
+}

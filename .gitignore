@@ -1,0 +1,29 @@
+# ─── Laravel (Domtek) ────────────────────────────────────────────────────────
+Domtek/vendor/
+Domtek/.env
+Domtek/.env.backup
+Domtek/storage/app/private/
+Domtek/storage/logs/
+Domtek/storage/framework/cache/
+Domtek/storage/framework/sessions/
+Domtek/storage/framework/views/
+Domtek/bootstrap/cache/
+Domtek/public/storage
+Domtek/public/hot
+Domtek/.phpunit.result.cache
+Domtek/node_modules/
+
+# ─── Next.js (domtek-frontend) ───────────────────────────────────────────────
+domtek-frontend/node_modules/
+domtek-frontend/.next/
+domtek-frontend/out/
+domtek-frontend/.env.local
+domtek-frontend/.env*.local
+
+# ─── Général ─────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+.idea/
+.vscode/

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan:*)",
+      "Read(//c/Users/MSI/OneDrive - ESPRIT/Bureau/SILA APPLICATION/Domtek/public/**)",
+      "Bash(cmd /c \"rmdir \"\"c:\\\\Users\\\\MSI\\\\OneDrive - ESPRIT\\\\Bureau\\\\SILA APPLICATION\\\\Domtek\\\\public\\\\storage\"\"\")",
+      "Bash(cmd /c \"mklink /J \"\"c:\\\\Users\\\\MSI\\\\OneDrive - ESPRIT\\\\Bureau\\\\SILA APPLICATION\\\\Domtek\\\\public\\\\storage\"\" \"\"c:\\\\Users\\\\MSI\\\\OneDrive - ESPRIT\\\\Bureau\\\\SILA APPLICATION\\\\Domtek\\\\storage\\\\app\\\\public\"\"\")",
+      "Bash(cmd /c \"dir \"\"c:\\\\Users\\\\MSI\\\\OneDrive - ESPRIT\\\\Bureau\\\\SILA APPLICATION\\\\Domtek\\\\public\"\"\")",
+      "Bash(php -r \"echo file_exists\\(''public/storage/biens''\\) ? ''OK - biens accessible'' : ''FAIL - non accessible''; echo PHP_EOL; echo file_exists\\(''public/storage''\\) ? ''public/storage existe'' : ''public/storage MANQUANT'';\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\MSI\\OneDrive - ESPRIT\\Bureau\\SILA APPLICATION\\domtek-frontend\\src\\app\\(dashboard)\\dashboard\\immeubles"
+    ]
+  }
+}
