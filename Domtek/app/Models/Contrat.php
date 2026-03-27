@@ -23,6 +23,11 @@ class Contrat extends Model
         'statut',
         'fichier',
         'notes',
+        'forme_juridique',
+        'representant',
+        'date_contrat',
+        'ville_signature',
+        'cin_delivree_le',
         'created_by',
         'updated_by',
     ];
@@ -30,9 +35,11 @@ class Contrat extends Model
     protected function casts(): array
     {
         return [
-            'date_debut' => 'date',
-            'date_fin'   => 'date',
-            'montant'    => 'decimal:2',
+            'date_debut'     => 'date',
+            'date_fin'       => 'date',
+            'date_contrat'   => 'date',
+            'cin_delivree_le'=> 'date',
+            'montant'        => 'decimal:2',
         ];
     }
 

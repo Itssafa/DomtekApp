@@ -68,7 +68,7 @@ export default function OrganisationsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Organisations</h1>
-          <p className="text-gray-500 text-sm">Gérez les agences immobilières</p>
+          <p className="text-gray-500 text-sm">Gérez les organisations immobilières</p>
         </div>
       </div>
 

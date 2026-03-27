@@ -155,8 +155,8 @@ export default function AnnonceDetailPage() {
             {/* Agence */}
             {annonce.organisation && (
               <div className="bg-white rounded-2xl shadow-sm p-6">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Agence</h3>
-                <Link href={`/agences/${annonce.organisation.slug}`}
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Organisation</h3>
+                <Link href={`/organisations/${annonce.organisation.slug}`}
                   className="text-blue-600 hover:underline font-medium text-sm">
                   {annonce.organisation.nom}
                 </Link>
@@ -198,7 +198,7 @@ function Header() {
         <Link href="/" className="text-xl font-bold text-gray-900">Domtek</Link>
         <nav className="flex items-center gap-6 text-sm">
           <Link href="/annonces" className="text-blue-600 font-semibold">Annonces</Link>
-          <Link href="/agences" className="text-gray-600 hover:text-gray-900 font-medium">Agences</Link>
+          <Link href="/organisations" className="text-gray-600 hover:text-gray-900 font-medium">Organisations</Link>
           <Link href="/login" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition">
             Connexion
           </Link>

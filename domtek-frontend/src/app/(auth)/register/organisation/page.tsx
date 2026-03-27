@@ -73,7 +73,7 @@ export default function RegisterOrganisationPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-10">
       <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-8">
         <h1 className="text-2xl font-bold text-center text-gray-800 mb-2">
-          Créer un compte agence
+          Créer un compte organisation
         </h1>
         <p className="text-center text-gray-500 mb-6 text-sm">
           Votre compte sera activé après validation par un administrateur.
@@ -82,15 +82,15 @@ export default function RegisterOrganisationPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Responsable</p>
           {field('Nom complet', 'name', 'text', 'Ahmed Ben Ali')}
-          {field('Email de connexion', 'email', 'email', 'admin@agence.tn')}
+          {field('Email de connexion', 'email', 'email', 'admin@organisation.tn')}
           {field('Mot de passe', 'password', 'password')}
           {field('Confirmer le mot de passe', 'password_confirmation', 'password')}
 
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider pt-2">Agence</p>
-          {field("Nom de l'agence", 'nom_organisation', 'text', 'Agence Soleil Immobilier')}
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider pt-2">Organisation</p>
+          {field("Nom de l'organisation", 'nom_organisation', 'text', 'Organisation Soleil Immobilier')}
           {field('Ville', 'ville', 'text', 'Tunis')}
           {field('Téléphone', 'telephone', 'tel', '+216 71 000 000')}
-          {field("Email de l'agence", 'email_organisation', 'email', 'contact@agence.tn')}
+          {field("Email de l'organisation", 'email_organisation', 'email', 'contact@organisation.tn')}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -99,7 +99,7 @@ export default function RegisterOrganisationPage() {
               onChange={set('description')}
               rows={3}
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Présentez votre agence..."
+              placeholder="Présentez votre organisation..."
             />
           </div>
 

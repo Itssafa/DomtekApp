@@ -15,12 +15,12 @@ const TYPE_LABELS: Record<string, string> = {
   vente: 'Vente', loyer: 'Location',
 };
 
-interface AgenceDetail {
+interface OrganisationDetail {
   data: Organisation;
   annonces: PaginatedResponse<Annonce>;
 }
 
-export default function AgenceProfilePage() {
+export default function OrganisationProfilePage() {
   const { slug } = useParams<{ slug: string }>();
   const [org, setOrg] = useState<Organisation | null>(null);
   const [annonces, setAnnonces] = useState<Annonce[]>([]);
@@ -29,10 +29,9 @@ export default function AgenceProfilePage() {
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // Charge l'organisation + premières annonces
   useEffect(() => {
     setLoading(true);
-    api.get<AgenceDetail>(`/agences/${slug}?page=1`)
+    api.get<OrganisationDetail>(`/organisations/${slug}?page=1`)
       .then(({ data: res }) => {
         setOrg(res.data);
         setAnnonces(res.annonces.data);
@@ -42,12 +41,11 @@ export default function AgenceProfilePage() {
       .finally(() => setLoading(false));
   }, [slug]);
 
-  // Charge les pages suivantes
   const loadMore = () => {
     if (loadingMore) return;
     const nextPage = page + 1;
     setLoadingMore(true);
-    api.get<AgenceDetail>(`/agences/${slug}?page=${nextPage}`)
+    api.get<OrganisationDetail>(`/organisations/${slug}?page=${nextPage}`)
       .then(({ data: res }) => {
         setAnnonces((prev) => [...prev, ...res.annonces.data]);
         setPage(nextPage);
@@ -73,7 +71,7 @@ export default function AgenceProfilePage() {
   if (!org) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400">Agence introuvable.</p>
+        <p className="text-gray-400">Organisation introuvable.</p>
       </div>
     );
   }
@@ -83,11 +81,11 @@ export default function AgenceProfilePage() {
       <Header />
 
       <div className="max-w-5xl mx-auto px-6 py-8">
-        <Link href="/agences" className="text-sm text-gray-400 hover:text-gray-600 mb-6 inline-block">
-          ← Toutes les agences
+        <Link href="/organisations" className="text-sm text-gray-400 hover:text-gray-600 mb-6 inline-block">
+          ← Toutes les organisations
         </Link>
 
-        {/* Profil agence */}
+        {/* Profil organisation */}
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-8">
           <div className="flex items-start gap-5">
             <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center flex-shrink-0">
@@ -124,7 +122,7 @@ export default function AgenceProfilePage() {
           </div>
         </div>
 
-        {/* Annonces de l'agence */}
+        {/* Annonces de l'organisation */}
         <h2 className="text-lg font-bold text-gray-800 mb-5">Annonces publiées</h2>
 
         {!annonces.length ? (
@@ -195,7 +193,7 @@ function Header() {
         <Link href="/" className="text-xl font-bold text-gray-900">Domtek</Link>
         <nav className="flex items-center gap-6 text-sm">
           <Link href="/annonces" className="text-gray-600 hover:text-gray-900 font-medium">Annonces</Link>
-          <Link href="/agences" className="text-blue-600 font-semibold">Agences</Link>
+          <Link href="/organisations" className="text-blue-600 font-semibold">Organisations</Link>
           <Link href="/login" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition">
             Connexion
           </Link>

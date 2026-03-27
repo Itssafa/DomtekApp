@@ -75,7 +75,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Logo */}
         <div className="px-6 py-5 border-b border-gray-200">
           <h1 className="text-lg font-bold text-gray-900">Domtek</h1>
-          <p className="text-xs text-gray-500 mt-0.5 truncate">{organisation?.nom ?? 'Agence'}</p>
+          <p className="text-xs text-gray-500 mt-0.5 truncate">{organisation?.nom ?? 'Organisation'}</p>
         </div>
 
         {/* Navigation */}

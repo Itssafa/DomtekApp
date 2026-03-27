@@ -57,7 +57,7 @@ export default function NouvelEmployePage() {
             {inp('Prénom', 'prenom', 'text', 'Sonia')}
           </div>
           <div className="grid grid-cols-2 gap-4">
-            {inp('Email', 'email', 'email', 'sonia@agence.tn')}
+            {inp('Email', 'email', 'email', 'sonia@organisation.tn')}
             {inp('Téléphone', 'telephone', 'tel', '+216 22 000 000')}
           </div>
           {inp('Poste', 'poste', 'text', 'Agent immobilier')}

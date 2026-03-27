@@ -4,9 +4,9 @@ import type { Organisation, PaginatedResponse } from '@/types';
 
 export function useAgences() {
   return useQuery({
-    queryKey: ['agences'],
+    queryKey: ['organisations'],
     queryFn: async () => {
-      const { data } = await api.get<PaginatedResponse<Organisation>>('/agences');
+      const { data } = await api.get<PaginatedResponse<Organisation>>('/organisations');
       return data;
     },
   });
@@ -14,9 +14,9 @@ export function useAgences() {
 
 export function useAgence(slug: string) {
   return useQuery({
-    queryKey: ['agences', slug],
+    queryKey: ['organisations', slug],
     queryFn: async () => {
-      const { data } = await api.get<{ data: Organisation }>(`/agences/${slug}`);
+      const { data } = await api.get<{ data: Organisation }>(`/organisations/${slug}`);
       return data.data;
     },
     enabled: !!slug,

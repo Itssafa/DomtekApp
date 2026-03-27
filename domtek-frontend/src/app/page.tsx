@@ -167,8 +167,8 @@ export default function HomePage() {
             <Link href="/annonces" className="text-gray-600 hover:text-gray-900 font-medium">
               Annonces
             </Link>
-            <Link href="/agences" className="text-gray-600 hover:text-gray-900 font-medium">
-              Agences
+            <Link href="/organisations" className="text-gray-600 hover:text-gray-900 font-medium">
+              Organisations
             </Link>
             <Link
               href="/login"
@@ -236,8 +236,8 @@ export default function HomePage() {
               </p>
             )}
           </div>
-          <Link href="/agences" className="text-sm text-blue-600 hover:underline font-medium">
-            Voir les agences →
+          <Link href="/organisations" className="text-sm text-blue-600 hover:underline font-medium">
+            Voir les organisations →
           </Link>
         </div>
 
@@ -288,7 +288,7 @@ export default function HomePage() {
       <section className="bg-white border-t border-gray-100 py-14">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-3">
-            Vous êtes une agence immobilière ?
+            Vous êtes une organisation immobilière ?
           </h2>
           <p className="text-gray-500 mb-6">
             Créez votre compte et gérez vos biens, annonces et clients sur Domtek.
@@ -297,7 +297,7 @@ export default function HomePage() {
             href="/register/organisation"
             className="inline-block px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition"
           >
-            Créer un compte agence
+            Créer un compte organisation
           </Link>
         </div>
       </section>

@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Organisation\ImmeubleController;
 use App\Http\Controllers\Api\Organisation\InvestissementController;
 use App\Http\Controllers\Api\Public\AnnonceController as AnnoncePubliqueController;
 use App\Http\Controllers\Api\Public\OrganisationController as OrganisationPubliqueController;
+use App\Http\Controllers\Api\Public\PaiementController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,8 +33,12 @@ Route::prefix('auth')->group(function () {
 */
 Route::get('annonces',           [AnnoncePubliqueController::class, 'index']);
 Route::get('annonces/{annonce}', [AnnoncePubliqueController::class, 'show']);
-Route::get('agences',            [OrganisationPubliqueController::class, 'index']);
-Route::get('agences/{slug}',     [OrganisationPubliqueController::class, 'show']);
+Route::get('organisations',           [OrganisationPubliqueController::class, 'index']);
+Route::get('organisations/{slug}',    [OrganisationPubliqueController::class, 'show']);
+
+// Paiement en ligne (liens depuis e-mail, sans auth)
+Route::get('pay/{token}',         [PaiementController::class, 'payer']);
+Route::post('stripe/webhook',     [PaiementController::class, 'webhook']);
 
 /*
 |--------------------------------------------------------------------------
@@ -86,8 +91,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('annonces/{annonce}/photos',               [AnnonceController::class, 'uploadPhotos']);
         Route::delete('annonces/{annonce}/photos/{photo}',     [AnnonceController::class, 'deletePhoto']);
 
-        // Contrats (+ upload PDF)
+        // Contrats (+ téléchargement PDF + upload fichier)
         Route::apiResource('contrats', ContratController::class);
+        Route::get('contrats/{contrat}/pdf',      [ContratController::class, 'telechargerPdf']);
         Route::post('contrats/{contrat}/fichier', [ContratController::class, 'uploadFichier']);
 
         // Factures (+ marquage paiement + téléchargement PDF)

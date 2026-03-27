@@ -52,7 +52,7 @@ export default function DashboardPage() {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold text-gray-800 mb-1">Tableau de bord</h1>
-      <p className="text-gray-500 text-sm mb-8">Vue d'ensemble de votre agence</p>
+      <p className="text-gray-500 text-sm mb-8">Vue d'ensemble de votre organisation</p>
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

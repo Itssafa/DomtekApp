@@ -64,7 +64,7 @@ function AnnoncesList() {
           <Link href="/" className="text-xl font-bold text-gray-900">Domtek</Link>
           <nav className="flex items-center gap-6 text-sm">
             <Link href="/annonces" className="text-blue-600 font-semibold">Annonces</Link>
-            <Link href="/agences" className="text-gray-600 hover:text-gray-900 font-medium">Agences</Link>
+            <Link href="/organisations" className="text-gray-600 hover:text-gray-900 font-medium">Organisations</Link>
             <Link href="/login" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition">
               Connexion
             </Link>

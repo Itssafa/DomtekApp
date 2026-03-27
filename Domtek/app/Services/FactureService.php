@@ -2,10 +2,13 @@
 
 namespace App\Services;
 
+use App\Mail\FactureCreee;
 use App\Models\Client;
 use App\Models\Facture;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class FactureService
 {
@@ -48,11 +51,13 @@ class FactureService
             ->firstOrFail();
 
         $data['organisation_id'] = $orgId;
+        $data['payment_token']   = Str::uuid()->toString();
 
         /** @var Facture $facture */
-        $facture = Facture::create($data)->load(['client', 'contrat.bien']);
+        $facture = Facture::create($data)->load(['client', 'contrat.bien', 'organisation']);
 
         $this->envoyerSmsFacture($facture);
+        $this->envoyerEmailFacture($facture);
 
         return $facture;
     }
@@ -83,6 +88,26 @@ class FactureService
             app(SmsService::class)->send($client->telephone, $message);
         } catch (\Throwable $e) {
             Log::warning('SMS facture non envoyé : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Envoie un e-mail au client avec la facture en PDF et un bouton de paiement Stripe.
+     */
+    private function envoyerEmailFacture(Facture $facture): void
+    {
+        $client = $facture->client;
+
+        if (!$client || empty($client->email)) {
+            return;
+        }
+
+        $paymentUrl = config('app.url') . '/api/pay/' . $facture->payment_token;
+
+        try {
+            Mail::to($client->email)->send(new FactureCreee($facture, $paymentUrl));
+        } catch (\Throwable $e) {
+            Log::warning('Email facture non envoyé : ' . $e->getMessage());
         }
     }
 

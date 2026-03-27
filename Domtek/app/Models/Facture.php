@@ -32,6 +32,8 @@ class Facture extends Model
         'statut',
         'reference',
         'notes',
+        'payment_token',
+        'stripe_session_id',
         'created_by',
         'updated_by',
     ];

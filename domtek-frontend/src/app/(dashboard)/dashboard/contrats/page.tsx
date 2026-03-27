@@ -18,6 +18,7 @@ export default function ContratsPage() {
   const [type, setType] = useState('');
   const [page, setPage] = useState(1);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [downloading, setDownloading] = useState<number | null>(null);
 
   const fetchContrats = useCallback(() => {
     setLoading(true);
@@ -32,6 +33,20 @@ export default function ContratsPage() {
   }, [statut, type, page]);
 
   useEffect(() => { fetchContrats(); }, [fetchContrats]);
+
+  const handleDownloadPdf = async (id: number) => {
+    setDownloading(id);
+    try {
+      const res = await api.get(`/org/contrats/${id}/pdf`, { responseType: 'blob' });
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contrat-${id}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch { /* noop */ }
+    finally { setDownloading(null); }
+  };
 
   const handleDelete = async (id: number) => {
     if (!confirm('Supprimer ce contrat ?')) return;
@@ -106,6 +121,10 @@ export default function ContratsPage() {
                   <td className="px-5 py-3">
                     <div className="flex gap-2">
                       <Link href={`/dashboard/contrats/${c.id}`} className="text-xs text-blue-600 hover:underline">Modifier</Link>
+                      <button onClick={() => handleDownloadPdf(c.id)} disabled={downloading === c.id}
+                        className="text-xs text-emerald-600 hover:underline disabled:opacity-40">
+                        {downloading === c.id ? '…' : 'PDF'}
+                      </button>
                       <button onClick={() => handleDelete(c.id)} disabled={deleting === c.id}
                         className="text-xs text-red-600 hover:underline disabled:opacity-40">Supprimer</button>
                     </div>

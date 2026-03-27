@@ -71,8 +71,8 @@ export default function RegisterClientPage() {
           <Link href="/login" className="text-blue-600 hover:underline font-medium">Se connecter</Link>
         </p>
         <p className="text-center text-sm text-gray-500 mt-2">
-          Vous êtes une agence ?{' '}
-          <Link href="/register/organisation" className="text-blue-600 hover:underline font-medium">Créer un compte agence</Link>
+          Vous êtes une organisation ?{' '}
+          <Link href="/register/organisation" className="text-blue-600 hover:underline font-medium">Créer un compte organisation</Link>
         </p>
       </div>
     </div>

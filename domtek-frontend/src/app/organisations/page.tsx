@@ -5,24 +5,24 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { Organisation, PaginatedResponse } from '@/types';
 
-export default function AgencesPage() {
+export default function OrganisationsPage() {
   const [data, setData] = useState<PaginatedResponse<Organisation> | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
-  const fetchAgences = useCallback(() => {
+  const fetchOrganisations = useCallback(() => {
     setLoading(true);
     const params = new URLSearchParams();
     if (search) params.set('search', search);
     params.set('page', String(page));
-    api.get<PaginatedResponse<Organisation>>(`/agences?${params}`)
+    api.get<PaginatedResponse<Organisation>>(`/organisations?${params}`)
       .then(({ data: res }) => setData(res))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [search, page]);
 
-  useEffect(() => { fetchAgences(); }, [fetchAgences]);
+  useEffect(() => { fetchOrganisations(); }, [fetchOrganisations]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -32,7 +32,7 @@ export default function AgencesPage() {
           <Link href="/" className="text-xl font-bold text-gray-900">Domtek</Link>
           <nav className="flex items-center gap-6 text-sm">
             <Link href="/annonces" className="text-gray-600 hover:text-gray-900 font-medium">Annonces</Link>
-            <Link href="/agences" className="text-blue-600 font-semibold">Agences</Link>
+            <Link href="/organisations" className="text-blue-600 font-semibold">Organisations</Link>
             <Link href="/login" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition">
               Connexion
             </Link>
@@ -42,8 +42,8 @@ export default function AgencesPage() {
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">Agences immobilières</h1>
-          <p className="text-gray-500 text-sm">Trouvez une agence partenaire en Tunisie</p>
+          <h1 className="text-2xl font-bold text-gray-800 mb-1">Organisations immobilières</h1>
+          <p className="text-gray-500 text-sm">Trouvez une organisation partenaire en Tunisie</p>
         </div>
 
         {/* Recherche */}
@@ -65,14 +65,14 @@ export default function AgencesPage() {
             ))}
           </div>
         ) : !data?.data.length ? (
-          <div className="text-center py-16 text-gray-400">Aucune agence trouvée.</div>
+          <div className="text-center py-16 text-gray-400">Aucune organisation trouvée.</div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {data.data.map((org) => (
                 <Link
                   key={org.id}
-                  href={`/agences/${org.slug}`}
+                  href={`/organisations/${org.slug}`}
                   className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow p-6 flex flex-col gap-3"
                 >
                   {/* Icône / Logo */}

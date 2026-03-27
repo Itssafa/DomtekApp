@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server';
 const TOKEN_KEY = 'domtek_token';
 
 // Routes accessibles sans authentification
-const PUBLIC_ROUTES = ['/', '/login', '/register', '/annonces', '/agences', '/en-attente'];
+const PUBLIC_ROUTES = ['/', '/login', '/register', '/annonces', '/organisations', '/en-attente'];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

@@ -153,6 +153,11 @@ export interface Contrat {
   date_fin: string | null;
   fichier: string | null;
   notes: string | null;
+  forme_juridique: string | null;
+  representant: string | null;
+  date_contrat: string | null;
+  ville_signature: string | null;
+  cin_delivree_le: string | null;
   bien?: Bien;
   clients?: Client[];
   created_at: string;

@@ -8,9 +8,11 @@ use App\Http\Requests\Org\UpdateContratRequest;
 use App\Http\Resources\ContratResource;
 use App\Models\Contrat;
 use App\Services\ContratService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Symfony\Component\HttpFoundation\Response;
 
 class ContratController extends Controller
 {
@@ -60,6 +62,18 @@ class ContratController extends Controller
         $this->service->destroy($contrat);
 
         return response()->json(['message' => 'Contrat supprimé.']);
+    }
+
+    public function telechargerPdf(Contrat $contrat): Response
+    {
+        $this->authorize('view', $contrat);
+        $contrat->load(['organisation', 'bien', 'clients']);
+
+        $filename = 'contrat-' . $contrat->id . '.pdf';
+        $pdf = Pdf::loadView('pdf.contrat', compact('contrat'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download($filename);
     }
 
     public function uploadFichier(Request $request, Contrat $contrat): JsonResponse

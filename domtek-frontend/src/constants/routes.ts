@@ -9,8 +9,8 @@ export const ROUTES = {
   home: '/',
   annonces: '/annonces',
   annonce: (id: number) => `/annonces/${id}`,
-  agences: '/agences',
-  agence: (slug: string) => `/agences/${slug}`,
+  organisations: '/organisations',
+  organisation: (slug: string) => `/organisations/${slug}`,
 
   // ── Auth ───────────────────────────────────────────────────────────────────
   login: '/login',

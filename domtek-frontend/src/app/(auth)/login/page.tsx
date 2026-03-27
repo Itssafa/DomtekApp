@@ -96,9 +96,9 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Vous êtes une agence ?{' '}
+          Vous êtes une organisation ?{' '}
           <Link href="/register/organisation" className="text-blue-600 hover:underline font-medium">
-            Créer un compte agence
+            Créer un compte organisation
           </Link>
         </p>
         <p className="text-center text-sm text-gray-500 mt-2">
