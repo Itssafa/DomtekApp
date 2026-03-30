@@ -42,8 +42,12 @@ export interface Organisation {
 // ─── Bien ─────────────────────────────────────────────────────────────────────
 
 export type TypeTransaction = 'vente' | 'loyer';
-export type TypeBien = 'appartement' | 'maison' | 'villa' | 'bureau' | 'terrain' | 'autre';
+export type TypeLocation    = 'meuble' | 'non_meuble';
+export type TypeBien =
+  | 'appartement' | 'maison' | 'villa' | 'bureau' | 'terrain'
+  | 'studio' | 'duplex' | 'local_commercial' | 'entrepot' | 'ferme' | 'autre';
 export type BienStatut = 'disponible' | 'vendu' | 'loue' | 'indisponible';
+export type RegimeJuridique = 'mono_propriete' | 'co_propriete';
 
 export interface BienImage {
   id: number;
@@ -53,26 +57,48 @@ export interface BienImage {
   is_principale: boolean;
 }
 
+export interface BienDocument {
+  id: number;
+  nom: string;
+  url: string;
+  type_document: string | null;
+  created_at: string;
+}
+
 export interface Bien {
   id: number;
   immeuble_id: number | null;
   bloc: number | null;
+  num: string | null;
   immeuble?: Immeuble;
-  titre: string;
+  designation: string;
   description: string | null;
+  notes: string | null;
   type_transaction: TypeTransaction;
+  type_location: TypeLocation | null;
   type_bien: TypeBien;
   prix: number;
+  taxe_fonciere: number | null;
+  regime_juridique: RegimeJuridique | null;
   superficie: number | null;
+  superficie_commune: number | null;
   adresse: string | null;
   ville: string | null;
+  pays: string | null;
+  code_postal: string | null;
   nb_pieces: number | null;
   nb_chambres: number | null;
   nb_salles_bain: number | null;
+  nb_cuisine: number | null;
   etage: number | null;
+  date_construction: string | null;
+  accepte_animaux: boolean;
+  accepte_fumeurs: boolean;
+  options: string[];
   statut: BienStatut;
   image_principale?: BienImage;
   images?: BienImage[];
+  documents?: BienDocument[];
   organisation?: Organisation;
   created_at: string;
   updated_at: string;
@@ -144,13 +170,35 @@ export interface Employe {
 
 // ─── Contrat ─────────────────────────────────────────────────────────────────
 
+export type TypeContrat =
+  | 'bail_habitation' | 'bail_etudiant' | 'bail_professionnel'
+  | 'bail_commercial' | 'bail_saisonnier' | 'loyer' | 'vente' | 'autre';
+
+export type UtilisationContrat =
+  | 'residence_primaire' | 'residence_secondaire' | 'professionnel' | 'commercial' | 'autre';
+
+export type PeriodiciteContrat =
+  | 'mensuel' | 'bimestriel' | 'trimestriel' | 'quadrimestriel' | 'semestriel' | 'annuel';
+
 export interface Contrat {
   id: number;
-  type: 'vente' | 'loyer';
+  designation: string | null;
+  utilisation: UtilisationContrat | null;
+  type: TypeContrat;
   statut: 'actif' | 'termine' | 'resilie';
-  montant: number;
   date_debut: string;
   date_fin: string | null;
+  montant_ht: number;
+  tva: number;
+  montant_ttc: number | null;
+  frais_syndic: number | null;
+  retenue_source: number | null;
+  montant_paiement: number | null;
+  periodicite_paiement: PeriodiciteContrat | null;
+  jour_paiement: number | null;
+  depot_garantie: number | null;
+  premiere_echeance: string | null;
+  assurance: string | null;
   fichier: string | null;
   notes: string | null;
   forme_juridique: string | null;
@@ -160,6 +208,32 @@ export interface Contrat {
   cin_delivree_le: string | null;
   bien?: Bien;
   clients?: Client[];
+  created_at: string;
+  updated_at: string;
+}
+
+// ─── État des lieux ───────────────────────────────────────────────────────────
+
+export type TypeEtatLieu = 'entree' | 'sortie';
+
+export interface EtatLieu {
+  id: number;
+  designation: string | null;
+  type: TypeEtatLieu;
+  date: string;
+  releve_eau: number | null;
+  releve_electricite: number | null;
+  releve_gaz: number | null;
+  remise_cles: boolean;
+  commentaire: string | null;
+  contrat?: {
+    id: number;
+    designation: string | null;
+    type: string;
+    date_debut: string;
+    bien?: { id: number; designation: string } | null;
+    clients?: { id: number; nom_complet: string }[] | null;
+  };
   created_at: string;
   updated_at: string;
 }

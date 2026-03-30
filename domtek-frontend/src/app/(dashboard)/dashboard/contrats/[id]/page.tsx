@@ -1,46 +1,147 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
-import { Contrat, Bien } from '@/types';
+import { useAuthStore } from '@/store/authStore';
+import { Bien, Client, Contrat } from '@/types';
 import { AxiosError } from 'axios';
 
-export default function EditContratPage() {
-  const { id } = useParams<{ id: string }>();
-  const router = useRouter();
-  const fileRef = useRef<HTMLInputElement>(null);
+// ─── Constantes (identiques à nouveau/page.tsx) ───────────────────────────────
 
-  const [biens, setBiens] = useState<Bien[]>([]);
+const TYPES_CONTRAT = [
+  { value: 'bail_habitation',    label: "Bail d'habitation" },
+  { value: 'bail_etudiant',      label: 'Bail étudiant' },
+  { value: 'bail_professionnel', label: 'Bail professionnel' },
+  { value: 'bail_commercial',    label: 'Bail commercial' },
+  { value: 'bail_saisonnier',    label: 'Bail saisonnier' },
+  { value: 'loyer',              label: 'Location (général)' },
+  { value: 'vente',              label: 'Vente' },
+  { value: 'autre',              label: 'Autre' },
+];
+
+const TYPES_LOCATION = ['bail_habitation','bail_etudiant','bail_professionnel','bail_commercial','bail_saisonnier','loyer'];
+
+const UTILISATIONS = [
+  { value: 'residence_primaire',   label: 'Résidence primaire' },
+  { value: 'residence_secondaire', label: 'Résidence secondaire' },
+  { value: 'professionnel',        label: 'Usage professionnel' },
+  { value: 'commercial',           label: 'Usage commercial' },
+  { value: 'autre',                label: 'Autre' },
+];
+
+const PERIODICITES = [
+  { value: 'mensuel',        label: 'Mensuel' },
+  { value: 'bimestriel',     label: 'Bimestriel (tous les 2 mois)' },
+  { value: 'trimestriel',    label: 'Trimestriel (tous les 3 mois)' },
+  { value: 'quadrimestriel', label: 'Quadrimestriel (tous les 4 mois)' },
+  { value: 'semestriel',     label: 'Semestriel (tous les 6 mois)' },
+  { value: 'annuel',         label: 'Annuel' },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function calcPremiereEcheance(debut: string, periodicite: string): string {
+  if (!debut || !periodicite) return '';
+  const d = new Date(debut);
+  const mois: Record<string, number> = {
+    mensuel: 1, bimestriel: 2, trimestriel: 3,
+    quadrimestriel: 4, semestriel: 6, annuel: 12,
+  };
+  d.setMonth(d.getMonth() + (mois[periodicite] ?? 1));
+  return d.toISOString().split('T')[0];
+}
+
+function calcDuree(debut: string, fin: string): string {
+  if (!debut || !fin) return '';
+  const d1 = new Date(debut), d2 = new Date(fin);
+  const months = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
+  if (months <= 0) return '';
+  if (months < 12) return `${months} mois`;
+  const years = Math.floor(months / 12), rem = months % 12;
+  return rem > 0 ? `${years} an(s) et ${rem} mois` : `${years} an(s)`;
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function EditContratPage() {
+  const { id }   = useParams<{ id: string }>();
+  const router   = useRouter();
+  const fileRef  = useRef<HTMLInputElement>(null);
+  const { organisation } = useAuthStore();
+
   const [contrat, setContrat] = useState<Contrat | null>(null);
-  const [form, setForm] = useState({
-    type: 'loyer', bien_id: '', montant: '',
-    date_debut: '', date_fin: '', statut: 'actif', notes: '',
-  });
-  const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [biens, setBiens]     = useState<Bien[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving]   = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [errors, setErrors]   = useState<Record<string, string[]>>({});
+  const [globalError, setGlobalError] = useState('');
+
+  const [form, setForm] = useState({
+    type:                 'bail_habitation',
+    designation:          '',
+    utilisation:          '',
+    forme_juridique:      '',
+    representant:         '',
+    bien_id:              '',
+    client_id:            '',
+    cin_delivree_le:      '',
+    date_contrat:         '',
+    date_debut:           '',
+    date_fin:             '',
+    montant_ht:           '',
+    tva:                  '19',
+    frais_syndic:         '',
+    retenue_source:       '',
+    periodicite_paiement: '',
+    jour_paiement:        '',
+    depot_garantie:       '',
+    premiere_echeance:    '',
+    assurance:            '',
+    ville_signature:      '',
+    notes:                '',
+    statut:               'actif',
+  });
 
   const fetchAll = () => {
     setLoading(true);
     Promise.all([
       api.get<{ data: Contrat }>(`/org/contrats/${id}`),
-      api.get('/org/biens?per_page=100'),
-    ]).then(([c, b]) => {
-      const contrat = c.data.data;
-      setContrat(contrat);
+      api.get('/org/biens?per_page=200'),
+      api.get('/org/clients?per_page=200'),
+    ]).then(([c, b, cl]) => {
+      const ct = c.data.data;
+      setContrat(ct);
       setForm({
-        type: contrat.type,
-        bien_id: String(contrat.bien?.id ?? ''),
-        montant: String(contrat.montant),
-        date_debut: contrat.date_debut,
-        date_fin: contrat.date_fin ?? '',
-        statut: contrat.statut,
-        notes: contrat.notes ?? '',
+        type:                 ct.type,
+        designation:          ct.designation ?? '',
+        utilisation:          ct.utilisation ?? '',
+        forme_juridique:      ct.forme_juridique ?? '',
+        representant:         ct.representant ?? '',
+        bien_id:              String(ct.bien?.id ?? ''),
+        client_id:            String(ct.clients?.[0]?.id ?? ''),
+        cin_delivree_le:      ct.cin_delivree_le ?? '',
+        date_contrat:         ct.date_contrat ?? '',
+        date_debut:           ct.date_debut,
+        date_fin:             ct.date_fin ?? '',
+        montant_ht:           String(ct.montant_ht),
+        tva:                  String(ct.tva ?? 19),
+        frais_syndic:         ct.frais_syndic != null ? String(ct.frais_syndic) : '',
+        retenue_source:       ct.retenue_source != null ? String(ct.retenue_source) : '',
+        periodicite_paiement: ct.periodicite_paiement ?? '',
+        jour_paiement:        ct.jour_paiement != null ? String(ct.jour_paiement) : '',
+        depot_garantie:       ct.depot_garantie != null ? String(ct.depot_garantie) : '',
+        premiere_echeance:    ct.premiere_echeance ?? '',
+        assurance:            ct.assurance ?? '',
+        ville_signature:      ct.ville_signature ?? '',
+        notes:                ct.notes ?? '',
+        statut:               ct.statut,
       });
       setBiens(b.data.data ?? []);
+      setClients(cl.data.data ?? []);
     }).catch(() => {})
     .finally(() => setLoading(false));
   };
@@ -49,23 +150,63 @@ export default function EditContratPage() {
 
   const set = (field: string) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  ) => setForm(p => ({ ...p, [field]: e.target.value }));
+
+  const selectedClient = clients.find(c => c.id === Number(form.client_id)) ?? null;
+  const isLocation     = TYPES_LOCATION.includes(form.type);
+
+  const montantTtc = useMemo(() => {
+    if (!form.montant_ht) return '';
+    const ht  = parseFloat(form.montant_ht);
+    const tva = parseFloat(form.tva || '0');
+    return isNaN(ht) ? '' : (ht * (1 + tva / 100)).toFixed(3);
+  }, [form.montant_ht, form.tva]);
+
+  const duree = useMemo(() => calcDuree(form.date_debut, form.date_fin), [form.date_debut, form.date_fin]);
+
+  const premiereEcheance = useMemo(
+    () => form.premiere_echeance || calcPremiereEcheance(form.date_debut, form.periodicite_paiement),
+    [form.premiere_echeance, form.date_debut, form.periodicite_paiement]
+  );
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    setGlobalError('');
     setSaving(true);
     try {
       await api.put(`/org/contrats/${id}`, {
-        ...form,
-        bien_id: Number(form.bien_id),
-        montant: Number(form.montant),
-        date_fin: form.date_fin || undefined,
+        type:                 form.type,
+        statut:               form.statut,
+        designation:          form.designation || undefined,
+        utilisation:          form.utilisation || undefined,
+        forme_juridique:      form.forme_juridique || undefined,
+        representant:         form.representant || undefined,
+        bien_id:              Number(form.bien_id),
+        client_ids:           form.client_id ? [Number(form.client_id)] : undefined,
+        cin_delivree_le:      form.cin_delivree_le || undefined,
+        date_contrat:         form.date_contrat || undefined,
+        date_debut:           form.date_debut,
+        date_fin:             isLocation ? (form.date_fin || undefined) : undefined,
+        montant_ht:           Number(form.montant_ht),
+        tva:                  form.tva ? Number(form.tva) : 0,
+        montant_ttc:          montantTtc ? Number(montantTtc) : undefined,
+        frais_syndic:         form.frais_syndic ? Number(form.frais_syndic) : undefined,
+        retenue_source:       form.retenue_source ? Number(form.retenue_source) : undefined,
+        periodicite_paiement: form.periodicite_paiement || undefined,
+        jour_paiement:        form.jour_paiement ? Number(form.jour_paiement) : undefined,
+        depot_garantie:       form.depot_garantie ? Number(form.depot_garantie) : undefined,
+        premiere_echeance:    premiereEcheance || undefined,
+        assurance:            form.assurance || undefined,
+        ville_signature:      form.ville_signature || undefined,
+        notes:                form.notes || undefined,
       });
       router.push('/dashboard/contrats');
     } catch (err) {
-      const axiosError = err as AxiosError<{ errors?: Record<string, string[]> }>;
-      setErrors(axiosError.response?.data?.errors ?? {});
+      const axiosError = err as AxiosError<{ errors?: Record<string, string[]>; message?: string }>;
+      const ve = axiosError.response?.data?.errors;
+      if (ve) setErrors(ve);
+      else setGlobalError(axiosError.response?.data?.message ?? 'Une erreur est survenue.');
     } finally {
       setSaving(false);
     }
@@ -89,103 +230,298 @@ export default function EditContratPage() {
     }
   };
 
+  const errMsg = (field: string) => errors[field] ? (
+    <p className="text-red-500 text-xs mt-1">{errors[field][0]}</p>
+  ) : null;
+
+  const ic = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const dc = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500';
+  const lc = 'block text-xs font-medium text-gray-500 mb-1';
+
   if (loading) return <div className="p-8 animate-pulse h-40 bg-gray-100 rounded-xl" />;
 
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-6 max-w-3xl">
       <div className="mb-6">
         <Link href="/dashboard/contrats" className="text-sm text-gray-400 hover:text-gray-600">← Retour</Link>
         <h1 className="text-2xl font-bold text-gray-800 mt-2">Modifier le contrat</h1>
+        {contrat?.designation && (
+          <p className="text-gray-400 text-sm mt-0.5">{contrat.designation}</p>
+        )}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="grid grid-cols-2 gap-4">
+      {globalError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{globalError}</div>
+      )}
+
+      <form onSubmit={handleSave} className="space-y-4">
+
+        {/* ── Type & Statut & Désignation ── */}
+        <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
+          <h2 className="text-sm font-semibold text-gray-700">Type de contrat</h2>
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-              <select value={form.type} onChange={set('type')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="loyer">Location</option>
-                <option value="vente">Vente</option>
+              <label className={lc}>Type *</label>
+              <select value={form.type} onChange={set('type')} className={ic}>
+                {TYPES_CONTRAT.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
+              {errMsg('type')}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-              <select value={form.statut} onChange={set('statut')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <label className={lc}>Statut</label>
+              <select value={form.statut} onChange={set('statut')} className={ic}>
                 <option value="actif">Actif</option>
                 <option value="termine">Terminé</option>
                 <option value="resilie">Résilié</option>
               </select>
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={lc}>Utilisation</label>
+              <select value={form.utilisation} onChange={set('utilisation')} className={ic}>
+                <option value="">— Non précisée —</option>
+                {UTILISATIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={lc}>Désignation</label>
+              <input type="text" value={form.designation} onChange={set('designation')}
+                placeholder="Ex : Bail appartement F3" className={ic} />
+            </div>
+          </div>
+        </div>
 
+        {/* ── Partie A ── */}
+        <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
+          <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <span className="w-5 h-5 bg-blue-100 text-blue-700 rounded-full text-xs flex items-center justify-center font-bold">A</span>
+            Partie A — Organisation
+          </h2>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Bien</label>
-            <select value={form.bien_id} onChange={set('bien_id')}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">— Sélectionner —</option>
-              {biens.map((b) => <option key={b.id} value={b.id}>{b.titre}</option>)}
+            <label className={lc}>Nom</label>
+            <input type="text" value={organisation?.nom ?? ''} disabled className={dc} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={lc}>Forme juridique</label>
+              <select value={form.forme_juridique} onChange={set('forme_juridique')} className={ic}>
+                <option value="">— Sélectionner —</option>
+                {['SARL', 'SUARL', 'SA', 'Association', 'Personne physique', 'Autre'].map(f => (
+                  <option key={f}>{f}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={lc}>Adresse siège</label>
+              <input type="text"
+                value={[organisation?.adresse, organisation?.ville].filter(Boolean).join(', ')}
+                disabled className={dc} />
+            </div>
+          </div>
+          <div>
+            <label className={lc}>Représentant légal</label>
+            <input type="text" value={form.representant} onChange={set('representant')}
+              placeholder="M. Ahmed Ben Ali" className={ic} />
+          </div>
+        </div>
+
+        {/* ── Partie B ── */}
+        <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
+          <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <span className="w-5 h-5 bg-green-100 text-green-700 rounded-full text-xs flex items-center justify-center font-bold">B</span>
+            Partie B — Client
+          </h2>
+          <div>
+            <label className={lc}>Client *</label>
+            <select value={form.client_id} onChange={set('client_id')} className={ic}>
+              <option value="">— Sélectionner un client —</option>
+              {clients.map(c => <option key={c.id} value={c.id}>{c.nom_complet}</option>)}
             </select>
+            {errMsg('client_ids')}
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Clients</label>
-            <div className="flex flex-wrap gap-2 min-h-[42px] border border-gray-200 rounded-lg px-3 py-2 bg-gray-50">
-              {contrat?.clients?.length ? contrat.clients.map((c) => (
-                <span key={c.id} className="inline-block bg-blue-50 text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full">
-                  {c.nom_complet}
-                </span>
-              )) : <span className="text-sm text-gray-400">—</span>}
+          {selectedClient && (
+            <div className="grid grid-cols-2 gap-3 bg-green-50 rounded-lg p-3">
+              <div>
+                <label className={lc}>Date de naissance</label>
+                <input type="text"
+                  value={selectedClient.date_naissance
+                    ? new Date(selectedClient.date_naissance).toLocaleDateString('fr-FR')
+                    : '—'}
+                  disabled className={dc} />
+              </div>
+              <div>
+                <label className={lc}>N° CIN / Passeport</label>
+                <input type="text" value={selectedClient.cin ?? '—'} disabled className={dc} />
+              </div>
+              <div>
+                <label className={lc}>CIN délivrée le</label>
+                <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} />
+              </div>
+              <div>
+                <label className={lc}>Résidence</label>
+                <input type="text"
+                  value={[selectedClient.adresse, selectedClient.ville].filter(Boolean).join(', ') || '—'}
+                  disabled className={dc} />
+              </div>
             </div>
-          </div>
+          )}
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Montant (TND)</label>
-            <input type="number" value={form.montant} onChange={set('montant')}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            {errors.montant && <p className="text-red-500 text-xs mt-1">{errors.montant[0]}</p>}
-          </div>
+        {/* ── Bien ── */}
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">Le Bien *</h2>
+          <select value={form.bien_id} onChange={set('bien_id')} className={ic}>
+            <option value="">— Sélectionner un bien —</option>
+            {biens.map(b => (
+              <option key={b.id} value={b.id}>
+                {b.designation} — {b.type_bien}{b.ville ? ` (${b.ville})` : ''}
+              </option>
+            ))}
+          </select>
+          {errMsg('bien_id')}
+        </div>
 
-          <div className="grid grid-cols-2 gap-4">
+        {/* ── Durée ── */}
+        <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
+          <h2 className="text-sm font-semibold text-gray-700">Durée du contrat</h2>
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date début</label>
-              <input type="date" value={form.date_debut} onChange={set('date_debut')}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <label className={lc}>Date du contrat</label>
+              <input type="date" value={form.date_contrat} onChange={set('date_contrat')} className={ic} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date fin</label>
-              <input type="date" value={form.date_fin} onChange={set('date_fin')}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <label className={lc}>Prise d'effet *</label>
+              <input type="date" value={form.date_debut} onChange={set('date_debut')} className={ic} />
+              {errMsg('date_debut')}
+            </div>
+            {isLocation && (
+              <div>
+                <label className={lc}>Date de fin</label>
+                <input type="date" value={form.date_fin} onChange={set('date_fin')}
+                  min={form.date_debut || undefined} className={ic} />
+                {errMsg('date_fin')}
+              </div>
+            )}
+            {duree && (
+              <div>
+                <label className={lc}>Durée (calculée)</label>
+                <input type="text" value={duree} disabled className={dc} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Conditions financières ── */}
+        <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
+          <h2 className="text-sm font-semibold text-gray-700">Conditions financières</h2>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className={lc}>Montant HT (TND) *</label>
+              <input type="number" step="0.001" value={form.montant_ht} onChange={set('montant_ht')}
+                placeholder="1500.000" className={ic} />
+              {errMsg('montant_ht')}
+            </div>
+            <div>
+              <label className={lc}>TVA (%)</label>
+              <input type="number" step="0.1" value={form.tva} onChange={set('tva')}
+                placeholder="19" className={ic} />
+            </div>
+            <div>
+              <label className={lc}>Montant TTC (calculé)</label>
+              <input type="text"
+                value={montantTtc ? `${Number(montantTtc).toLocaleString('fr-TN', { minimumFractionDigits: 3 })} TND` : ''}
+                disabled className={dc} />
             </div>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-            <textarea value={form.notes} onChange={set('notes')} rows={3}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={lc}>Frais de syndic (TND)</label>
+              <input type="number" step="0.001" value={form.frais_syndic} onChange={set('frais_syndic')}
+                placeholder="50.000" className={ic} />
+            </div>
+            <div>
+              <label className={lc}>Retenue à la source (%)</label>
+              <input type="number" step="0.1" value={form.retenue_source} onChange={set('retenue_source')}
+                placeholder="5" className={ic} />
+            </div>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={lc}>Périodicité</label>
+              <select value={form.periodicite_paiement} onChange={set('periodicite_paiement')} className={ic}>
+                <option value="">— Non précisée —</option>
+                {PERIODICITES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={lc}>Jour de paiement (1–28)</label>
+              <input type="number" min="1" max="28" value={form.jour_paiement} onChange={set('jour_paiement')}
+                placeholder="1" className={ic} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={lc}>Dépôt de garantie (TND)</label>
+              <input type="number" step="0.001" value={form.depot_garantie} onChange={set('depot_garantie')}
+                placeholder="3000.000" className={ic} />
+            </div>
+            <div>
+              <label className={lc}>
+                1ère échéance{form.periodicite_paiement && form.date_debut ? ' (auto-calculée)' : ''}
+              </label>
+              <input type="date" value={premiereEcheance}
+                onChange={e => setForm(p => ({ ...p, premiere_echeance: e.target.value }))}
+                className={ic} />
+            </div>
+          </div>
+        </div>
 
+        {/* ── Assurance & Notes ── */}
+        <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
+          <h2 className="text-sm font-semibold text-gray-700">Assurance & Notes</h2>
+          <div>
+            <label className={lc}>Assurance</label>
+            <textarea value={form.assurance} onChange={set('assurance')} rows={2}
+              placeholder="Références de l'assurance, compagnie, numéro de police…" className={ic} />
+          </div>
+          <div>
+            <label className={lc}>Notes internes</label>
+            <textarea value={form.notes} onChange={set('notes')} rows={2} className={ic} />
+          </div>
+        </div>
+
+        {/* ── Signature ── */}
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">Lieu de signature</h2>
+          <input type="text" value={form.ville_signature} onChange={set('ville_signature')}
+            placeholder="Tunis" className={ic} />
+        </div>
+
+        {/* ── Fichier PDF ── */}
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">Fichier contrat (PDF)</h2>
+          {contrat?.fichier
+            ? <p className="text-sm text-green-600 mb-3">✓ Fichier attaché</p>
+            : <p className="text-sm text-gray-400 mb-3">Aucun fichier.</p>}
+          <label className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg cursor-pointer transition inline-block">
+            {uploading ? 'Upload…' : 'Remplacer le fichier'}
+            <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={handleUploadFichier} />
+          </label>
+        </div>
+
+        {/* ── Actions ── */}
+        <div className="flex gap-3 pb-6">
           <button type="submit" disabled={saving}
             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
-        </form>
-      </div>
-
-      {/* Fichier PDF */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-sm font-semibold text-gray-700 mb-3">Fichier contrat (PDF)</h2>
-        {contrat?.fichier ? (
-          <p className="text-sm text-green-600 mb-3">✓ Fichier attaché</p>
-        ) : (
-          <p className="text-sm text-gray-400 mb-3">Aucun fichier.</p>
-        )}
-        <label className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg cursor-pointer transition inline-block">
-          {uploading ? 'Upload…' : 'Remplacer le fichier'}
-          <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={handleUploadFichier} />
-        </label>
-      </div>
+          <Link href="/dashboard/contrats"
+            className="px-6 py-2.5 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
+            Annuler
+          </Link>
+        </div>
+      </form>
     </div>
   );
 }

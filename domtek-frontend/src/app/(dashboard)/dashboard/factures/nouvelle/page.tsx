@@ -56,9 +56,9 @@ export default function NouvelleFacturePage() {
 
   // Biens uniques issus des contrats filtrés
   const biens = useMemo(() => {
-    const map = new Map<number, { id: number; titre: string }>();
+    const map = new Map<number, { id: number; designation: string }>();
     contratsFiltered.forEach((c) => {
-      if (c.bien?.id) map.set(c.bien.id, { id: c.bien.id, titre: c.bien.titre });
+      if (c.bien?.id) map.set(c.bien.id, { id: c.bien.id, designation: c.bien.designation ?? c.bien.titre ?? `Bien #${c.bien.id}` });
     });
     return Array.from(map.values());
   }, [contratsFiltered]);
@@ -127,7 +127,7 @@ export default function NouvelleFacturePage() {
               className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="">— Sélectionner un bien —</option>
               {biens.map((b) => (
-                <option key={b.id} value={b.id}>{b.titre}</option>
+                <option key={b.id} value={b.id}>{b.designation}</option>
               ))}
             </select>
             {biens.length === 0 && (
