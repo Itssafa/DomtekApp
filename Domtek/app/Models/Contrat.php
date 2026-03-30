@@ -13,15 +13,33 @@ class Contrat extends Model
 {
     use HasFactory, HasAuditColumns;
 
+    /** Types de location (loyers) */
+    const TYPES_LOCATION = [
+        'bail_habitation', 'bail_etudiant', 'bail_professionnel',
+        'bail_commercial', 'bail_saisonnier', 'loyer',
+    ];
+
     protected $fillable = [
         'organisation_id',
         'bien_id',
+        'designation',
+        'utilisation',
         'type',
         'date_debut',
         'date_fin',
-        'montant',
+        'montant_ht',
+        'tva',
+        'montant_ttc',
+        'frais_syndic',
+        'retenue_source',
+        'montant_paiement',
+        'periodicite_paiement',
+        'jour_paiement',
+        'depot_garantie',
+        'premiere_echeance',
         'statut',
         'fichier',
+        'assurance',
         'notes',
         'forme_juridique',
         'representant',
@@ -35,12 +53,24 @@ class Contrat extends Model
     protected function casts(): array
     {
         return [
-            'date_debut'     => 'date',
-            'date_fin'       => 'date',
-            'date_contrat'   => 'date',
-            'cin_delivree_le'=> 'date',
-            'montant'        => 'decimal:2',
+            'date_debut'       => 'date',
+            'date_fin'         => 'date',
+            'date_contrat'     => 'date',
+            'cin_delivree_le'  => 'date',
+            'premiere_echeance'=> 'date',
+            'montant_ht'       => 'decimal:2',
+            'tva'              => 'decimal:2',
+            'montant_ttc'      => 'decimal:2',
+            'frais_syndic'     => 'decimal:2',
+            'retenue_source'   => 'decimal:2',
+            'montant_paiement' => 'decimal:2',
+            'depot_garantie'   => 'decimal:2',
         ];
+    }
+
+    public function isLocationContract(): bool
+    {
+        return in_array($this->type, self::TYPES_LOCATION);
     }
 
     // --- Relations ---

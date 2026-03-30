@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\Organisation\ClientController;
 use App\Http\Controllers\Api\Organisation\ContratController;
 use App\Http\Controllers\Api\Organisation\EmployeController;
 use App\Http\Controllers\Api\Organisation\FactureController;
+use App\Http\Controllers\Api\Organisation\EtatLieuController;
+use App\Http\Controllers\Api\Organisation\VisiteController;
 use App\Http\Controllers\Api\Organisation\ImmeubleController;
 use App\Http\Controllers\Api\Organisation\InvestissementController;
 use App\Http\Controllers\Api\Public\AnnonceController as AnnoncePubliqueController;
@@ -81,8 +83,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Biens immobiliers
         Route::apiResource('biens', BienController::class);
-        Route::post('biens/{bien}/images',           [BienController::class, 'uploadImages']);
-        Route::delete('biens/{bien}/images/{image}', [BienController::class, 'deleteImage']);
+        Route::post('biens/{bien}/images',                    [BienController::class, 'uploadImages']);
+        Route::delete('biens/{bien}/images/{image}',          [BienController::class, 'deleteImage']);
+        Route::post('biens/{bien}/documents',                 [BienController::class, 'uploadDocument']);
+        Route::delete('biens/{bien}/documents/{document}',    [BienController::class, 'deleteDocument']);
 
         // Annonces (+ actions de statut + photos)
         Route::apiResource('annonces', AnnonceController::class);
@@ -110,6 +114,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Taux d'investissement
         Route::apiResource('investissements', InvestissementController::class);
+
+        // États des lieux
+        Route::apiResource('etat-lieux', EtatLieuController::class);
+
+        // Visites
+        Route::apiResource('visites', VisiteController::class);
 
         // Immeubles
         Route::apiResource('immeubles', ImmeubleController::class);

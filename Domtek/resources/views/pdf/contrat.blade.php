@@ -79,7 +79,23 @@
       </div>
     </div>
     <div class="contrat-meta">
-      <div class="contrat-title">Contrat de {{ $contrat->type === 'loyer' ? 'Location' : 'Vente' }}</div>
+      @php
+        $typeLabels = [
+          'bail_habitation'    => "Bail d'Habitation",
+          'bail_etudiant'      => "Bail Étudiant",
+          'bail_professionnel' => "Bail Professionnel",
+          'bail_commercial'    => "Bail Commercial",
+          'bail_saisonnier'    => "Bail Saisonnier",
+          'loyer'              => "Contrat de Location",
+          'vente'              => "Contrat de Vente",
+          'autre'              => "Contrat",
+        ];
+        $typeLabel = $typeLabels[$contrat->type] ?? ucfirst($contrat->type);
+      @endphp
+      <div class="contrat-title">{{ $typeLabel }}</div>
+      @if($contrat->designation)
+      <div class="contrat-sub" style="font-style:italic;margin-top:2px;">« {{ $contrat->designation }} »</div>
+      @endif
       <div class="contrat-sub">
         N° {{ $contrat->id }} —
         @if($contrat->date_contrat)
@@ -156,7 +172,7 @@
     <div class="bien-box">
       <div class="row">
         <span class="label">Désignation :</span>
-        <span class="value">{{ $contrat->bien->titre }} ({{ ucfirst($contrat->bien->type_bien) }})</span>
+        <span class="value">{{ $contrat->bien->designation }} ({{ ucfirst($contrat->bien->type_bien) }})</span>
       </div>
       <div class="row">
         <span class="label">Localisation :</span>
@@ -189,24 +205,63 @@
   {{-- Article 3 --}}
   <div class="article">
     <div class="article-title">Article 3 : Conditions financières</div>
-    <p>En contrepartie de cette mise à disposition, la Partie B s'oblige à verser à la Partie A la somme de :</p>
+    <p>En contrepartie de cette mise à disposition, la Partie B s'oblige à verser à la Partie A :</p>
     <div class="montant-box">
       <div class="row">
-        <span class="label">{{ $contrat->type === 'loyer' ? 'Loyer mensuel :' : 'Montant :' }}</span>
-        <span class="value">{{ number_format((float)$contrat->montant, 3, ',', ' ') }} Dinars Tunisiens (TND){{ $contrat->type === 'loyer' ? '/mois' : '' }}</span>
+        <span class="label">Montant HT :</span>
+        <span class="value">{{ number_format((float)$contrat->montant_ht, 3, ',', ' ') }} TND</span>
       </div>
+      @if($contrat->tva > 0)
       <div class="row">
-        <span class="label">Modalités :</span>
-        <span class="modalites">
-          @if($contrat->type === 'loyer')
-            Ce montant sera versé mensuellement, le premier de chaque mois, pendant toute la durée du contrat
-            (du {{ \Carbon\Carbon::parse($contrat->date_debut)->format('d/m/Y') }}
-            @if($contrat->date_fin) au {{ \Carbon\Carbon::parse($contrat->date_fin)->format('d/m/Y') }}@endif).
-          @else
-            Ce montant sera versé en un paiement unique à la date de signature du présent contrat.
-          @endif
-        </span>
+        <span class="label">TVA :</span>
+        <span class="value">{{ number_format((float)$contrat->tva, 1, ',', '') }}%</span>
       </div>
+      @endif
+      @if($contrat->montant_ttc)
+      <div class="row">
+        <span class="label">Montant TTC :</span>
+        <span class="value">{{ number_format((float)$contrat->montant_ttc, 3, ',', ' ') }} TND</span>
+      </div>
+      @endif
+      @if($contrat->frais_syndic)
+      <div class="row">
+        <span class="label">Frais syndic :</span>
+        <span class="value">{{ number_format((float)$contrat->frais_syndic, 3, ',', ' ') }} TND</span>
+      </div>
+      @endif
+      @if($contrat->retenue_source)
+      <div class="row">
+        <span class="label">Retenue à la source :</span>
+        <span class="value">{{ number_format((float)$contrat->retenue_source, 1, ',', '') }}%</span>
+      </div>
+      @endif
+      @if($contrat->montant_paiement)
+      <div class="row">
+        <span class="label">Montant à payer :</span>
+        <span class="value">{{ number_format((float)$contrat->montant_paiement, 3, ',', ' ') }} TND</span>
+      </div>
+      @endif
+      @if($contrat->periodicite_paiement)
+      @php
+        $periodiciteLabels = ['mensuel'=>'Mensuel','bimestriel'=>'Bimestriel','trimestriel'=>'Trimestriel','quadrimestriel'=>'Quadrimestriel','semestriel'=>'Semestriel','annuel'=>'Annuel'];
+      @endphp
+      <div class="row">
+        <span class="label">Périodicité :</span>
+        <span class="value">{{ $periodiciteLabels[$contrat->periodicite_paiement] ?? $contrat->periodicite_paiement }}@if($contrat->jour_paiement) — le {{ $contrat->jour_paiement }} de chaque mois@endif</span>
+      </div>
+      @endif
+      @if($contrat->premiere_echeance)
+      <div class="row">
+        <span class="label">1ère échéance :</span>
+        <span class="value">{{ \Carbon\Carbon::parse($contrat->premiere_echeance)->format('d/m/Y') }}</span>
+      </div>
+      @endif
+      @if($contrat->depot_garantie)
+      <div class="row">
+        <span class="label">Dépôt de garantie :</span>
+        <span class="value">{{ number_format((float)$contrat->depot_garantie, 3, ',', ' ') }} TND</span>
+      </div>
+      @endif
     </div>
   </div>
 

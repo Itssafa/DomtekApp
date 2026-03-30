@@ -17,18 +17,31 @@ class Bien extends Model
         'organisation_id',
         'immeuble_id',
         'bloc',
-        'titre',
+        'num',
+        'designation',
         'description',
+        'notes',
         'type_transaction',
+        'type_location',
         'type_bien',
         'prix',
+        'taxe_fonciere',
+        'regime_juridique',
         'superficie',
+        'superficie_commune',
         'adresse',
         'ville',
+        'pays',
+        'code_postal',
         'nb_pieces',
         'nb_chambres',
         'nb_salles_bain',
+        'nb_cuisine',
         'etage',
+        'date_construction',
+        'accepte_animaux',
+        'accepte_fumeurs',
+        'options',
         'statut',
         'created_by',
         'updated_by',
@@ -37,8 +50,14 @@ class Bien extends Model
     protected function casts(): array
     {
         return [
-            'prix'      => 'decimal:2',
-            'superficie' => 'decimal:2',
+            'prix'             => 'decimal:2',
+            'taxe_fonciere'    => 'decimal:2',
+            'superficie'       => 'decimal:2',
+            'superficie_commune' => 'decimal:2',
+            'accepte_animaux'  => 'boolean',
+            'accepte_fumeurs'  => 'boolean',
+            'options'          => 'array',
+            'date_construction' => 'date',
         ];
     }
 
@@ -72,5 +91,10 @@ class Bien extends Model
     public function contrats(): HasMany
     {
         return $this->hasMany(Contrat::class);
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(BienDocument::class);
     }
 }

@@ -10,9 +10,6 @@ use Illuminate\Support\Facades\Storage;
 
 class ContratService
 {
-    /**
-     * Liste paginée des contrats d'une organisation avec filtres optionnels.
-     */
     public function index(int $orgId, array $filters = []): LengthAwarePaginator
     {
         $query = Contrat::where('organisation_id', $orgId)
@@ -32,9 +29,6 @@ class ContratService
         return $query->latest()->paginate($perPage);
     }
 
-    /**
-     * Créer un nouveau contrat et mettre à jour le statut du bien.
-     */
     public function store(int $orgId, array $data): Contrat
     {
         Bien::where('id', $data['bien_id'])->where('organisation_id', $orgId)->firstOrFail();
@@ -43,19 +37,17 @@ class ContratService
         unset($data['client_ids']);
 
         $data['organisation_id'] = $orgId;
+
         $contrat = Contrat::create($data);
         $contrat->clients()->sync($clientIds);
 
-        Bien::find($data['bien_id'])->update([
-            'statut' => $data['type'] === 'vente' ? 'vendu' : 'loue',
-        ]);
+        // Mise à jour statut du bien selon le type de contrat
+        $nouveauStatut = in_array($data['type'], Contrat::TYPES_LOCATION) ? 'loue' : 'vendu';
+        Bien::find($data['bien_id'])->update(['statut' => $nouveauStatut]);
 
         return $contrat->load(['bien', 'clients']);
     }
 
-    /**
-     * Mettre à jour un contrat et libérer le bien si nécessaire.
-     */
     public function update(Contrat $contrat, array $data): Contrat
     {
         $contrat->update($data);
@@ -67,9 +59,6 @@ class ContratService
         return $contrat;
     }
 
-    /**
-     * Uploader le fichier PDF d'un contrat.
-     */
     public function uploadFichier(Contrat $contrat, UploadedFile $file, int $orgId): Contrat
     {
         if ($contrat->fichier) {
@@ -82,9 +71,6 @@ class ContratService
         return $contrat;
     }
 
-    /**
-     * Supprimer un contrat et son fichier PDF associé.
-     */
     public function destroy(Contrat $contrat): void
     {
         if ($contrat->fichier) {

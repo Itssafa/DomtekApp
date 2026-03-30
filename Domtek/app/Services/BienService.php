@@ -3,16 +3,15 @@
 namespace App\Services;
 
 use App\Models\Bien;
+use App\Models\BienDocument;
 use App\Models\BienImage;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 
 class BienService
 {
-    /**
-     * Liste paginée des biens d'une organisation avec filtres optionnels.
-     */
     public function index(int $orgId, array $filters = []): LengthAwarePaginator
     {
         $query = Bien::where('organisation_id', $orgId)
@@ -33,7 +32,7 @@ class BienService
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('titre', 'like', "%{$search}%")
+                $q->where('designation', 'like', "%{$search}%")
                   ->orWhere('ville', 'like', "%{$search}%")
                   ->orWhere('adresse', 'like', "%{$search}%");
             });
@@ -44,18 +43,12 @@ class BienService
         return $query->latest()->paginate($perPage);
     }
 
-    /**
-     * Créer un nouveau bien pour une organisation.
-     */
     public function store(int $orgId, array $data): Bien
     {
         $data['organisation_id'] = $orgId;
         return Bien::create($data);
     }
 
-    /**
-     * Mettre à jour un bien existant.
-     */
     public function update(Bien $bien, array $data): Bien
     {
         $bien->update($data);
@@ -63,15 +56,12 @@ class BienService
     }
 
     /**
-     * Uploader des images pour un bien.
-     *
      * @param  UploadedFile[]  $files
      */
     public function uploadImages(Bien $bien, array $files, ?int $imagePrincipaleIndex): array
     {
-        $uploaded = [];
-        $ordre = $bien->images()->max('ordre') ?? 0;
-
+        $uploaded  = [];
+        $ordre     = $bien->images()->max('ordre') ?? 0;
         $hasPrincipale = $bien->images()->where('is_principale', true)->exists();
 
         foreach ($files as $index => $file) {
@@ -95,22 +85,39 @@ class BienService
         return $uploaded;
     }
 
-    /**
-     * Supprimer une image d'un bien.
-     */
     public function deleteImage(Bien $bien, BienImage $image): void
     {
         Storage::disk('public')->delete($image->chemin);
         $image->delete();
     }
 
-    /**
-     * Supprimer un bien et toutes ses images.
-     */
+    public function uploadDocument(Bien $bien, Request $request): BienDocument
+    {
+        $file   = $request->file('document');
+        $nom    = $request->input('nom') ?: $file->getClientOriginalName();
+        $chemin = $file->store("biens/{$bien->id}/documents", 'public');
+
+        return BienDocument::create([
+            'bien_id'       => $bien->id,
+            'nom'           => $nom,
+            'chemin'        => $chemin,
+            'type_document' => $request->input('type_document'),
+        ]);
+    }
+
+    public function deleteDocument(Bien $bien, BienDocument $document): void
+    {
+        Storage::disk('public')->delete($document->chemin);
+        $document->delete();
+    }
+
     public function destroy(Bien $bien): void
     {
         foreach ($bien->images as $image) {
             Storage::disk('public')->delete($image->chemin);
+        }
+        foreach ($bien->documents as $doc) {
+            Storage::disk('public')->delete($doc->chemin);
         }
 
         $bien->delete();

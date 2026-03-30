@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Org\StoreBienRequest;
 use App\Http\Requests\Org\UpdateBienRequest;
 use App\Http\Requests\Org\UploadBienImagesRequest;
+use App\Http\Resources\BienDocumentResource;
 use App\Http\Resources\BienResource;
 use App\Models\Bien;
+use App\Models\BienDocument;
 use App\Models\BienImage;
 use App\Services\BienService;
 use Illuminate\Http\JsonResponse;
@@ -42,7 +44,7 @@ class BienController extends Controller
     public function show(Bien $bien): BienResource
     {
         $this->authorize('view', $bien);
-        $bien->load(['images', 'annonces', 'contrats.client']);
+        $bien->load(['images', 'documents', 'annonces', 'contrats.client']);
 
         return new BienResource($bien);
     }
@@ -63,6 +65,8 @@ class BienController extends Controller
 
         return response()->json(['message' => 'Bien supprimé avec succès.']);
     }
+
+    // ── Images ────────────────────────────────────────────────────────────────
 
     public function uploadImages(UploadBienImagesRequest $request, Bien $bien): JsonResponse
     {
@@ -86,5 +90,33 @@ class BienController extends Controller
         $this->service->deleteImage($bien, $image);
 
         return response()->json(['message' => 'Image supprimée.']);
+    }
+
+    // ── Documents ─────────────────────────────────────────────────────────────
+
+    public function uploadDocument(Request $request, Bien $bien): JsonResponse
+    {
+        $this->authorize('update', $bien);
+
+        $request->validate([
+            'document'      => ['required', 'file', 'max:10240'], // 10 Mo
+            'nom'           => ['nullable', 'string', 'max:255'],
+            'type_document' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $doc = $this->service->uploadDocument($bien, $request);
+
+        return response()->json([
+            'message'  => 'Document uploadé.',
+            'document' => new BienDocumentResource($doc),
+        ], 201);
+    }
+
+    public function deleteDocument(Bien $bien, BienDocument $document): JsonResponse
+    {
+        $this->authorize('update', $bien);
+        $this->service->deleteDocument($bien, $document);
+
+        return response()->json(['message' => 'Document supprimé.']);
     }
 }
