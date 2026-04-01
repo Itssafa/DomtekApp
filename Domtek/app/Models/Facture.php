@@ -29,6 +29,8 @@ class Facture extends Model
         'montant',
         'date_emission',
         'date_echeance',
+        'periode_debut',
+        'periode_fin',
         'statut',
         'reference',
         'notes',
@@ -41,9 +43,11 @@ class Facture extends Model
     protected function casts(): array
     {
         return [
-            'date_emission' => 'date',
-            'date_echeance' => 'date',
-            'montant'       => 'decimal:2',
+            'date_emission'  => 'date',
+            'date_echeance'  => 'date',
+            'periode_debut'  => 'date',
+            'periode_fin'    => 'date',
+            'montant'        => 'decimal:2',
         ];
     }
 

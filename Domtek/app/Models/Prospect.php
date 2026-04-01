@@ -48,11 +48,15 @@ class Prospect extends Model
         'adresse',
         'ville',
         'cin',
+        'cin_delivree_le',
+        'cin_delivree_a',
         'type_piece',
         'document_identite',
         'date_naissance',
         'lieu_naissance',
         'notes',
+        'source_connaissance',
+        'source_connaissance_detail',
         // Profil prospect
         'profession',
         'revenus_mensuels',
@@ -69,6 +73,7 @@ class Prospect extends Model
     {
         return [
             'date_naissance'     => 'date',
+            'cin_delivree_le'    => 'date',
             'composition_foyer'  => 'array',
             'biens_interet'      => 'array',
             'hierarchie_besoins' => 'array',

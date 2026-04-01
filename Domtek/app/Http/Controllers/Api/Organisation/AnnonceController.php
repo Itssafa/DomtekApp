@@ -25,7 +25,7 @@ class AnnonceController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $annonces = $this->service->index($this->orgId(), $request->only(['statut', 'per_page']));
+        $annonces = $this->service->index($this->orgId(), $request->only(['statut', 'search', 'per_page']));
 
         return AnnonceResource::collection($annonces);
     }

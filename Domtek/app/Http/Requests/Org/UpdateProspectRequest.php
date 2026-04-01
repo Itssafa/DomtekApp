@@ -25,7 +25,11 @@ class UpdateProspectRequest extends FormRequest
             'lieu_naissance'    => ['nullable', 'string', 'max:100'],
             'type_piece'        => ['nullable', 'in:CIN,Passeport'],
             'cin'               => ['nullable', 'string', 'max:20'],
+            'cin_delivree_le'   => ['nullable', 'date'],
+            'cin_delivree_a'    => ['nullable', 'string', 'max:100'],
             'notes'              => ['nullable', 'string'],
+            'source_connaissance'        => ['nullable', 'in:facebook,instagram,amis_famille,publicite,site_web,google,agence_partenaire,autre'],
+            'source_connaissance_detail' => ['nullable', 'string', 'max:150'],
             // Profil prospect
             'profession'         => ['nullable', 'string', 'max:150'],
             'revenus_mensuels'   => ['nullable', 'in:moins_1000,1000_2000,3000_6000,7000_10000,plus_10000'],

@@ -179,8 +179,12 @@ export interface Prospect {
   lieu_naissance: string | null;
   type_piece: 'CIN' | 'Passeport' | null;
   cin: string | null;
+  cin_delivree_le: string | null;
+  cin_delivree_a: string | null;
   document_url: string | null;
   notes: string | null;
+  source_connaissance: string | null;
+  source_connaissance_detail: string | null;
   profession: string | null;
   revenus_mensuels: RevenusClient | null;
   composition_foyer: string[];
@@ -289,6 +293,8 @@ export interface Facture {
   reference: string | null;
   date_emission: string;
   date_echeance: string;
+  periode_debut: string | null;
+  periode_fin: string | null;
   notes: string | null;
   client?: Client;
   contrat?: Contrat;

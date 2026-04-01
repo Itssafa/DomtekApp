@@ -20,6 +20,8 @@ class StoreFactureRequest extends FormRequest
             'montant'       => ['required', 'numeric', 'min:0'],
             'date_emission' => ['required', 'date'],
             'date_echeance' => ['required', 'date', 'after_or_equal:date_emission'],
+            'periode_debut' => ['nullable', 'date'],
+            'periode_fin'   => ['nullable', 'date', 'after_or_equal:periode_debut'],
             'reference'     => ['nullable', 'string', 'max:100'],
             'notes'         => ['nullable', 'string'],
         ];

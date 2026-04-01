@@ -26,6 +26,15 @@ class AnnonceService
             $query->where('statut', $filters['statut']);
         }
 
+        if (!empty($filters['search'])) {
+            $term = '%' . $filters['search'] . '%';
+            $query->where(function ($q) use ($term) {
+                $q->where('titre', 'like', $term)
+                  ->orWhere('description', 'like', $term)
+                  ->orWhereHas('bien', fn($b) => $b->where('designation', 'like', $term));
+            });
+        }
+
         $perPage = min((int) ($filters['per_page'] ?? 15), 200);
         return $query->latest()->paginate($perPage);
     }

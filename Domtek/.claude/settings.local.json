@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(php artisan migrate)",
-      "Bash(composer require laravel/sanctum)"
-    ]
-  }
-}

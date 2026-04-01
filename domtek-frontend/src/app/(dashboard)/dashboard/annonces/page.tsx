@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { Annonce, PaginatedResponse } from '@/types';
@@ -18,22 +18,35 @@ const STATUT_LABELS: Record<string, string> = {
 const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='14' font-family='sans-serif'%3EAucune photo%3C/text%3E%3C/svg%3E";
 
 export default function AnnoncesPage() {
-  const [data, setData]       = useState<PaginatedResponse<Annonce> | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [statut, setStatut]   = useState('');
-  const [page, setPage]       = useState(1);
+  const [data, setData]         = useState<PaginatedResponse<Annonce> | null>(null);
+  const [loading, setLoading]   = useState(true);
+  const [statut, setStatut]     = useState('');
+  const [search, setSearch]     = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [page, setPage]         = useState(1);
   const [actionId, setActionId] = useState<number | null>(null);
+  const debounceRef             = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSearchChange = (val: string) => {
+    setSearchInput(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearch(val);
+      setPage(1);
+    }, 350);
+  };
 
   const fetchAnnonces = useCallback(() => {
     setLoading(true);
     const params = new URLSearchParams();
     if (statut) params.set('statut', statut);
+    if (search) params.set('search', search);
     params.set('page', String(page));
     api.get<PaginatedResponse<Annonce>>(`/org/annonces?${params}`)
       .then(({ data: res }) => setData(res))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [statut, page]);
+  }, [statut, search, page]);
 
   useEffect(() => { fetchAnnonces(); }, [fetchAnnonces]);
 
@@ -67,8 +80,20 @@ export default function AnnoncesPage() {
         </Link>
       </div>
 
-      {/* Filtre statut */}
-      <div className="flex gap-3 mb-6">
+      {/* Filtres */}
+      <div className="flex gap-3 mb-6 flex-wrap">
+        <div className="relative">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+          </svg>
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Rechercher titre, bien…"
+            className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
         <select value={statut} onChange={(e) => { setStatut(e.target.value); setPage(1); }}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="">Tous les statuts</option>

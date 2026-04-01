@@ -91,8 +91,10 @@ export default function FicheProspectPage() {
     telephone: '', email: '', ville: '',
     date_naissance: '', lieu_naissance: '',
     type_piece: '', cin: '',
+    cin_delivree_le: '', cin_delivree_a: '',
     notes: '',
-    profession: '',
+    source_connaissance: '', source_connaissance_detail: '',
+    profession: '', profession_detail: '',
     revenus_mensuels: '',
     score_solvabilite: '',
     impression_premiere_visite: '',
@@ -128,8 +130,13 @@ export default function FicheProspectPage() {
           lieu_naissance:             pr.lieu_naissance ?? '',
           type_piece:                 pr.type_piece ?? '',
           cin:                        pr.cin ?? '',
+          cin_delivree_le:            pr.cin_delivree_le ?? '',
+          cin_delivree_a:             pr.cin_delivree_a ?? '',
           notes:                      pr.notes ?? '',
+          source_connaissance:        pr.source_connaissance ?? '',
+          source_connaissance_detail: pr.source_connaissance_detail ?? '',
           profession:                 pr.profession ?? '',
+          profession_detail:          '',
           revenus_mensuels:           pr.revenus_mensuels ?? '',
           score_solvabilite:          pr.score_solvabilite ?? '',
           impression_premiere_visite: pr.impression_premiere_visite ?? '',
@@ -160,8 +167,10 @@ export default function FicheProspectPage() {
     setErrors({});
     setSaving(true);
     try {
+      const professionFinale = form.profession === 'autre' ? (form.profession_detail || '') : form.profession;
       await api.put(`/org/prospects/${id}`, {
         ...form,
+        profession: professionFinale,
         composition_foyer:          compositionFoyer,
         biens_interet:              biensInteret,
         hierarchie_besoins:         visitEffectuee ? hierarchie : [],
@@ -270,6 +279,8 @@ export default function FicheProspectPage() {
               </select>
             </div>
             {inp('N° de pièce', 'cin')}
+            {inp('Délivrée le', 'cin_delivree_le', 'date')}
+            {inp('Délivrée à (ville)', 'cin_delivree_a', 'text', 'Tunis')}
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -297,10 +308,65 @@ export default function FicheProspectPage() {
             placeholder="Remarques internes…"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
 
+          {/* ── Source de connaissance ── */}
+          <Section title="Comment nous avez-vous connus ?" />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Canal</label>
+              <select value={form.source_connaissance} onChange={set('source_connaissance')}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">— Sélectionner —</option>
+                <option value="facebook">Facebook</option>
+                <option value="instagram">Instagram</option>
+                <option value="amis_famille">Amis / Famille</option>
+                <option value="publicite">Publicité (presse / TV / radio)</option>
+                <option value="site_web">Site web</option>
+                <option value="google">Google</option>
+                <option value="agence_partenaire">Agence partenaire</option>
+                <option value="autre">Autre (à préciser)</option>
+              </select>
+            </div>
+            {form.source_connaissance === 'autre' && (
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Préciser</label>
+                <input type="text" value={form.source_connaissance_detail}
+                  onChange={set('source_connaissance_detail')}
+                  placeholder="Ex : panneau publicitaire, salon immobilier…"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            )}
+          </div>
+
           {/* ── Profil Prospect ── */}
           <Section title="Profil Prospect" />
           <div className="grid grid-cols-2 gap-4">
-            {inp('Profession', 'profession', 'text', 'Ingénieur, médecin…')}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Profession</label>
+              <select value={form.profession} onChange={set('profession')}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">— Sélectionner —</option>
+                <option value="Salarié du privé">Salarié du privé</option>
+                <option value="Fonctionnaire / Salarié public">Fonctionnaire / Salarié public</option>
+                <option value="Médecin / Dentiste">Médecin / Dentiste</option>
+                <option value="Avocat / Notaire">Avocat / Notaire</option>
+                <option value="Ingénieur">Ingénieur</option>
+                <option value="Architecte">Architecte</option>
+                <option value="Enseignant / Formateur">Enseignant / Formateur</option>
+                <option value="Commerçant / Entrepreneur">Commerçant / Entrepreneur</option>
+                <option value="Profession libérale">Profession libérale</option>
+                <option value="Agriculteur">Agriculteur</option>
+                <option value="Retraité">Retraité</option>
+                <option value="Étudiant">Étudiant</option>
+                <option value="Sans emploi">Sans emploi</option>
+                <option value="autre">Autre (à préciser)</option>
+              </select>
+              {form.profession === 'autre' && (
+                <input type="text" value={form.profession_detail}
+                  onChange={set('profession_detail')}
+                  placeholder="Préciser la profession…"
+                  className="mt-2 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              )}
+            </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Revenus mensuels</label>
               <select value={form.revenus_mensuels} onChange={set('revenus_mensuels')}

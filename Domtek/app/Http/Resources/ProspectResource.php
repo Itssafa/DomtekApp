@@ -25,10 +25,14 @@ class ProspectResource extends JsonResource
             'lieu_naissance'     => $this->lieu_naissance,
             'type_piece'         => $this->type_piece,
             'cin'                => $this->cin,
+            'cin_delivree_le'    => $this->cin_delivree_le?->format('Y-m-d'),
+            'cin_delivree_a'     => $this->cin_delivree_a,
             'document_url'       => $this->document_identite
                                      ? asset('storage/' . $this->document_identite)
                                      : null,
-            'notes'              => $this->notes,
+            'notes'                      => $this->notes,
+            'source_connaissance'        => $this->source_connaissance,
+            'source_connaissance_detail' => $this->source_connaissance_detail,
             // Profil prospect
             'profession'         => $this->profession,
             'revenus_mensuels'   => $this->revenus_mensuels,

@@ -7,6 +7,11 @@ import api from '@/lib/api';
 import { Contrat } from '@/types';
 import { AxiosError } from 'axios';
 
+const TYPES_LOCATION = [
+  'bail_habitation', 'bail_etudiant', 'bail_professionnel',
+  'bail_commercial', 'bail_saisonnier', 'loyer',
+];
+
 const TYPE_OPTIONS = [
   { value: 'eau',             label: 'Eau' },
   { value: 'electricite_gaz', label: 'Électricité et Gaz' },
@@ -17,14 +22,16 @@ export default function NouvelleFacturePage() {
   const router = useRouter();
   const [contrats, setContrats] = useState<Contrat[]>([]);
   const [form, setForm] = useState({
-    type: 'eau',
-    bien_id: '',
-    client_id: '',
-    montant: '',
-    date_emission: '',
-    date_echeance: '',
-    reference: '',
-    notes: '',
+    type:           'eau',
+    bien_id:        '',
+    client_id:      '',
+    montant:        '',
+    date_emission:  '',
+    date_echeance:  '',
+    periode_debut:  '',
+    periode_fin:    '',
+    reference:      '',
+    notes:          '',
   });
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(false);
@@ -47,10 +54,10 @@ export default function NouvelleFacturePage() {
   const setBien = (e: React.ChangeEvent<HTMLSelectElement>) =>
     setForm((prev) => ({ ...prev, bien_id: e.target.value, client_id: '' }));
 
-  // Contrats filtrés selon le type de facture
+  // Pour les factures de loyer : seulement les biens avec un contrat de location actif
+  // Pour les autres types : tous les contrats actifs
   const contratsFiltered = useMemo(() => {
-    if (form.type === 'loyer') return contrats.filter((c) => c.type === 'loyer');
-    // eau / electricite_gaz : tous les contrats actifs (loyer + vente)
+    if (form.type === 'loyer') return contrats.filter((c) => TYPES_LOCATION.includes(c.type));
     return contrats;
   }, [form.type, contrats]);
 
@@ -58,7 +65,10 @@ export default function NouvelleFacturePage() {
   const biens = useMemo(() => {
     const map = new Map<number, { id: number; designation: string }>();
     contratsFiltered.forEach((c) => {
-      if (c.bien?.id) map.set(c.bien.id, { id: c.bien.id, designation: c.bien.designation ?? c.bien.titre ?? `Bien #${c.bien.id}` });
+      if (c.bien?.id) map.set(c.bien.id, {
+        id: c.bien.id,
+        designation: c.bien.designation ?? c.bien.titre ?? `Bien #${c.bien.id}`,
+      });
     });
     return Array.from(map.values());
   }, [contratsFiltered]);
@@ -83,8 +93,10 @@ export default function NouvelleFacturePage() {
         montant:       Number(form.montant),
         date_emission: form.date_emission,
         date_echeance: form.date_echeance,
-        reference:     form.reference || undefined,
-        notes:         form.notes || undefined,
+        periode_debut: form.periode_debut || undefined,
+        periode_fin:   form.periode_fin   || undefined,
+        reference:     form.reference     || undefined,
+        notes:         form.notes         || undefined,
       });
       router.push('/dashboard/factures');
     } catch (err) {
@@ -99,6 +111,8 @@ export default function NouvelleFacturePage() {
     ? <p className="text-red-500 text-xs mt-1">{errors[field][0]}</p>
     : null;
 
+  const ic = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+
   return (
     <div className="p-8 max-w-2xl">
       <div className="mb-6">
@@ -112,8 +126,7 @@ export default function NouvelleFacturePage() {
           {/* Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Type de facture</label>
-            <select value={form.type} onChange={setType}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select value={form.type} onChange={setType} className={ic}>
               {TYPE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
@@ -123,8 +136,7 @@ export default function NouvelleFacturePage() {
           {/* Bien */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Bien</label>
-            <select value={form.bien_id} onChange={setBien}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select value={form.bien_id} onChange={setBien} className={ic}>
               <option value="">— Sélectionner un bien —</option>
               {biens.map((b) => (
                 <option key={b.id} value={b.id}>{b.designation}</option>
@@ -141,8 +153,7 @@ export default function NouvelleFacturePage() {
           {selectedContrat && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
-              <select value={form.client_id} onChange={set('client_id')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select value={form.client_id} onChange={set('client_id')} className={ic}>
                 <option value="">— Sélectionner —</option>
                 {clientsDisponibles.map((c) => (
                   <option key={c.id} value={c.id}>{c.nom_complet}</option>
@@ -152,26 +163,44 @@ export default function NouvelleFacturePage() {
             </div>
           )}
 
+          {/* Période concernée */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Période concernée
+              <span className="text-gray-400 font-normal ml-1 text-xs">(optionnel — ex : facture d&apos;électricité du 01/03 au 31/03)</span>
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Du</label>
+                <input type="date" value={form.periode_debut} onChange={set('periode_debut')} className={ic} />
+                {err('periode_debut')}
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Au</label>
+                <input type="date" value={form.periode_fin} onChange={set('periode_fin')} className={ic} />
+                {err('periode_fin')}
+              </div>
+            </div>
+          </div>
+
           {/* Montant */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Montant (TND)</label>
             <input type="number" step="0.01" value={form.montant} onChange={set('montant')} placeholder="120.50"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className={ic} />
             {err('montant')}
           </div>
 
-          {/* Dates */}
+          {/* Dates d'émission / échéance */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date d'émission</label>
-              <input type="date" value={form.date_emission} onChange={set('date_emission')}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date d&apos;émission</label>
+              <input type="date" value={form.date_emission} onChange={set('date_emission')} className={ic} />
               {err('date_emission')}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date d'échéance</label>
-              <input type="date" value={form.date_echeance} onChange={set('date_echeance')}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date d&apos;échéance</label>
+              <input type="date" value={form.date_echeance} onChange={set('date_echeance')} className={ic} />
               {err('date_echeance')}
             </div>
           </div>
@@ -180,14 +209,13 @@ export default function NouvelleFacturePage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Référence</label>
             <input type="text" value={form.reference} onChange={set('reference')} placeholder="FACT-2025-001"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className={ic} />
           </div>
 
           {/* Notes */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-            <textarea value={form.notes} onChange={set('notes')} rows={2}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <textarea value={form.notes} onChange={set('notes')} rows={2} className={ic} />
           </div>
 
           <div className="flex gap-3 pt-2">

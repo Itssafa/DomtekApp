@@ -10,6 +10,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class ContratService
 {
@@ -28,6 +29,16 @@ class ContratService
             $query->whereHas('clients', fn($q) => $q->where('clients.id', $filters['client_id']));
         }
 
+        if (!empty($filters['search'])) {
+            $term = '%' . $filters['search'] . '%';
+            $query->where(function ($q) use ($term) {
+                $q->where('designation', 'like', $term)
+                  ->orWhereHas('bien', fn($b) => $b->where('designation', 'like', $term))
+                  ->orWhereHas('clients', fn($c) => $c->where('nom', 'like', $term)
+                      ->orWhere('prenom', 'like', $term));
+            });
+        }
+
         $perPage = min((int) ($filters['per_page'] ?? 15), 200);
         return $query->latest()->paginate($perPage);
     }
@@ -35,6 +46,31 @@ class ContratService
     public function store(int $orgId, array $data): Contrat
     {
         Bien::where('id', $data['bien_id'])->where('organisation_id', $orgId)->firstOrFail();
+
+        // ── Vérification chevauchement de période (locations uniquement) ──
+        if (in_array($data['type'], Contrat::TYPES_LOCATION)) {
+            $nouveauDebut = $data['date_debut'];
+            $nouveauFin   = $data['date_fin'] ?? null;  // null = contrat ouvert
+
+            $chevauchement = Contrat::where('bien_id', $data['bien_id'])
+                ->whereIn('type', Contrat::TYPES_LOCATION)
+                ->whereNotIn('statut', ['termine', 'resilie'])
+                ->where('date_debut', '<=', $nouveauFin ?? '9999-12-31')
+                ->where(function ($q) use ($nouveauDebut) {
+                    $q->whereNull('date_fin')
+                      ->orWhere('date_fin', '>=', $nouveauDebut);
+                })
+                ->exists();
+
+            if ($chevauchement) {
+                throw ValidationException::withMessages([
+                    'bien_id' => [
+                        'Ce bien est déjà lié à un contrat de location actif sur cette période. '
+                        . 'Veuillez choisir un autre bien ou modifier les dates.',
+                    ],
+                ]);
+            }
+        }
 
         // ── Résolution du client selon les 3 cas ──────────────────────────
         $clientIds = DB::transaction(function () use ($orgId, $data) {

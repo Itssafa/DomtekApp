@@ -17,6 +17,8 @@ class FactureResource extends JsonResource
             'reference'      => $this->reference,
             'date_emission'  => $this->date_emission->format('Y-m-d'),
             'date_echeance'  => $this->date_echeance->format('Y-m-d'),
+            'periode_debut'  => $this->periode_debut?->format('Y-m-d'),
+            'periode_fin'    => $this->periode_fin?->format('Y-m-d'),
             'notes'          => $this->notes,
             'client'         => new ClientResource($this->whenLoaded('client')),
             'contrat'        => new ContratResource($this->whenLoaded('contrat')),

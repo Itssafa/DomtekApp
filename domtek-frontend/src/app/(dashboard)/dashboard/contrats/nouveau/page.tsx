@@ -23,6 +23,9 @@ const TYPES_CONTRAT = [
 
 const TYPES_LOCATION = ['bail_habitation','bail_etudiant','bail_professionnel','bail_commercial','bail_saisonnier','loyer'];
 
+// Types affichés dans le sélecteur "Type" uniquement pour les contrats de location
+const TYPES_LOCATION_OPTS = TYPES_CONTRAT.filter(t => TYPES_LOCATION.includes(t.value));
+
 const UTILISATIONS = [
   { value: 'residence_primaire',   label: 'Résidence primaire' },
   { value: 'residence_secondaire', label: 'Résidence secondaire' },
@@ -100,6 +103,7 @@ interface PreviewProps {
   montantTtc: string;
   duree: string;
   premiereEcheance: string;
+  nature: 'location' | 'vente';
 }
 
 function Val({ v, ph }: { v: string | null | undefined; ph: string }) {
@@ -107,12 +111,12 @@ function Val({ v, ph }: { v: string | null | undefined; ph: string }) {
   return <span className="text-gray-300 italic">[{ph}]</span>;
 }
 
-function ContratPreview({ form, organisation, clientPreview, selectedBien, montantTtc, duree, premiereEcheance }: PreviewProps) {
+function ContratPreview({ form, organisation, clientPreview, selectedBien, montantTtc, duree, premiereEcheance, nature }: PreviewProps) {
   const orgAdresse    = [organisation?.adresse, organisation?.ville].filter(Boolean).join(', ');
   const clientAdresse = [clientPreview?.adresse, clientPreview?.ville].filter(Boolean).join(', ');
   const bienDesc      = selectedBien ? `${selectedBien.designation} (${selectedBien.type_bien})` : null;
   const bienLoc       = selectedBien ? [selectedBien.adresse, selectedBien.ville].filter(Boolean).join(', ') : null;
-  const isLocation    = TYPES_LOCATION.includes(form.type);
+  const isLocation    = nature === 'location';
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -170,7 +174,7 @@ function ContratPreview({ form, organisation, clientPreview, selectedBien, monta
             {form.retenue_source && <p><span className="text-gray-500">Retenue à la source :</span> <strong>{form.retenue_source}%</strong></p>}
             {form.periodicite_paiement && <p><span className="text-gray-500">Périodicité :</span> <strong>{PERIODICITES.find(p=>p.value===form.periodicite_paiement)?.label}</strong>{form.jour_paiement ? ` — chaque ${form.jour_paiement} du mois` : ''}</p>}
             {premiereEcheance && <p><span className="text-gray-500">1ère échéance :</span> <strong>{fmtDate(premiereEcheance)}</strong></p>}
-            {form.depot_garantie && <p><span className="text-gray-500">Dépôt de garantie :</span> <strong>{fmtMontant(form.depot_garantie)} TND</strong></p>}
+            {form.depot_garantie && <p><span className="text-gray-500">{nature === 'vente' ? 'Acompte' : 'Dépôt de garantie'} :</span> <strong>{fmtMontant(form.depot_garantie)} TND</strong></p>}
           </div>
         </div>
         <div className="border-t border-gray-200 pt-4">
@@ -233,6 +237,8 @@ export default function NouveauContratPage() {
   const router = useRouter();
   const { organisation } = useAuthStore();
 
+  const [nature, setNature]       = useState<'location' | 'vente'>('location');
+
   const [biens, setBiens]         = useState<Bien[]>([]);
   const [clients, setClients]     = useState<Client[]>([]);
   const [prospects, setProspects] = useState<Prospect[]>([]);
@@ -243,6 +249,10 @@ export default function NouveauContratPage() {
   const [clientId, setClientId]   = useState('');
   const [prospectId, setProspectId] = useState('');
   const [ncForm, setNcForm]       = useState(defaultNouveauClient());
+
+  const [contratsExistants, setContratsExistants] = useState<Array<{
+    date_debut: string; date_fin: string | null; statut: string; type: string; designation: string | null;
+  }>>([]);
 
   const [errors, setErrors]       = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState('');
@@ -266,6 +276,27 @@ export default function NouveauContratPage() {
     }
   }, [organisation]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Charger les contrats de location actifs du bien sélectionné
+  useEffect(() => {
+    if (!form.bien_id) { setContratsExistants([]); return; }
+    api.get(`/org/contrats?bien_id=${form.bien_id}&per_page=100`)
+      .then(r => setContratsExistants(r.data.data ?? []))
+      .catch(() => setContratsExistants([]));
+  }, [form.bien_id]);
+
+  const handleNatureChange = (n: 'location' | 'vente') => {
+    setNature(n);
+    setForm(prev => ({
+      ...prev,
+      type:                 n === 'vente' ? 'vente' : 'bail_habitation',
+      date_fin:             '',
+      frais_syndic:         '',
+      periodicite_paiement: n === 'location' ? 'mensuel' : '',
+      jour_paiement:        '',
+      premiere_echeance:    '',
+    }));
+  };
+
   const set = (field: string) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => setForm(p => ({ ...p, [field]: e.target.value }));
@@ -277,7 +308,7 @@ export default function NouveauContratPage() {
   const selectedBien    = biens.find(b => b.id === Number(form.bien_id)) ?? null;
   const selectedClient  = clients.find(c => c.id === Number(clientId)) ?? null;
   const selectedProspect = prospects.find(p => p.id === Number(prospectId)) ?? null;
-  const isLocation      = TYPES_LOCATION.includes(form.type);
+  const isLocation      = nature === 'location';
 
   // Objet unifié pour l'aperçu
   const clientPreview: ClientPreview | null = useMemo(() => {
@@ -310,6 +341,37 @@ export default function NouveauContratPage() {
     () => form.premiere_echeance || calcPremiereEcheance(form.date_debut, form.periodicite_paiement),
     [form.premiere_echeance, form.date_debut, form.periodicite_paiement]
   );
+
+  // Détection de chevauchement en temps réel
+  const conflitLocation = useMemo(() => {
+    if (!isLocation || !form.date_debut || !form.bien_id) return null;
+
+    const newDebut = new Date(form.date_debut);
+    const newFin   = form.date_fin ? new Date(form.date_fin) : null;
+
+    const contratEnConflit = contratsExistants.find(c => {
+      if (!TYPES_LOCATION.includes(c.type)) return false;
+      if (c.statut === 'termine' || c.statut === 'resilie') return false;
+
+      const exDebut = new Date(c.date_debut);
+      const exFin   = c.date_fin ? new Date(c.date_fin) : null;
+
+      // Chevauchement : newDebut ≤ exFin  ET  exDebut ≤ newFin
+      const newDebutOk = exFin === null || newDebut <= exFin;
+      const exDebutOk  = newFin === null || exDebut <= newFin;
+      return newDebutOk && exDebutOk;
+    });
+
+    if (!contratEnConflit) return null;
+
+    const debut = new Date(contratEnConflit.date_debut).toLocaleDateString('fr-FR');
+    const fin   = contratEnConflit.date_fin
+      ? new Date(contratEnConflit.date_fin).toLocaleDateString('fr-FR')
+      : 'indéterminée';
+    const label = contratEnConflit.designation ?? `Contrat du ${debut}`;
+
+    return `Ce bien est déjà loué du ${debut} au ${fin} (${label}).`;
+  }, [isLocation, form.bien_id, form.date_debut, form.date_fin, contratsExistants]);
 
   // Validation du champ Partie B pour le bouton submit
   const partieB_valide = useMemo(() => {
@@ -359,16 +421,16 @@ export default function NouveauContratPage() {
         cin_delivree_le:      form.cin_delivree_le || undefined,
         date_contrat:         form.date_contrat || undefined,
         date_debut:           form.date_debut,
-        date_fin:             isLocation ? (form.date_fin || undefined) : undefined,
+        date_fin:             nature === 'location' ? (form.date_fin || undefined) : undefined,
         montant_ht:           Number(form.montant_ht),
         tva:                  form.tva ? Number(form.tva) : 0,
         montant_ttc:          montantTtc ? Number(montantTtc) : undefined,
-        frais_syndic:         form.frais_syndic ? Number(form.frais_syndic) : undefined,
+        frais_syndic:         nature === 'location' && form.frais_syndic ? Number(form.frais_syndic) : undefined,
         retenue_source:       form.retenue_source ? Number(form.retenue_source) : undefined,
-        periodicite_paiement: form.periodicite_paiement || undefined,
-        jour_paiement:        form.jour_paiement ? Number(form.jour_paiement) : undefined,
+        periodicite_paiement: nature === 'location' ? (form.periodicite_paiement || undefined) : undefined,
+        jour_paiement:        nature === 'location' && form.jour_paiement ? Number(form.jour_paiement) : undefined,
         depot_garantie:       form.depot_garantie ? Number(form.depot_garantie) : undefined,
-        premiere_echeance:    premiereEcheance || undefined,
+        premiere_echeance:    nature === 'location' ? (premiereEcheance || undefined) : undefined,
         assurance:            form.assurance || undefined,
         ville_signature:      form.ville_signature || undefined,
         notes:                form.notes || undefined,
@@ -416,29 +478,55 @@ export default function NouveauContratPage() {
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{globalError}</div>
             )}
 
-            {/* ── Type & Désignation ── */}
-            <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
+            {/* ── Nature + Type & Désignation ── */}
+            <div className="bg-white rounded-xl shadow-sm p-5 space-y-4">
               <h2 className="text-sm font-semibold text-gray-700">Type de contrat</h2>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={lc}>Type *</label>
-                  <select value={form.type} onChange={set('type')} className={ic}>
-                    {TYPES_CONTRAT.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                  </select>
-                  {errMsg('type')}
-                </div>
-                <div>
-                  <label className={lc}>Utilisation</label>
-                  <select value={form.utilisation} onChange={set('utilisation')} className={ic}>
-                    <option value="">— Non précisée —</option>
-                    {UTILISATIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
-                  </select>
-                </div>
+
+              {/* Toggle Location / Vente */}
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => handleNatureChange('location')}
+                  className={`py-2.5 rounded-lg text-sm font-medium border transition ${
+                    nature === 'location'
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                  }`}>
+                  Location
+                </button>
+                <button type="button" onClick={() => handleNatureChange('vente')}
+                  className={`py-2.5 rounded-lg text-sm font-medium border transition ${
+                    nature === 'vente'
+                      ? 'bg-emerald-600 text-white border-emerald-600'
+                      : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                  }`}>
+                  Vente
+                </button>
               </div>
+
+              {/* Type + Utilisation — location uniquement */}
+              {nature === 'location' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={lc}>Type *</label>
+                    <select value={form.type} onChange={set('type')} className={ic}>
+                      {TYPES_LOCATION_OPTS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    </select>
+                    {errMsg('type')}
+                  </div>
+                  <div>
+                    <label className={lc}>Utilisation</label>
+                    <select value={form.utilisation} onChange={set('utilisation')} className={ic}>
+                      <option value="">— Non précisée —</option>
+                      {UTILISATIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className={lc}>Désignation du contrat</label>
                 <input type="text" value={form.designation} onChange={set('designation')}
-                  placeholder="Ex : Bail appartement F3 — Ref 2026-001" className={ic} />
+                  placeholder={nature === 'vente' ? 'Ex : Vente appartement F3 — Ref 2026-001' : 'Ex : Bail appartement F3 — Ref 2026-001'}
+                  className={ic} />
               </div>
             </div>
 
@@ -683,6 +771,20 @@ export default function NouveauContratPage() {
                   </div>
                 )}
               </div>
+
+              {/* Avertissement chevauchement */}
+              {conflitLocation && (
+                <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-300 rounded-lg text-sm text-amber-800">
+                  <svg className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                  <div>
+                    <p className="font-semibold">Période indisponible</p>
+                    <p className="text-xs mt-0.5 text-amber-700">{conflitLocation}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* ── Conditions financières ── */}
@@ -705,44 +807,56 @@ export default function NouveauContratPage() {
                   <input type="text" value={montantTtc ? `${Number(montantTtc).toLocaleString('fr-TN', {minimumFractionDigits: 3})} TND` : ''} disabled className={dc} />
                 </div>
               </div>
+
+              {/* Frais syndic + Retenue — location uniquement pour syndic */}
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={lc}>Frais de syndic (TND)</label>
-                  <input type="number" step="0.001" value={form.frais_syndic} onChange={set('frais_syndic')}
-                    placeholder="50.000" className={ic} />
-                </div>
+                {nature === 'location' && (
+                  <div>
+                    <label className={lc}>Frais de syndic (TND)</label>
+                    <input type="number" step="0.001" value={form.frais_syndic} onChange={set('frais_syndic')}
+                      placeholder="50.000" className={ic} />
+                  </div>
+                )}
                 <div>
                   <label className={lc}>Retenue à la source (%)</label>
                   <input type="number" step="0.1" value={form.retenue_source} onChange={set('retenue_source')}
                     placeholder="5" className={ic} />
                 </div>
               </div>
+
+              {/* Périodicité + Jour de paiement — location uniquement */}
+              {nature === 'location' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={lc}>Périodicité</label>
+                    <select value={form.periodicite_paiement} onChange={set('periodicite_paiement')} className={ic}>
+                      <option value="">— Non précisée —</option>
+                      {PERIODICITES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={lc}>Jour de paiement (1–28)</label>
+                    <input type="number" min="1" max="28" value={form.jour_paiement} onChange={set('jour_paiement')}
+                      placeholder="1" className={ic} />
+                  </div>
+                </div>
+              )}
+
+              {/* Dépôt de garantie / Acompte + 1ère échéance */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={lc}>Périodicité</label>
-                  <select value={form.periodicite_paiement} onChange={set('periodicite_paiement')} className={ic}>
-                    <option value="">— Non précisée —</option>
-                    {PERIODICITES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className={lc}>Jour de paiement (1–28)</label>
-                  <input type="number" min="1" max="28" value={form.jour_paiement} onChange={set('jour_paiement')}
-                    placeholder="1" className={ic} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={lc}>Dépôt de garantie (TND)</label>
+                  <label className={lc}>{nature === 'vente' ? 'Acompte (TND)' : 'Dépôt de garantie (TND)'}</label>
                   <input type="number" step="0.001" value={form.depot_garantie} onChange={set('depot_garantie')}
                     placeholder="3000.000" className={ic} />
                 </div>
-                <div>
-                  <label className={lc}>1ère échéance{form.periodicite_paiement && form.date_debut ? ' (auto-calculée)' : ''}</label>
-                  <input type="date" value={premiereEcheance}
-                    onChange={e => setForm(p => ({ ...p, premiere_echeance: e.target.value }))}
-                    className={ic} />
-                </div>
+                {nature === 'location' && (
+                  <div>
+                    <label className={lc}>1ère échéance{form.periodicite_paiement && form.date_debut ? ' (auto-calculée)' : ''}</label>
+                    <input type="date" value={premiereEcheance}
+                      onChange={e => setForm(p => ({ ...p, premiere_echeance: e.target.value }))}
+                      className={ic} />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -773,7 +887,7 @@ export default function NouveauContratPage() {
             {/* ── Actions ── */}
             <div className="flex gap-3 pb-6">
               <button type="submit"
-                disabled={loading || !partieB_valide || !form.bien_id || !form.date_debut || !form.montant_ht}
+                disabled={loading || !partieB_valide || !form.bien_id || !form.date_debut || !form.montant_ht || !!conflitLocation}
                 className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
                 {loading ? 'Enregistrement…' : 'Créer le contrat'}
               </button>
@@ -794,6 +908,7 @@ export default function NouveauContratPage() {
               montantTtc={montantTtc}
               duree={duree}
               premiereEcheance={premiereEcheance}
+              nature={nature}
             />
           </div>
         </div>

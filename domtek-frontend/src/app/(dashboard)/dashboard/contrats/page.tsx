@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { Contrat, PaginatedResponse } from '@/types';
@@ -208,14 +208,26 @@ export default function ContratsPage() {
   const [loading, setLoading]     = useState(true);
   const [statut, setStatut]       = useState('');
   const [type, setType]           = useState('');
+  const [search, setSearch]       = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [page, setPage]           = useState(1);
   const [deleting, setDeleting]   = useState<number | null>(null);
   const [downloading, setDownloading] = useState<number | null>(null);
   const [expanded, setExpanded]   = useState<Set<number>>(new Set());
+  const debounceRef               = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Modales
   const [modalRevision, setModalRevision] = useState<Contrat | null>(null);
   const [modalTerminer, setModalTerminer] = useState<Contrat | null>(null);
+
+  const handleSearchChange = (val: string) => {
+    setSearchInput(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearch(val);
+      setPage(1);
+    }, 350);
+  };
 
   const toggleExpand = (id: number) =>
     setExpanded(prev => {
@@ -229,12 +241,13 @@ export default function ContratsPage() {
     const params = new URLSearchParams();
     if (statut) params.set('statut', statut);
     if (type)   params.set('type', type);
+    if (search) params.set('search', search);
     params.set('page', String(page));
     api.get<PaginatedResponse<Contrat>>(`/org/contrats?${params}`)
       .then(({ data: res }) => setData(res))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [statut, type, page]);
+  }, [statut, type, search, page]);
 
   useEffect(() => { fetchContrats(); }, [fetchContrats]);
 
@@ -290,7 +303,19 @@ export default function ContratsPage() {
       </div>
 
       {/* Filtres */}
-      <div className="flex gap-3 mb-6">
+      <div className="flex gap-3 mb-6 flex-wrap">
+        <div className="relative">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+          </svg>
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Rechercher désignation, bien, client…"
+            className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm w-72 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
         <select value={type} onChange={e => { setType(e.target.value); setPage(1); }}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="">Tous types</option>
