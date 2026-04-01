@@ -49,9 +49,9 @@ export const ROUTES = {
     facture: (id: number) => `/dashboard/factures/${id}`,
     nouvelleFacture: '/dashboard/factures/nouvelle',
 
-    clients: '/dashboard/clients',
-    client: (id: number) => `/dashboard/clients/${id}`,
-    nouveauClient: '/dashboard/clients/nouveau',
+    prospects: '/dashboard/prospects',
+    prospect: (id: number) => `/dashboard/prospects/${id}`,
+    nouveauProspect: '/dashboard/prospects/nouveau',
 
     employes: '/dashboard/employes',
     employe: (id: number) => `/dashboard/employes/${id}`,

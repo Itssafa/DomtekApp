@@ -10,15 +10,21 @@ class VisiteResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'          => $this->id,
-            'nom_agent'   => $this->nom_agent,
-            'date_visite' => $this->date_visite?->toDateTimeString(),
-            'statut'      => $this->statut,
-            'notes'       => $this->notes,
-            'client'      => $this->whenLoaded('client', fn () => [
-                'id'         => $this->client->id,
-                'nom_complet'=> $this->client->nom_complet,
-                'telephone'  => $this->client->telephone,
+            'id'               => $this->id,
+            'nom_agent'        => $this->nom_agent,
+            'date_visite'      => $this->date_visite?->toDateTimeString(),
+            'statut'           => $this->statut,
+            'impression_client'=> $this->impression_client,
+            'notes'            => $this->notes,
+            'prospect'    => $this->whenLoaded('prospect', fn () => [
+                'id'         => $this->prospect->id,
+                'nom_complet'=> $this->prospect->nom_complet,
+                'telephone'  => $this->prospect->telephone,
+            ]),
+            'client'      => $this->whenLoaded('prospect', fn () => [
+                'id'         => $this->prospect->id,
+                'nom_complet'=> $this->prospect->nom_complet,
+                'telephone'  => $this->prospect->telephone,
             ]),
             'bien'        => $this->whenLoaded('bien', fn () => [
                 'id'          => $this->bien->id,

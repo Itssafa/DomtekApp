@@ -17,7 +17,7 @@ const statCards = (s: DashStats) => [
   { label: 'Biens', value: s.biens, href: '/dashboard/biens', color: 'text-blue-600', bg: 'bg-blue-50' },
   { label: 'Annonces publiées', value: s.annonces_publiees, href: '/dashboard/annonces', color: 'text-green-600', bg: 'bg-green-50' },
   { label: 'Contrats actifs', value: s.contrats_actifs, href: '/dashboard/contrats', color: 'text-purple-600', bg: 'bg-purple-50' },
-  { label: 'Clients', value: s.clients, href: '/dashboard/clients', color: 'text-orange-600', bg: 'bg-orange-50' },
+  { label: 'Prospects', value: s.clients, href: '/dashboard/prospects', color: 'text-orange-600', bg: 'bg-orange-50' },
   { label: 'Employés', value: s.employes, href: '/dashboard/employes', color: 'text-teal-600', bg: 'bg-teal-50' },
   { label: 'Factures en attente', value: s.factures_en_attente, href: '/dashboard/factures', color: 'text-red-600', bg: 'bg-red-50' },
 ];
@@ -31,7 +31,7 @@ export default function DashboardPage() {
       api.get('/org/biens?per_page=1'),
       api.get('/org/annonces?statut=publiee&per_page=1'),
       api.get('/org/contrats?statut=actif&per_page=1'),
-      api.get('/org/clients?per_page=1'),
+      api.get('/org/prospects?per_page=1'),
       api.get('/org/employes?per_page=1'),
       api.get('/org/factures?statut=en_attente&per_page=1'),
     ])
@@ -85,7 +85,7 @@ export default function DashboardPage() {
             { href: '/dashboard/biens/nouveau', label: '+ Nouveau bien' },
             { href: '/dashboard/annonces/nouvelle', label: '+ Nouvelle annonce' },
             { href: '/dashboard/contrats/nouveau', label: '+ Nouveau contrat' },
-            { href: '/dashboard/clients/nouveau', label: '+ Nouveau client' },
+            { href: '/dashboard/prospects/nouveau', label: '+ Nouveau prospect' },
             { href: '/dashboard/factures/nouvelle', label: '+ Nouvelle facture' },
           ].map((a) => (
             <Link

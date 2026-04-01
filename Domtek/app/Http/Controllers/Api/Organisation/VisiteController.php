@@ -24,7 +24,7 @@ class VisiteController extends Controller
     {
         return VisiteResource::collection(
             $this->service->index($this->orgId(), $request->only([
-                'statut', 'client_id', 'per_page',
+                'statut', 'prospect_id', 'per_page',
             ]))
         );
     }
@@ -39,7 +39,7 @@ class VisiteController extends Controller
     public function show(Visite $visite): VisiteResource
     {
         $this->authorize('view', $visite);
-        $visite->load(['client', 'bien']);
+        $visite->load(['prospect', 'bien']);
         return new VisiteResource($visite);
     }
 
@@ -47,7 +47,7 @@ class VisiteController extends Controller
     {
         $this->authorize('update', $visite);
         $data = $request->validate([
-            'client_id'   => ['sometimes', 'integer', 'exists:clients,id'],
+            'prospect_id' => ['sometimes', 'integer', 'exists:prospects,id'],
             'bien_id'     => ['sometimes', 'integer', 'exists:biens,id'],
             'nom_agent'   => ['sometimes', 'string', 'max:255'],
             'date_visite' => ['sometimes', 'date'],

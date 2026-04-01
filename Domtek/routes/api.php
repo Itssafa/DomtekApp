@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Admin\OrganisationController as AdminOrganisationCo
 use App\Http\Controllers\Api\Organisation\AnnonceController;
 use App\Http\Controllers\Api\Organisation\BienController;
 use App\Http\Controllers\Api\Organisation\ClientController;
+use App\Http\Controllers\Api\Organisation\ProspectController;
 use App\Http\Controllers\Api\Organisation\ContratController;
 use App\Http\Controllers\Api\Organisation\EmployeController;
 use App\Http\Controllers\Api\Organisation\FactureController;
@@ -105,9 +106,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('factures/{facture}/payer', [FactureController::class, 'marquerPayee']);
         Route::get('factures/{facture}/pdf',     [FactureController::class, 'telechargerPdf']);
 
-        // CRM Clients
+        // CRM Clients (ayant signé un contrat)
         Route::apiResource('clients', ClientController::class);
         Route::post('clients/{client}/document', [ClientController::class, 'uploadDocument']);
+
+        // CRM Prospects
+        Route::apiResource('prospects', ProspectController::class);
+        Route::post('prospects/{prospect}/document', [ProspectController::class, 'uploadDocument']);
 
         // CRM Employés
         Route::apiResource('employes', EmployeController::class);

@@ -72,6 +72,11 @@ class Organisation extends Model
         return $this->hasMany(Facture::class);
     }
 
+    public function prospects(): HasMany
+    {
+        return $this->hasMany(Prospect::class);
+    }
+
     public function clients(): HasMany
     {
         return $this->hasMany(Client::class);

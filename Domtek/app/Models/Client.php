@@ -6,6 +6,7 @@ use App\Traits\HasAuditColumns;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Client extends Model
@@ -14,7 +15,6 @@ class Client extends Model
 
     protected $fillable = [
         'organisation_id',
-        'user_id',
         'civilite',
         'nom',
         'prenom',
@@ -22,11 +22,11 @@ class Client extends Model
         'telephone',
         'adresse',
         'ville',
-        'cin',
-        'type_piece',
-        'document_identite',
         'date_naissance',
         'lieu_naissance',
+        'type_piece',
+        'cin',
+        'document_identite',
         'urgence_nom',
         'urgence_telephone',
         'urgence_relation',
@@ -42,6 +42,11 @@ class Client extends Model
         ];
     }
 
+    public function getNomCompletAttribute(): string
+    {
+        return trim(($this->civilite ? $this->civilite . ' ' : '') . $this->prenom . ' ' . $this->nom);
+    }
+
     // --- Relations ---
 
     public function organisation(): BelongsTo
@@ -49,18 +54,13 @@ class Client extends Model
         return $this->belongsTo(Organisation::class);
     }
 
-    public function user(): BelongsTo
+    public function contrats(): BelongsToMany
     {
-        return $this->belongsTo(User::class);
-    }
-
-    public function contrats(): HasMany
-    {
-        return $this->hasMany(Contrat::class);
+        return $this->belongsToMany(Contrat::class, 'client_contrat');
     }
 
     public function factures(): HasMany
     {
-        return $this->hasMany(Facture::class);
+        return $this->hasMany(Facture::class, 'client_id');
     }
 }

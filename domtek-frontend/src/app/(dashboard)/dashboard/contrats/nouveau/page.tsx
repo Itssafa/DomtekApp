@@ -5,20 +5,20 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
-import { Bien, Client, Organisation } from '@/types';
+import { Bien, Client, Organisation, Prospect } from '@/types';
 import { AxiosError } from 'axios';
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 const TYPES_CONTRAT = [
-  { value: 'bail_habitation',   label: 'Bail d\'habitation' },
-  { value: 'bail_etudiant',     label: 'Bail étudiant' },
-  { value: 'bail_professionnel',label: 'Bail professionnel' },
-  { value: 'bail_commercial',   label: 'Bail commercial' },
-  { value: 'bail_saisonnier',   label: 'Bail saisonnier' },
-  { value: 'loyer',             label: 'Location (général)' },
-  { value: 'vente',             label: 'Vente' },
-  { value: 'autre',             label: 'Autre' },
+  { value: 'bail_habitation',    label: 'Bail d\'habitation' },
+  { value: 'bail_etudiant',      label: 'Bail étudiant' },
+  { value: 'bail_professionnel', label: 'Bail professionnel' },
+  { value: 'bail_commercial',    label: 'Bail commercial' },
+  { value: 'bail_saisonnier',    label: 'Bail saisonnier' },
+  { value: 'loyer',              label: 'Location (général)' },
+  { value: 'vente',              label: 'Vente' },
+  { value: 'autre',              label: 'Autre' },
 ];
 
 const TYPES_LOCATION = ['bail_habitation','bail_etudiant','bail_professionnel','bail_commercial','bail_saisonnier','loyer'];
@@ -32,12 +32,12 @@ const UTILISATIONS = [
 ];
 
 const PERIODICITES = [
-  { value: 'mensuel',         label: 'Mensuel' },
-  { value: 'bimestriel',      label: 'Bimestriel (tous les 2 mois)' },
-  { value: 'trimestriel',     label: 'Trimestriel (tous les 3 mois)' },
-  { value: 'quadrimestriel',  label: 'Quadrimestriel (tous les 4 mois)' },
-  { value: 'semestriel',      label: 'Semestriel (tous les 6 mois)' },
-  { value: 'annuel',          label: 'Annuel' },
+  { value: 'mensuel',        label: 'Mensuel' },
+  { value: 'bimestriel',     label: 'Bimestriel (tous les 2 mois)' },
+  { value: 'trimestriel',    label: 'Trimestriel (tous les 3 mois)' },
+  { value: 'quadrimestriel', label: 'Quadrimestriel (tous les 4 mois)' },
+  { value: 'semestriel',     label: 'Semestriel (tous les 6 mois)' },
+  { value: 'annuel',         label: 'Annuel' },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -77,12 +77,25 @@ function typeLabel(type: string): string {
   return TYPES_CONTRAT.find(t => t.value === type)?.label ?? type;
 }
 
+// ─── Types locaux ─────────────────────────────────────────────────────────────
+
+type ModePB = 'client_existant' | 'prospect' | 'nouveau_client';
+
+interface ClientPreview {
+  civilite?: string | null;
+  nom_complet?: string;
+  date_naissance?: string | null;
+  cin?: string | null;
+  adresse?: string | null;
+  ville?: string | null;
+}
+
 // ─── Aperçu du contrat ────────────────────────────────────────────────────────
 
 interface PreviewProps {
   form: ReturnType<typeof defaultForm>;
   organisation: Organisation | null;
-  selectedClient: Client | null;
+  clientPreview: ClientPreview | null;
   selectedBien: Bien | null;
   montantTtc: string;
   duree: string;
@@ -94,9 +107,9 @@ function Val({ v, ph }: { v: string | null | undefined; ph: string }) {
   return <span className="text-gray-300 italic">[{ph}]</span>;
 }
 
-function ContratPreview({ form, organisation, selectedClient, selectedBien, montantTtc, duree, premiereEcheance }: PreviewProps) {
+function ContratPreview({ form, organisation, clientPreview, selectedBien, montantTtc, duree, premiereEcheance }: PreviewProps) {
   const orgAdresse    = [organisation?.adresse, organisation?.ville].filter(Boolean).join(', ');
-  const clientAdresse = [selectedClient?.adresse, selectedClient?.ville].filter(Boolean).join(', ');
+  const clientAdresse = [clientPreview?.adresse, clientPreview?.ville].filter(Boolean).join(', ');
   const bienDesc      = selectedBien ? `${selectedBien.designation} (${selectedBien.type_bien})` : null;
   const bienLoc       = selectedBien ? [selectedBien.adresse, selectedBien.ville].filter(Boolean).join(', ') : null;
   const isLocation    = TYPES_LOCATION.includes(form.type);
@@ -123,9 +136,9 @@ function ContratPreview({ form, organisation, selectedClient, selectedBien, mont
         <p className="text-center font-bold text-gray-600">ET</p>
         <div className="pl-4 border-l-2 border-green-200">
           <p><strong>2.</strong>{' '}
-            <Val v={selectedClient ? `${selectedClient.civilite ?? ''} ${selectedClient.nom_complet}`.trim() : null} ph="Client" />,{' '}
-            né(e) le <Val v={selectedClient?.date_naissance ? fmtDate(selectedClient.date_naissance) : null} ph="Date naissance" />,{' '}
-            CIN n° <Val v={selectedClient?.cin} ph="CIN" />{' '}
+            <Val v={clientPreview ? `${clientPreview.civilite ?? ''} ${clientPreview.nom_complet ?? ''}`.trim() : null} ph="Client" />,{' '}
+            né(e) le <Val v={clientPreview?.date_naissance ? fmtDate(clientPreview.date_naissance) : null} ph="Date naissance" />,{' '}
+            CIN n° <Val v={clientPreview?.cin} ph="CIN" />{' '}
             délivrée le <Val v={form.cin_delivree_le ? fmtDate(form.cin_delivree_le) : null} ph="Date délivrance" />,{' '}
             demeurant à <Val v={clientAdresse || null} ph="Adresse" />.</p>
           <p className="mt-1 text-gray-500 italic">Ci-après <strong className="not-italic text-gray-700">"La Partie B"</strong>.</p>
@@ -164,7 +177,7 @@ function ContratPreview({ form, organisation, selectedClient, selectedBien, mont
           <p>Fait à <Val v={form.ville_signature} ph="Ville" />, le <Val v={fmtDate(form.date_contrat)} ph="Date" /> en deux exemplaires.</p>
           <div className="grid grid-cols-2 gap-8 mt-4">
             <div className="text-center"><div className="h-10 border-b border-gray-300"/><p className="text-xs text-gray-500 mt-1">La Partie A — {organisation?.nom ?? ''}</p></div>
-            <div className="text-center"><div className="h-10 border-b border-gray-300"/><p className="text-xs text-gray-500 mt-1">La Partie B — {selectedClient?.nom_complet ?? ''}</p></div>
+            <div className="text-center"><div className="h-10 border-b border-gray-300"/><p className="text-xs text-gray-500 mt-1">La Partie B — {clientPreview?.nom_complet ?? ''}</p></div>
           </div>
         </div>
       </div>
@@ -176,28 +189,41 @@ function ContratPreview({ form, organisation, selectedClient, selectedBien, mont
 
 function defaultForm() {
   return {
-    type:                  'bail_habitation',
-    designation:           '',
-    utilisation:           '',
-    forme_juridique:       '',
-    representant:          '',
-    bien_id:               '',
-    client_id:             '',
-    cin_delivree_le:       '',
-    date_contrat:          new Date().toISOString().split('T')[0],
-    date_debut:            '',
-    date_fin:              '',
-    montant_ht:            '',
-    tva:                   '19',
-    frais_syndic:          '',
-    retenue_source:        '',
-    periodicite_paiement:  'mensuel',
-    jour_paiement:         '',
-    depot_garantie:        '',
-    premiere_echeance:     '',
-    assurance:             '',
-    ville_signature:       '',
-    notes:                 '',
+    type:                 'bail_habitation',
+    designation:          '',
+    utilisation:          '',
+    forme_juridique:      '',
+    representant:         '',
+    bien_id:              '',
+    cin_delivree_le:      '',
+    date_contrat:         new Date().toISOString().split('T')[0],
+    date_debut:           '',
+    date_fin:             '',
+    montant_ht:           '',
+    tva:                  '19',
+    frais_syndic:         '',
+    retenue_source:       '',
+    periodicite_paiement: 'mensuel',
+    jour_paiement:        '',
+    depot_garantie:       '',
+    premiere_echeance:    '',
+    assurance:            '',
+    ville_signature:      '',
+    notes:                '',
+  };
+}
+
+function defaultNouveauClient() {
+  return {
+    civilite:       '',
+    nom:            '',
+    prenom:         '',
+    email:          '',
+    telephone:      '',
+    adresse:        '',
+    ville:          '',
+    cin:            '',
+    date_naissance: '',
   };
 }
 
@@ -207,26 +233,36 @@ export default function NouveauContratPage() {
   const router = useRouter();
   const { organisation } = useAuthStore();
 
-  const [biens, setBiens]     = useState<Bien[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
-  const [form, setForm]       = useState(defaultForm());
-  const [errors, setErrors]   = useState<Record<string, string[]>>({});
+  const [biens, setBiens]         = useState<Bien[]>([]);
+  const [clients, setClients]     = useState<Client[]>([]);
+  const [prospects, setProspects] = useState<Prospect[]>([]);
+  const [form, setForm]           = useState(defaultForm());
+  const [modePB, setModePB]       = useState<ModePB>('client_existant');
+
+  // Sélection selon le mode
+  const [clientId, setClientId]   = useState('');
+  const [prospectId, setProspectId] = useState('');
+  const [ncForm, setNcForm]       = useState(defaultNouveauClient());
+
+  const [errors, setErrors]       = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]     = useState(false);
 
   useEffect(() => {
-    Promise.all([
+    Promise.allSettled([
       api.get('/org/biens?per_page=200'),
       api.get('/org/clients?per_page=200'),
-    ]).then(([b, c]) => {
-      setBiens(b.data.data ?? []);
-      setClients(c.data.data ?? []);
-    }).catch(() => {});
+      api.get('/org/prospects?per_page=200'),
+    ]).then(([b, c, p]) => {
+      if (b.status === 'fulfilled') setBiens(b.value.data.data ?? []);
+      if (c.status === 'fulfilled') setClients(c.value.data.data ?? []);
+      if (p.status === 'fulfilled') setProspects(p.value.data.data ?? []);
+    });
   }, []);
 
   useEffect(() => {
     if (organisation?.ville && !form.ville_signature) {
-      setForm(p => ({ ...p, ville_signature: organisation.ville ?? '' }));
+      setForm(prev => ({ ...prev, ville_signature: organisation.ville ?? '' }));
     }
   }, [organisation]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -234,9 +270,31 @@ export default function NouveauContratPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => setForm(p => ({ ...p, [field]: e.target.value }));
 
-  const selectedClient = clients.find(c => c.id === Number(form.client_id)) ?? null;
-  const selectedBien   = biens.find(b => b.id === Number(form.bien_id)) ?? null;
-  const isLocation     = TYPES_LOCATION.includes(form.type);
+  const setNc = (field: string) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => setNcForm(p => ({ ...p, [field]: e.target.value }));
+
+  const selectedBien    = biens.find(b => b.id === Number(form.bien_id)) ?? null;
+  const selectedClient  = clients.find(c => c.id === Number(clientId)) ?? null;
+  const selectedProspect = prospects.find(p => p.id === Number(prospectId)) ?? null;
+  const isLocation      = TYPES_LOCATION.includes(form.type);
+
+  // Objet unifié pour l'aperçu
+  const clientPreview: ClientPreview | null = useMemo(() => {
+    if (modePB === 'client_existant' && selectedClient) return selectedClient;
+    if (modePB === 'prospect' && selectedProspect) return selectedProspect as unknown as ClientPreview;
+    if (modePB === 'nouveau_client' && (ncForm.nom || ncForm.prenom)) {
+      return {
+        civilite:       ncForm.civilite || null,
+        nom_complet:    `${ncForm.civilite ? ncForm.civilite + ' ' : ''}${ncForm.prenom} ${ncForm.nom}`.trim(),
+        date_naissance: ncForm.date_naissance || null,
+        cin:            ncForm.cin || null,
+        adresse:        ncForm.adresse || null,
+        ville:          ncForm.ville || null,
+      };
+    }
+    return null;
+  }, [modePB, selectedClient, selectedProspect, ncForm]);
 
   // Calculs automatiques
   const montantTtc = useMemo(() => {
@@ -253,36 +311,67 @@ export default function NouveauContratPage() {
     [form.premiere_echeance, form.date_debut, form.periodicite_paiement]
   );
 
+  // Validation du champ Partie B pour le bouton submit
+  const partieB_valide = useMemo(() => {
+    if (modePB === 'client_existant') return !!clientId;
+    if (modePB === 'prospect')        return !!prospectId;
+    if (modePB === 'nouveau_client')  return !!(ncForm.nom && ncForm.prenom);
+    return false;
+  }, [modePB, clientId, prospectId, ncForm]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
     setGlobalError('');
     setLoading(true);
+
+    // Construction du payload selon le mode
+    let partieB: Record<string, unknown> = {};
+    if (modePB === 'client_existant') {
+      partieB = { client_ids: [Number(clientId)] };
+    } else if (modePB === 'prospect') {
+      partieB = { prospect_id: Number(prospectId) };
+    } else {
+      partieB = {
+        nouveau_client: {
+          civilite:       ncForm.civilite || undefined,
+          nom:            ncForm.nom,
+          prenom:         ncForm.prenom,
+          email:          ncForm.email || undefined,
+          telephone:      ncForm.telephone || undefined,
+          adresse:        ncForm.adresse || undefined,
+          ville:          ncForm.ville || undefined,
+          cin:            ncForm.cin || undefined,
+          date_naissance: ncForm.date_naissance || undefined,
+        },
+      };
+    }
+
     try {
       await api.post('/org/contrats', {
-        type:                  form.type,
-        designation:           form.designation || undefined,
-        utilisation:           form.utilisation || undefined,
-        forme_juridique:       form.forme_juridique || undefined,
-        representant:          form.representant || undefined,
-        bien_id:               Number(form.bien_id),
-        client_ids:            [Number(form.client_id)],
-        cin_delivree_le:       form.cin_delivree_le || undefined,
-        date_contrat:          form.date_contrat || undefined,
-        date_debut:            form.date_debut,
-        date_fin:              isLocation ? (form.date_fin || undefined) : undefined,
-        montant_ht:            Number(form.montant_ht),
-        tva:                   form.tva ? Number(form.tva) : 0,
-        montant_ttc:           montantTtc ? Number(montantTtc) : undefined,
-        frais_syndic:          form.frais_syndic ? Number(form.frais_syndic) : undefined,
-        retenue_source:        form.retenue_source ? Number(form.retenue_source) : undefined,
-        periodicite_paiement:  form.periodicite_paiement || undefined,
-        jour_paiement:         form.jour_paiement ? Number(form.jour_paiement) : undefined,
-        depot_garantie:        form.depot_garantie ? Number(form.depot_garantie) : undefined,
-        premiere_echeance:     premiereEcheance || undefined,
-        assurance:             form.assurance || undefined,
-        ville_signature:       form.ville_signature || undefined,
-        notes:                 form.notes || undefined,
+        ...partieB,
+        type:                 form.type,
+        designation:          form.designation || undefined,
+        utilisation:          form.utilisation || undefined,
+        forme_juridique:      form.forme_juridique || undefined,
+        representant:         form.representant || undefined,
+        bien_id:              Number(form.bien_id),
+        cin_delivree_le:      form.cin_delivree_le || undefined,
+        date_contrat:         form.date_contrat || undefined,
+        date_debut:           form.date_debut,
+        date_fin:             isLocation ? (form.date_fin || undefined) : undefined,
+        montant_ht:           Number(form.montant_ht),
+        tva:                  form.tva ? Number(form.tva) : 0,
+        montant_ttc:          montantTtc ? Number(montantTtc) : undefined,
+        frais_syndic:         form.frais_syndic ? Number(form.frais_syndic) : undefined,
+        retenue_source:       form.retenue_source ? Number(form.retenue_source) : undefined,
+        periodicite_paiement: form.periodicite_paiement || undefined,
+        jour_paiement:        form.jour_paiement ? Number(form.jour_paiement) : undefined,
+        depot_garantie:       form.depot_garantie ? Number(form.depot_garantie) : undefined,
+        premiere_echeance:    premiereEcheance || undefined,
+        assurance:            form.assurance || undefined,
+        ville_signature:      form.ville_signature || undefined,
+        notes:                form.notes || undefined,
       });
       router.push('/dashboard/contrats');
     } catch (err) {
@@ -302,6 +391,14 @@ export default function NouveauContratPage() {
   const ic = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
   const dc = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500';
   const lc = 'block text-xs font-medium text-gray-500 mb-1';
+
+  // ─── Tabs Partie B ──────────────────────────────────────────────────────────
+  const tabClass = (mode: ModePB) =>
+    `px-4 py-2 text-xs font-medium rounded-lg transition-colors ${
+      modePB === mode
+        ? 'bg-green-600 text-white'
+        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+    }`;
 
   return (
     <div className="p-6">
@@ -379,39 +476,166 @@ export default function NouveauContratPage() {
               </div>
             </div>
 
-            {/* ── Partie B ── */}
-            <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
+            {/* ── Partie B — 3 tabs ── */}
+            <div className="bg-white rounded-xl shadow-sm p-5 space-y-4">
               <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                 <span className="w-5 h-5 bg-green-100 text-green-700 rounded-full text-xs flex items-center justify-center font-bold">B</span>
                 Partie B — Client
               </h2>
-              <div>
-                <label className={lc}>Client *</label>
-                <select value={form.client_id} onChange={set('client_id')} className={ic}>
-                  <option value="">— Sélectionner un client —</option>
-                  {clients.map(c => <option key={c.id} value={c.id}>{c.nom_complet}</option>)}
-                </select>
-                {errMsg('client_ids')}
+
+              {/* Tabs */}
+              <div className="flex gap-2 flex-wrap">
+                <button type="button" className={tabClass('client_existant')}
+                  onClick={() => { setModePB('client_existant'); setClientId(''); setProspectId(''); }}>
+                  Client existant
+                </button>
+                <button type="button" className={tabClass('prospect')}
+                  onClick={() => { setModePB('prospect'); setClientId(''); setProspectId(''); }}>
+                  Convertir un prospect
+                </button>
+                <button type="button" className={tabClass('nouveau_client')}
+                  onClick={() => { setModePB('nouveau_client'); setClientId(''); setProspectId(''); setNcForm(defaultNouveauClient()); }}>
+                  + Nouveau client
+                </button>
               </div>
-              {selectedClient && (
-                <div className="grid grid-cols-2 gap-3 bg-green-50 rounded-lg p-3">
+
+              {/* Cas 1 — Client existant */}
+              {modePB === 'client_existant' && (
+                <div className="space-y-3">
                   <div>
-                    <label className={lc}>Date de naissance</label>
-                    <input type="text" value={selectedClient.date_naissance ? fmtDate(selectedClient.date_naissance) : '—'} disabled className={dc} />
+                    <label className={lc}>Sélectionner un client *</label>
+                    <select value={clientId} onChange={e => setClientId(e.target.value)} className={ic}>
+                      <option value="">— Sélectionner —</option>
+                      {clients.map(c => (
+                        <option key={c.id} value={c.id}>{c.nom_complet}</option>
+                      ))}
+                    </select>
+                    {errMsg('client_ids')}
                   </div>
+                  {selectedClient && (
+                    <div className="grid grid-cols-2 gap-3 bg-green-50 rounded-lg p-3">
+                      <div>
+                        <label className={lc}>Date de naissance</label>
+                        <input type="text" value={selectedClient.date_naissance ? fmtDate(selectedClient.date_naissance) : '—'} disabled className={dc} />
+                      </div>
+                      <div>
+                        <label className={lc}>N° CIN / Passeport</label>
+                        <input type="text" value={selectedClient.cin ?? '—'} disabled className={dc} />
+                      </div>
+                      <div>
+                        <label className={lc}>CIN délivrée le</label>
+                        <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} />
+                      </div>
+                      <div>
+                        <label className={lc}>Résidence</label>
+                        <input type="text"
+                          value={[selectedClient.adresse, selectedClient.ville].filter(Boolean).join(', ') || '—'}
+                          disabled className={dc} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Cas 2 — Convertir un prospect */}
+              {modePB === 'prospect' && (
+                <div className="space-y-3">
+                  <p className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
+                    Le prospect sélectionné sera converti en client lors de la création du contrat. Il restera visible dans la liste des prospects avec le statut <strong>Converti</strong>.
+                  </p>
                   <div>
-                    <label className={lc}>N° CIN / Passeport</label>
-                    <input type="text" value={selectedClient.cin ?? '—'} disabled className={dc} />
+                    <label className={lc}>Sélectionner un prospect *</label>
+                    <select value={prospectId} onChange={e => setProspectId(e.target.value)} className={ic}>
+                      <option value="">— Sélectionner —</option>
+                      {prospects.map(p => (
+                        <option key={p.id} value={p.id}>{p.nom_complet}</option>
+                      ))}
+                    </select>
+                    {errMsg('prospect_id')}
+                  </div>
+                  {selectedProspect && (
+                    <div className="grid grid-cols-2 gap-3 bg-amber-50 rounded-lg p-3">
+                      <div>
+                        <label className={lc}>Email</label>
+                        <input type="text" value={selectedProspect.email ?? '—'} disabled className={dc} />
+                      </div>
+                      <div>
+                        <label className={lc}>Téléphone</label>
+                        <input type="text" value={selectedProspect.telephone ?? '—'} disabled className={dc} />
+                      </div>
+                      <div>
+                        <label className={lc}>CIN</label>
+                        <input type="text" value={selectedProspect.cin ?? '—'} disabled className={dc} />
+                      </div>
+                      <div>
+                        <label className={lc}>Ville</label>
+                        <input type="text" value={selectedProspect.ville ?? '—'} disabled className={dc} />
+                      </div>
+                      <div>
+                        <label className={lc}>CIN délivrée le</label>
+                        <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Cas 3 — Nouveau client */}
+              {modePB === 'nouveau_client' && (
+                <div className="space-y-3">
+                  <p className="text-xs text-blue-700 bg-blue-50 rounded-lg px-3 py-2">
+                    Ce client sera créé et directement lié au contrat.
+                  </p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className={lc}>Civilité</label>
+                      <select value={ncForm.civilite} onChange={setNc('civilite')} className={ic}>
+                        <option value="">—</option>
+                        <option value="M.">M.</option>
+                        <option value="Mme">Mme</option>
+                        <option value="Mlle">Mlle</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className={lc}>Nom *</label>
+                      <input type="text" value={ncForm.nom} onChange={setNc('nom')} placeholder="Ben Ali" className={ic} />
+                      {errMsg('nouveau_client.nom')}
+                    </div>
+                    <div>
+                      <label className={lc}>Prénom *</label>
+                      <input type="text" value={ncForm.prenom} onChange={setNc('prenom')} placeholder="Ahmed" className={ic} />
+                      {errMsg('nouveau_client.prenom')}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={lc}>Email</label>
+                      <input type="email" value={ncForm.email} onChange={setNc('email')} placeholder="ahmed@email.com" className={ic} />
+                    </div>
+                    <div>
+                      <label className={lc}>Téléphone</label>
+                      <input type="text" value={ncForm.telephone} onChange={setNc('telephone')} placeholder="+216 xx xxx xxx" className={ic} />
+                    </div>
+                    <div>
+                      <label className={lc}>CIN</label>
+                      <input type="text" value={ncForm.cin} onChange={setNc('cin')} placeholder="00000000" className={ic} />
+                    </div>
+                    <div>
+                      <label className={lc}>Date de naissance</label>
+                      <input type="date" value={ncForm.date_naissance} onChange={setNc('date_naissance')} className={ic} />
+                    </div>
+                    <div>
+                      <label className={lc}>Adresse</label>
+                      <input type="text" value={ncForm.adresse} onChange={setNc('adresse')} className={ic} />
+                    </div>
+                    <div>
+                      <label className={lc}>Ville</label>
+                      <input type="text" value={ncForm.ville} onChange={setNc('ville')} className={ic} />
+                    </div>
                   </div>
                   <div>
                     <label className={lc}>CIN délivrée le</label>
                     <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} />
-                  </div>
-                  <div>
-                    <label className={lc}>Résidence</label>
-                    <input type="text"
-                      value={[selectedClient.adresse, selectedClient.ville].filter(Boolean).join(', ') || '—'}
-                      disabled className={dc} />
                   </div>
                 </div>
               )}
@@ -522,7 +746,7 @@ export default function NouveauContratPage() {
               </div>
             </div>
 
-            {/* ── Document & Assurance ── */}
+            {/* ── Assurance & Notes ── */}
             <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
               <h2 className="text-sm font-semibold text-gray-700">Assurance & Notes</h2>
               <div>
@@ -549,7 +773,7 @@ export default function NouveauContratPage() {
             {/* ── Actions ── */}
             <div className="flex gap-3 pb-6">
               <button type="submit"
-                disabled={loading || !form.client_id || !form.bien_id || !form.date_debut || !form.montant_ht}
+                disabled={loading || !partieB_valide || !form.bien_id || !form.date_debut || !form.montant_ht}
                 className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
                 {loading ? 'Enregistrement…' : 'Créer le contrat'}
               </button>
@@ -565,7 +789,7 @@ export default function NouveauContratPage() {
             <ContratPreview
               form={form}
               organisation={organisation ?? null}
-              selectedClient={selectedClient}
+              clientPreview={clientPreview}
               selectedBien={selectedBien}
               montantTtc={montantTtc}
               duree={duree}

@@ -3,9 +3,12 @@
 namespace App\Services;
 
 use App\Models\Bien;
+use App\Models\Client;
 use App\Models\Contrat;
+use App\Models\Prospect;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class ContratService
@@ -33,15 +36,59 @@ class ContratService
     {
         Bien::where('id', $data['bien_id'])->where('organisation_id', $orgId)->firstOrFail();
 
-        $clientIds = $data['client_ids'];
-        unset($data['client_ids']);
+        // ── Résolution du client selon les 3 cas ──────────────────────────
+        $clientIds = DB::transaction(function () use ($orgId, $data) {
+
+            // Cas 2 — Convertir un prospect existant
+            if (!empty($data['prospect_id'])) {
+                $prospect = Prospect::where('id', $data['prospect_id'])
+                    ->where('organisation_id', $orgId)
+                    ->whereNull('client_id')   // pas déjà converti
+                    ->firstOrFail();
+
+                $client = Client::create([
+                    'organisation_id'   => $orgId,
+                    'civilite'          => $prospect->civilite,
+                    'nom'               => $prospect->nom,
+                    'prenom'            => $prospect->prenom,
+                    'email'             => $prospect->email,
+                    'telephone'         => $prospect->telephone,
+                    'adresse'           => $prospect->adresse,
+                    'ville'             => $prospect->ville,
+                    'date_naissance'    => $prospect->date_naissance,
+                    'lieu_naissance'    => $prospect->lieu_naissance,
+                    'type_piece'        => $prospect->type_piece,
+                    'cin'               => $prospect->cin,
+                    'document_identite' => $prospect->document_identite,
+                    'notes'             => $prospect->notes,
+                ]);
+
+                // Marquer le prospect comme converti (non supprimé)
+                $prospect->update(['client_id' => $client->id]);
+
+                return [$client->id];
+            }
+
+            // Cas 3 — Nouveau client (pas dans la base)
+            if (!empty($data['nouveau_client'])) {
+                $clientData = $data['nouveau_client'];
+                $clientData['organisation_id'] = $orgId;
+                $client = Client::create($clientData);
+                return [$client->id];
+            }
+
+            // Cas 1 — Client existant
+            return $data['client_ids'] ?? [];
+        });
+
+        // Nettoyer les clés spécifiques à la résolution du client
+        unset($data['client_ids'], $data['prospect_id'], $data['nouveau_client']);
 
         $data['organisation_id'] = $orgId;
 
         $contrat = Contrat::create($data);
         $contrat->clients()->sync($clientIds);
 
-        // Mise à jour statut du bien selon le type de contrat
         $nouveauStatut = in_array($data['type'], Contrat::TYPES_LOCATION) ? 'loue' : 'vendu';
         Bien::find($data['bien_id'])->update(['statut' => $nouveauStatut]);
 

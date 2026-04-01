@@ -10,13 +10,13 @@ class VisiteService
     public function index(int $orgId, array $filters = []): LengthAwarePaginator
     {
         $query = Visite::where('organisation_id', $orgId)
-            ->with(['client', 'bien']);
+            ->with(['prospect', 'bien']);
 
         if (!empty($filters['statut'])) {
             $query->where('statut', $filters['statut']);
         }
-        if (!empty($filters['client_id'])) {
-            $query->where('client_id', $filters['client_id']);
+        if (!empty($filters['prospect_id'])) {
+            $query->where('prospect_id', $filters['prospect_id']);
         }
 
         $perPage = min((int) ($filters['per_page'] ?? 15), 200);
@@ -27,13 +27,13 @@ class VisiteService
     {
         $data['organisation_id'] = $orgId;
         $visite = Visite::create($data);
-        return $visite->load(['client', 'bien']);
+        return $visite->load(['prospect', 'bien']);
     }
 
     public function update(Visite $visite, array $data): Visite
     {
         $visite->update($data);
-        return $visite->load(['client', 'bien']);
+        return $visite->load(['prospect', 'bien']);
     }
 
     public function destroy(Visite $visite): void

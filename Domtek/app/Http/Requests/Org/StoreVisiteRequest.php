@@ -11,7 +11,7 @@ class StoreVisiteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'client_id'   => ['required', 'integer', 'exists:clients,id'],
+            'prospect_id' => ['required', 'integer', 'exists:prospects,id'],
             'bien_id'     => ['required', 'integer', 'exists:biens,id'],
             'nom_agent'   => ['required', 'string', 'max:255'],
             'date_visite' => ['required', 'date'],

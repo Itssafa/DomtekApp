@@ -13,11 +13,12 @@ class Visite extends Model
 
     protected $fillable = [
         'organisation_id',
-        'client_id',
+        'prospect_id',
         'bien_id',
         'nom_agent',
         'date_visite',
         'statut',
+        'impression_client',
         'notes',
         'created_by',
         'updated_by',
@@ -35,9 +36,15 @@ class Visite extends Model
         return $this->belongsTo(Organisation::class);
     }
 
+    public function prospect(): BelongsTo
+    {
+        return $this->belongsTo(Prospect::class, 'prospect_id');
+    }
+
+    /** @deprecated Use prospect() */
     public function client(): BelongsTo
     {
-        return $this->belongsTo(Client::class);
+        return $this->prospect();
     }
 
     public function bien(): BelongsTo

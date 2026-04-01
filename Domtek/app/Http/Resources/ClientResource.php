@@ -14,7 +14,7 @@ class ClientResource extends JsonResource
             'civilite'          => $this->civilite,
             'nom'               => $this->nom,
             'prenom'            => $this->prenom,
-            'nom_complet'       => trim(($this->civilite ? $this->civilite . ' ' : '') . $this->prenom . ' ' . $this->nom),
+            'nom_complet'       => $this->nom_complet,
             'email'             => $this->email,
             'telephone'         => $this->telephone,
             'adresse'           => $this->adresse,

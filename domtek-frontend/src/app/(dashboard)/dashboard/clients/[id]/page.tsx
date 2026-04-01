@@ -16,12 +16,13 @@ const Section = ({ title }: { title: string }) => (
 
 export default function FicheClientPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
+  const router  = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [client, setClient]       = useState<Client | null>(null);
-  const [contrats, setContrats]   = useState<Contrat[]>([]);
-  const [factures, setFactures]   = useState<Facture[]>([]);
+  const [client, setClient]     = useState<Client | null>(null);
+  const [contrats, setContrats] = useState<Contrat[]>([]);
+  const [factures, setFactures] = useState<Facture[]>([]);
+
   const [form, setForm] = useState({
     civilite: '', nom: '', prenom: '',
     telephone: '', email: '', ville: '',
@@ -30,6 +31,7 @@ export default function FicheClientPage() {
     urgence_nom: '', urgence_telephone: '', urgence_relation: '',
     notes: '',
   });
+
   const [errors, setErrors]         = useState<Record<string, string[]>>({});
   const [loading, setLoading]       = useState(true);
   const [saving, setSaving]         = useState(false);
@@ -71,7 +73,19 @@ export default function FicheClientPage() {
 
   const set = (field: string) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  ) => setForm(prev => ({ ...prev, [field]: e.target.value }));
+
+  const inp = (label: string, key: string, type: React.HTMLInputTypeAttribute = 'text', placeholder = '', required = false) => (
+    <div>
+      <label className="block text-xs font-medium text-gray-600 mb-1">
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
+      <input type={type} value={(form as Record<string, string>)[key]} onChange={set(key)}
+        placeholder={placeholder} required={required}
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
+    </div>
+  );
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,22 +117,6 @@ export default function FicheClientPage() {
     finally { setUploading(false); }
   };
 
-  const inp = (
-    label: string, key: string,
-    type: React.HTMLInputTypeAttribute = 'text',
-    placeholder = '', required = false
-  ) => (
-    <div>
-      <label className="block text-xs font-medium text-gray-600 mb-1">
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
-      <input type={type} value={(form as Record<string, string>)[key]} onChange={set(key)}
-        placeholder={placeholder} required={required}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-      {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
-    </div>
-  );
-
   if (loading) return <div className="p-8 animate-pulse h-40 bg-gray-100 rounded-xl" />;
 
   return (
@@ -132,7 +130,6 @@ export default function FicheClientPage() {
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
         <form onSubmit={handleSave} className="space-y-4">
 
-          {/* ── 1. Identité ── */}
           <Section title="Identité" />
           <div className="grid grid-cols-3 gap-4">
             <div>
@@ -149,7 +146,6 @@ export default function FicheClientPage() {
             {inp('Prénom', 'prenom', 'text', '', true)}
           </div>
 
-          {/* ── 2. Contact ── */}
           <Section title="Contact" />
           <div className="grid grid-cols-3 gap-4">
             {inp('N° Téléphone', 'telephone', 'tel')}
@@ -157,14 +153,12 @@ export default function FicheClientPage() {
             {inp('Ville', 'ville')}
           </div>
 
-          {/* ── 3. Naissance ── */}
           <Section title="Naissance" />
           <div className="grid grid-cols-2 gap-4">
             {inp('Date de naissance', 'date_naissance', 'date')}
             {inp('Lieu de naissance', 'lieu_naissance')}
           </div>
 
-          {/* ── 4. Document d'identité ── */}
           <Section title="Document d'identité" />
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -178,7 +172,6 @@ export default function FicheClientPage() {
             </div>
             {inp('N° de pièce', 'cin')}
           </div>
-          {/* Pièce jointe — dans la même section */}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Pièce jointe <span className="text-gray-400 font-normal">(PDF, JPG, PNG — max 5 Mo)</span>
@@ -192,20 +185,14 @@ export default function FicheClientPage() {
             )}
             <div onClick={() => fileRef.current?.click()}
               className="border-2 border-dashed border-gray-300 rounded-lg px-4 py-4 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition">
-              {uploading
-                ? <p className="text-sm text-gray-400">Envoi en cours…</p>
-                : uploadDone
-                  ? <p className="text-sm text-green-600 font-medium">Document mis à jour</p>
-                  : <p className="text-sm text-gray-400">
-                      {client?.document_url ? 'Cliquer pour remplacer' : 'Cliquer pour importer'}
-                    </p>
-              }
+              {uploading ? <p className="text-sm text-gray-400">Envoi en cours…</p>
+                : uploadDone ? <p className="text-sm text-green-600 font-medium">Document mis à jour</p>
+                : <p className="text-sm text-gray-400">{client?.document_url ? 'Cliquer pour remplacer' : 'Cliquer pour importer'}</p>}
             </div>
             <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUploadDocument(f); }} />
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleUploadDocument(f); }} />
           </div>
 
-          {/* ── 5. Contact d'urgence ── */}
           <Section title="Contact d'urgence" />
           <div className="grid grid-cols-3 gap-4">
             {inp('Nom', 'urgence_nom')}
@@ -213,9 +200,8 @@ export default function FicheClientPage() {
             {inp('Relation', 'urgence_relation', 'text', 'Parent, conjoint…')}
           </div>
 
-          {/* ── 6. Note ── */}
           <Section title="Note" />
-          <textarea value={form.notes} onChange={set('notes')} rows={3}
+          <textarea value={form.notes} onChange={set('notes')} rows={2}
             placeholder="Remarques internes…"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
 
@@ -231,11 +217,12 @@ export default function FicheClientPage() {
         <h2 className="text-sm font-semibold text-gray-700 mb-3">Contrats ({contrats.length})</h2>
         {!contrats.length ? <p className="text-sm text-gray-400">Aucun contrat.</p> : (
           <div className="space-y-2">
-            {contrats.map((c) => (
-              <div key={c.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
-                <span className="font-medium text-gray-700">{c.bien?.titre ?? `Contrat #${c.id}`}</span>
-                <span className="text-gray-500">{Number(c.montant).toLocaleString('fr-TN')} TND — {c.statut}</span>
-              </div>
+            {contrats.map(c => (
+              <Link key={c.id} href={`/dashboard/contrats/${c.id}`}
+                className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm transition">
+                <span className="font-medium text-gray-700">{c.bien?.designation ?? c.designation ?? `Contrat #${c.id}`}</span>
+                <span className="text-gray-500">{Number(c.montant_ht).toLocaleString('fr-TN')} TND — {c.statut}</span>
+              </Link>
             ))}
           </div>
         )}
@@ -246,11 +233,12 @@ export default function FicheClientPage() {
         <h2 className="text-sm font-semibold text-gray-700 mb-3">Factures ({factures.length})</h2>
         {!factures.length ? <p className="text-sm text-gray-400">Aucune facture.</p> : (
           <div className="space-y-2">
-            {factures.map((f) => (
-              <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+            {factures.map(f => (
+              <Link key={f.id} href={`/dashboard/factures/${f.id}`}
+                className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm transition">
                 <span className="font-medium text-gray-700 capitalize">{f.type} — {f.reference ?? `#${f.id}`}</span>
                 <span className="text-gray-500">{Number(f.montant).toLocaleString('fr-TN')} TND — {f.statut}</span>
-              </div>
+              </Link>
             ))}
           </div>
         )}

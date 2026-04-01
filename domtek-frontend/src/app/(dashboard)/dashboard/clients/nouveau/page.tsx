@@ -14,7 +14,7 @@ const Section = ({ title }: { title: string }) => (
 );
 
 export default function NouveauClientPage() {
-  const router = useRouter();
+  const router  = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
@@ -26,12 +26,28 @@ export default function NouveauClientPage() {
     notes: '',
   });
   const [documentFile, setDocumentFile] = useState<File | null>(null);
-  const [errors, setErrors] = useState<Record<string, string[]>>({});
-  const [loading, setLoading] = useState(false);
+  const [errors, setErrors]             = useState<Record<string, string[]>>({});
+  const [loading, setLoading]           = useState(false);
 
   const set = (field: string) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
+
+  const inp = (
+    label: string, key: string,
+    type: React.HTMLInputTypeAttribute = 'text',
+    placeholder = '', required = false
+  ) => (
+    <div>
+      <label className="block text-xs font-medium text-gray-600 mb-1">
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
+      <input type={type} value={(form as Record<string, string>)[key]} onChange={set(key)}
+        placeholder={placeholder} required={required}
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
+    </div>
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,22 +69,6 @@ export default function NouveauClientPage() {
       setLoading(false);
     }
   };
-
-  const inp = (
-    label: string, key: string,
-    type: React.HTMLInputTypeAttribute = 'text',
-    placeholder = '', required = false
-  ) => (
-    <div>
-      <label className="block text-xs font-medium text-gray-600 mb-1">
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
-      <input type={type} value={(form as Record<string, string>)[key]} onChange={set(key)}
-        placeholder={placeholder} required={required}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-      {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
-    </div>
-  );
 
   return (
     <div className="p-8 max-w-2xl">
@@ -152,7 +152,7 @@ export default function NouveauClientPage() {
 
           {/* ── 6. Note ── */}
           <Section title="Note" />
-          <textarea value={form.notes} onChange={set('notes')} rows={3}
+          <textarea value={form.notes} onChange={set('notes')} rows={2}
             placeholder="Remarques internes…"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
 

@@ -19,9 +19,7 @@ class FactureService
         Facture::TYPE_ELECTRICITE     => 'électricité',
         Facture::TYPE_GAZ             => 'gaz',
     ];
-    /**
-     * Liste paginée des factures d'une organisation avec filtres optionnels.
-     */
+
     public function index(int $orgId, array $filters = []): LengthAwarePaginator
     {
         $query = Facture::where('organisation_id', $orgId)
@@ -41,9 +39,6 @@ class FactureService
         return $query->latest()->paginate($perPage);
     }
 
-    /**
-     * Créer une nouvelle facture pour un client de l'organisation.
-     */
     public function store(int $orgId, array $data): Facture
     {
         Client::where('id', $data['client_id'])
@@ -62,9 +57,6 @@ class FactureService
         return $facture;
     }
 
-    /**
-     * Envoie un SMS de notification au client lors de la création d'une facture.
-     */
     private function envoyerSmsFacture(Facture $facture): void
     {
         $client = $facture->client;
@@ -77,7 +69,7 @@ class FactureService
         $montant    = number_format((float) $facture->montant, 2, ',', ' ');
         $echeance   = $facture->date_echeance->format('d/m/Y');
         $reference  = $facture->reference ? " (Réf: {$facture->reference})" : '';
-        $bien       = $facture->contrat?->bien?->titre;
+        $bien       = $facture->contrat?->bien?->designation;
         $bienInfo   = $bien ? " — Bien : {$bien}" : '';
 
         $message = "Bonjour {$client->prenom},\n"
@@ -91,9 +83,6 @@ class FactureService
         }
     }
 
-    /**
-     * Envoie un e-mail au client avec la facture en PDF et un bouton de paiement Stripe.
-     */
     private function envoyerEmailFacture(Facture $facture): void
     {
         $client = $facture->client;
@@ -111,27 +100,18 @@ class FactureService
         }
     }
 
-    /**
-     * Mettre à jour une facture existante.
-     */
     public function update(Facture $facture, array $data): Facture
     {
         $facture->update($data);
         return $facture;
     }
 
-    /**
-     * Marquer une facture comme payée.
-     */
     public function marquerPayee(Facture $facture): Facture
     {
         $facture->update(['statut' => Facture::STATUT_PAYEE]);
         return $facture;
     }
 
-    /**
-     * Supprimer une facture.
-     */
     public function destroy(Facture $facture): void
     {
         $facture->delete();

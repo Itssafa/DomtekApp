@@ -128,6 +128,7 @@ export interface Annonce {
 }
 
 // ─── Client ──────────────────────────────────────────────────────────────────
+// Un client est une personne ayant signé un contrat.
 
 export interface Client {
   id: number;
@@ -148,6 +149,46 @@ export interface Client {
   urgence_telephone: string | null;
   urgence_relation: string | null;
   notes: string | null;
+  contrats?: Contrat[];
+  factures?: Facture[];
+  created_at: string;
+  updated_at: string;
+}
+
+// ─── Prospect ────────────────────────────────────────────────────────────────
+// Un prospect est un client potentiel (visite, évaluation). Pas lié aux contrats/factures.
+
+export type RevenusClient = 'moins_1000' | '1000_2000' | '3000_6000' | '7000_10000' | 'plus_10000';
+export type ScoreSolvabilite = 'verifie' | 'plutot_verifie' | 'plutot_non_verifie' | 'non_verifie';
+export type ImpressionVisite = 'satisfait' | 'neutre' | 'non_satisfait';
+export type BesoinProspect = 'prix' | 'emplacement' | 'superficie' | 'transport' | 'commodites';
+
+export interface Prospect {
+  id: number;
+  client_id: number | null;
+  converti: boolean;
+  civilite: 'M.' | 'Mme' | 'Mlle' | null;
+  nom: string;
+  prenom: string;
+  nom_complet: string;
+  email: string | null;
+  telephone: string | null;
+  adresse: string | null;
+  ville: string | null;
+  date_naissance: string | null;
+  lieu_naissance: string | null;
+  type_piece: 'CIN' | 'Passeport' | null;
+  cin: string | null;
+  document_url: string | null;
+  notes: string | null;
+  profession: string | null;
+  revenus_mensuels: RevenusClient | null;
+  composition_foyer: string[];
+  biens_interet: number[];
+  score_solvabilite: ScoreSolvabilite | null;
+  impression_premiere_visite: ImpressionVisite | null;
+  hierarchie_besoins: BesoinProspect[];
+  score_opportunite: number;
   created_at: string;
   updated_at: string;
 }
