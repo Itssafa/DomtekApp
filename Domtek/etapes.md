@@ -426,6 +426,290 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 
 ---
 
+### A10 — Refonte complète du module Contrats ✅ TERMINÉ
+
+**Fonctionnalité** : Contrats multi-types, champs financiers enrichis, aperçu temps réel, relation Many-to-Many clients.
+
+**Migrations :**
+- [x] `2026_03_25_000002_add_extra_fields_to_contrats.php` : ajout `designation`, `utilisation`, `tva`, `montant_ttc`, `frais_syndic`, `retenue_source`, `periodicite_paiement`, `jour_paiement`, `depot_garantie`, `premiere_echeance`, `assurance` — renommage `montant → montant_ht` — extension de l'enum `type` (bail_habitation, bail_etudiant, bail_professionnel, bail_commercial, bail_saisonnier, loyer, vente, autre)
+- [x] `2026_03_25_000003_add_payment_token_to_factures.php` : ajout `payment_token` (UUID) et `stripe_session_id` à `factures`
+- [x] `2026_03_30_000001_extend_contrats_table.php` : ajout `forme_juridique`, `representant`, `date_contrat`, `ville_signature`, `cin_delivree_le`
+- [x] `2026_03_30_800000_create_clients_table_and_pivot.php` : table pivot `client_contrat` (Many-to-Many clients ↔ contrats)
+
+**Backend :**
+- [x] `app/Models/Contrat.php` : constante `TYPES_LOCATION`, relation `BelongsToMany clients()` via pivot
+- [x] `app/Http/Resources/ContratResource.php` : exposition de `clients` (collection), `designation`, champs financiers HT/TVA/TTC
+- [x] `app/Services/ContratService.php` : logique `store()` complète, màj statut bien automatique (disponible/loué/vendu)
+- [x] `app/Http/Requests/Org/StoreContratRequest.php` : validation des nouveaux champs
+
+**Frontend :**
+- [x] `contrats/nouveau/page.tsx` : refonte complète — layout 2 colonnes (formulaire + aperçu temps réel), sections Partie A (organisation), Partie B (client), Bien, Durée, Conditions financières, Signature
+- [x] Aperçu du contrat (`ContratPreview`) : génère un document textuel en temps réel au format juridique avec placeholders dynamiques
+- [x] `contrats/page.tsx` : lignes dépliables avec actions (Modifier, PDF, Révision du loyer, Terminer, Supprimer), modales dédiées
+
+---
+
+### A11 — Extension du modèle Biens ✅ TERMINÉ
+
+**Fonctionnalité** : Enrichissement du modèle `Bien` avec de nouveaux champs descriptifs, financiers et de localisation.
+
+**Migrations :**
+- [x] `2026_03_28_000001_extend_biens_table.php` :
+  - Renommage `titre → designation`
+  - Ajout : `num` (unité/lot), `type_location` (meublé/non meublé), `taxe_fonciere`, `regime_juridique` (mono/co-propriété), `superficie_commune`, `nb_cuisine`, `date_construction`, `pays`, `code_postal`, `accepte_animaux`, `accepte_fumeurs`, `options` (JSON), `notes`
+  - Extension de l'enum `type_bien` : studio, duplex, local_commercial, entrepot, ferme, autre
+  - Table `bien_documents` créée : nom, chemin, type_document par bien
+
+**Backend :**
+- [x] `app/Models/Bien.php` : tous les nouveaux champs dans `$fillable`, casts booléens, cast JSON pour `options`
+- [x] `app/Http/Resources/BienResource.php` : exposition des nouveaux champs
+
+---
+
+### A12 — Module États des lieux (CRUD complet) ✅ TERMINÉ
+
+**Fonctionnalité** : Gestion des états des lieux d'entrée et de sortie liés aux contrats.
+
+**Migrations :**
+- [x] `2026_03_30_200000_create_etat_lieux_table.php` : `designation`, `type` (entree/sortie), `date`, `releve_eau`, `releve_electricite`, `releve_gaz`, `remise_cles`, `commentaire`
+
+**Backend :**
+- [x] `app/Models/EtatLieu.php` : casts date, relation `BelongsTo contrat`
+- [x] `app/Services/EtatLieuService.php` : index (filtres), store, update, destroy
+- [x] `app/Http/Controllers/Api/Organisation/EtatLieuController.php` : CRUD complet
+- [x] Routes `/org/etat-lieux` dans `routes/api.php`
+
+**Frontend :**
+- [x] `/dashboard/etat-lieux/page.tsx` : liste avec filtres type/contrat
+- [x] `/dashboard/etat-lieux/nouveau/page.tsx` : formulaire (contrat, type, date, relevés, remise clés, commentaire)
+- [x] `/dashboard/etat-lieux/[id]/page.tsx` : édition
+- [x] Lien "États des lieux" ajouté dans la sidebar
+
+---
+
+### A13 — Module Visites planifiées ✅ TERMINÉ
+
+**Fonctionnalité** : Planification et suivi des visites de biens pour les prospects.
+
+**Migrations :**
+- [x] `2026_03_30_300000_create_visites_table.php` : `client_id` (prospect), `bien_id`, `nom_agent`, `date_visite`, `statut` (planifiee/effectuee/annulee), `notes`
+
+**Backend :**
+- [x] `app/Models/Visite.php` : relations `BelongsTo client`, `bien`
+- [x] `app/Services/VisiteService.php` : index, store, update, destroy
+- [x] Routes `/org/visites` dans `routes/api.php`
+
+**Frontend :**
+- [x] Modale de planification de visite dans `/dashboard/prospects/[id]/page.tsx`
+
+---
+
+### A14 — Séparation Clients / Prospects — Refonte du CRM ✅ TERMINÉ
+
+**Fonctionnalité** : Distinction claire entre prospects (contacts non-clients) et clients (ayant un contrat). Score d'opportunité automatique pour les prospects.
+
+**Migrations :**
+- [x] `2026_03_30_400000_add_prospect_fields_to_clients.php` : ajout `score_opportunite`, `budget_min`, `budget_max`, `type_bien_recherche`, `impression` à la future table prospects
+- [x] `2026_03_30_500000_rename_clients_to_prospects.php` : renommage `clients → prospects`
+- [x] `2026_03_30_600000_add_impression_to_prospects.php` : ajout/complétion du champ `impression`
+- [x] `2026_03_30_800000_create_clients_table_and_pivot.php` : nouvelle table `clients` propre + pivot `client_contrat`
+- [x] `2026_03_31_000001_add_audit_columns_to_clients.php` : ajout `created_by`, `updated_by` à la nouvelle table `clients`
+
+**Backend :**
+- [x] `app/Models/Prospect.php` : `scopeActif()` (`whereNull('client_id')`), relation `BelongsTo client`, calcul `score_opportunite`
+- [x] `app/Models/Client.php` : nouvelle entité, `BelongsToMany contrats()` via pivot
+- [x] `app/Services/ProspectService.php` : index (filtres + score), store, update, destroy — filtre `include_convertis`
+- [x] `app/Http/Controllers/Api/Organisation/ProspectController.php` : CRUD complet
+- [x] `app/Http/Resources/ProspectResource.php` : exposition des champs prospect + `converti`, `score_opportunite`
+- [x] `app/Http/Requests/Org/StoreProspectRequest.php` / `UpdateProspectRequest.php` : validation complète
+
+**Frontend :**
+- [x] `domtek-frontend/src/types/index.ts` : interface `Prospect` distincte de `Client`
+- [x] `/dashboard/prospects/page.tsx` : liste avec score d'opportunité coloré, badge "Converti"
+- [x] `/dashboard/prospects/nouveau/page.tsx` : formulaire complet (identité, contact, document, budget, bien recherché, notes)
+- [x] `/dashboard/prospects/[id]/page.tsx` : fiche prospect + modale visite + badge "Converti en client"
+
+---
+
+### A15 — Notification email à la création d'une facture ✅ TERMINÉ
+
+**Fonctionnalité** : Envoi d'un email au client avec lien de paiement lors de la création d'une facture.
+
+- [x] `app/Mail/FactureCreee.php` : Mailable avec les détails de la facture et le lien de paiement
+- [x] `app/Services/FactureService.php` : `envoyerEmailFacture()` appelé après `Facture::create()` — génère une URL via `payment_token`
+- [x] Lien de paiement : `{APP_URL}/api/pay/{payment_token}` (route publique)
+
+---
+
+### A16 — Conversion prospect → client lors de la création d'un contrat ✅ TERMINÉ
+
+**Fonctionnalité** : La création d'un contrat peut créer automatiquement un client depuis un prospect existant ou inline. Le prospect reste visible avec le statut "Converti".
+
+**Migrations :**
+- [x] `2026_03_31_000002_add_client_id_to_prospects.php` : ajout `client_id` (FK nullable) sur `prospects`
+
+**Backend :**
+- [x] `app/Services/ContratService.php` : 3 modes dans `store()` via `DB::transaction`
+  - **`client_ids`** : liaison à un ou plusieurs clients existants
+  - **`prospect_id`** : création d'un `Client` depuis les données du `Prospect`, liaison FK `prospect.client_id`
+  - **`nouveau_client`** : création d'un `Client` inline depuis les données du formulaire
+- [x] `app/Http/Requests/Org/StoreContratRequest.php` : validation flexible selon le mode présent dans le payload
+
+**Frontend :**
+- [x] `/contrats/nouveau/page.tsx` : section "Partie B — Client" avec 3 onglets
+  - **Client existant** : liste déroulante + aperçu des infos
+  - **Convertir un prospect** : liste déroulante + message informatif + aperçu
+  - **+ Nouveau client** : formulaire inline (civilité, nom, prénom, email, téléphone, CIN, etc.)
+
+---
+
+### A17 — Détection de chevauchement de location en temps réel ✅ TERMINÉ
+
+**Fonctionnalité** : Empêcher la création d'un contrat de location sur un bien déjà loué pendant la même période.
+
+**Backend :**
+- [x] `app/Services/ContratService.php` : vérification d'overlap avant insertion — requête SQL avec logique `newDebut ≤ exFin AND exDebut ≤ newFin` (null → 9999-12-31)
+- [x] Retourne une `ValidationException` avec message explicite en cas de conflit
+
+**Frontend :**
+- [x] `useEffect` charge les contrats actifs du bien sélectionné dès son changement
+- [x] `useMemo conflitLocation` recalcule l'overlap côté client à chaque changement de dates
+- [x] Bannière amber dynamique sous les champs de dates avec le nom du contrat conflictuel
+- [x] Bouton "Créer le contrat" désactivé tant qu'un conflit est détecté
+
+---
+
+### A18 — Champs enrichis prospects : identité + source de connaissance ✅ TERMINÉ
+
+**Fonctionnalité** : Ajout de champs d'identité et de traçabilité de la source pour les prospects.
+
+**Migrations :**
+- [x] `2026_04_01_000001_add_identity_and_source_to_prospects.php` : ajout `cin_delivree_le` (date), `cin_delivree_a` (string), `source_connaissance` (enum : facebook, instagram, amis_famille, publicite, site_web, google, agence_partenaire, autre), `source_connaissance_detail`
+
+**Backend :**
+- [x] `app/Models/Prospect.php` : nouveaux champs dans `$fillable`, cast date pour `cin_delivree_le`
+- [x] `app/Http/Requests/Org/StoreProspectRequest.php` / `UpdateProspectRequest.php` : validation ajoutée
+- [x] `app/Http/Resources/ProspectResource.php` : exposition des nouveaux champs
+
+**Frontend :**
+- [x] `/prospects/nouveau/page.tsx` :
+  - Champs "Délivrée le" et "Délivrée à" dans la section "Document d'identité"
+  - Champ "Profession" remplacé par une liste déroulante (14 métiers + "Autre à préciser")
+  - Section "Comment nous avez-vous connus?" avec dropdown + champ détail conditionnel
+- [x] `/prospects/[id]/page.tsx` : mêmes champs en mode édition
+
+---
+
+### A19 — Réorganisation de la sidebar en sections Général / CRM ✅ TERMINÉ
+
+**Fonctionnalité** : Sidebar organisée en deux sections sémantiques pour une meilleure lisibilité.
+
+- [x] `domtek-frontend/src/app/(dashboard)/layout.tsx` : structure `NAV_SECTIONS` avec titres de section
+  - **Général** : Dashboard, Immeubles, Biens, Annonces, Contrats, Factures, États des lieux
+  - **CRM** : Clients, Prospects, Employés, Investissements
+  - Labels de section : `text-[10px] font-semibold uppercase tracking-widest text-gray-400`
+- [x] `/dashboard/clients/page.tsx` : suppression du bouton "+ Nouveau client" (les clients sont créés uniquement via un contrat)
+
+---
+
+### A20 — Recherche dynamique dans les listes Annonces & Contrats ✅ TERMINÉ
+
+**Fonctionnalité** : Barre de recherche avec debounce côté frontend, filtre côté backend.
+
+**Backend :**
+- [x] `app/Services/AnnonceService.php` : filtre `search` sur `titre`, `description`, `bien.designation` (via `whereHas`)
+- [x] `app/Services/ContratService.php` : filtre `search` sur `designation`, `bien.designation`, `clients.nom`/`prenom` (via `whereHas`)
+- [x] `AnnonceController::index()` et `ContratController::index()` : passage du paramètre `search`
+
+**Frontend :**
+- [x] `/annonces/page.tsx` : input de recherche avec icône loupe, debounce 350 ms, remet la pagination à 1
+- [x] `/contrats/page.tsx` : idem, placeholder "Rechercher désignation, bien, client…"
+
+---
+
+### A21 — Période de facturation + filtre biens contrats de location ✅ TERMINÉ
+
+**Fonctionnalité** : Préciser la période couverte par une facture et proposer uniquement les biens avec contrats de location actifs pour les factures de loyer.
+
+**Migrations :**
+- [x] `2026_04_01_000002_add_periode_to_factures.php` : ajout `periode_debut` et `periode_fin` (date nullable)
+
+**Backend :**
+- [x] `app/Models/Facture.php` : `periode_debut`, `periode_fin` dans `$fillable` et `$casts`
+- [x] `app/Http/Requests/Org/StoreFactureRequest.php` : validation `nullable|date` + `after_or_equal:periode_debut`
+- [x] `app/Http/Resources/FactureResource.php` : exposition des deux nouvelles dates
+
+**Frontend :**
+- [x] `/factures/nouvelle/page.tsx` : section "Période concernée" avec deux date-pickers (Du / Au)
+- [x] Filtre biens pour type "loyer" : utilise `TYPES_LOCATION` (bail_habitation, bail_etudiant, bail_professionnel, bail_commercial, bail_saisonnier, loyer) — au lieu de `type === 'loyer'` uniquement
+
+---
+
+### A22 — Contrats : distinction Location / Vente dans le formulaire ✅ TERMINÉ
+
+**Fonctionnalité** : Le formulaire de création de contrat s'adapte dynamiquement selon la nature du contrat (Location ou Vente).
+
+**Frontend uniquement :**
+- [x] Toggle "Location / Vente" en haut de la section "Type de contrat"
+- [x] **Mode Location** : sélecteur "Type" limité aux types de bail (bail_habitation, étudiant, professionnel, commercial, saisonnier, loyer), champ "Utilisation" (résidence primaire/secondaire, usage professionnel/commercial), tous les champs financiers visibles
+- [x] **Mode Vente** : Type et Utilisation masqués, Frais de syndic masqué, Périodicité et Jour de paiement masqués, 1ère échéance masquée, Date de fin masquée (vente à vie), "Dépôt de garantie" renommé en **"Acompte"**
+- [x] Aperçu du contrat (`ContratPreview`) adapté au mode : label Acompte/Dépôt de garantie, Art. 2 sans date de fin pour une vente
+- [x] Payload soumis : les champs location-only ne sont pas envoyés pour un contrat de vente
+
+---
+
+### A23 — Correction : filtre bien_id sur les contrats ✅ TERMINÉ
+
+**Problème** : La détection de chevauchement de location affichait un faux avertissement "Période indisponible" pour n'importe quel bien, même sans conflit réel. Le paramètre `bien_id` envoyé par le frontend était ignoré par le backend, qui retournait **tous** les contrats de l'organisation.
+
+**Corrections :**
+- [x] `app/Services/ContratService.php` : ajout du filtre `bien_id` dans `index()` — `$query->where('bien_id', $filters['bien_id'])`
+- [x] `app/Http/Controllers/Api/Organisation/ContratController.php` : ajout de `bien_id` dans `$request->only([...])`
+- Le frontend récupère désormais uniquement les contrats du bien sélectionné, éliminant les faux conflits inter-biens
+
+---
+
+### A24 — Auto-remplissage du champ "CIN délivrée le" dans la création de contrat ✅ TERMINÉ
+
+**Fonctionnalité** : Quand un client ou un prospect est sélectionné dans le formulaire de contrat, le champ "CIN délivrée le" se remplit automatiquement depuis ses coordonnées, comme le font déjà les champs email, téléphone, CIN et ville.
+
+**Migrations :**
+- [x] `2026_04_06_000001_add_cin_delivree_le_to_clients.php` : ajout de la colonne `cin_delivree_le` (date nullable) à la table `clients` — à exécuter via `php artisan migrate`
+
+**Backend :**
+- [x] `app/Models/Client.php` : `cin_delivree_le` ajouté à `$fillable`, casté en `date`
+- [x] `app/Http/Resources/ClientResource.php` : exposition de `cin_delivree_le` formatée `Y-m-d`
+- [x] `app/Services/ContratService.php` : lors de la conversion prospect → client, `cin_delivree_le` est copié du prospect vers le nouveau client
+
+**Frontend :**
+- [x] `contrats/nouveau/page.tsx` — onglet **"Client existant"** : le `onChange` du select cherche le client dans la liste locale et injecte `cin_delivree_le` dans `form.cin_delivree_le`
+- [x] `contrats/nouveau/page.tsx` — onglet **"Convertir un prospect"** : idem depuis `prospect.cin_delivree_le`
+- Le champ reste modifiable manuellement si la valeur doit être corrigée
+
+---
+
+### A25 — Refonte du module Investissements en tableau de bord analytique ✅ TERMINÉ
+
+**Fonctionnalité** : Remplacement de la liste statique des taux d'investissement par deux courbes interactives en temps réel montrant l'évolution sur les 12 derniers mois.
+
+**Backend :**
+- [x] `app/Http/Controllers/Api/Organisation/StatistiqueController.php` : nouveau contrôleur avec 2 méthodes
+  - `biens()` : pour chacun des 12 derniers mois → `total` (biens créés jusqu'à ce mois), `occupes` (biens avec au moins un contrat actif dont `date_debut ≤ fin du mois`), `taux` (%)
+  - `prospects()` : pour chacun des 12 derniers mois → `total` (prospects cumulés), `convertis` (prospects avec `client_id` non null et client créé avant la fin du mois), `taux` (%)
+- [x] `routes/api.php` : 2 nouvelles routes dans le groupe organisation
+  - `GET /org/statistiques/biens`
+  - `GET /org/statistiques/prospects`
+
+**Frontend :**
+- [x] `dashboard/investissements/page.tsx` : page entièrement remplacée
+  - **Composant `LineChart<T>`** générique : graphe SVG pur (sans dépendance externe) — zone remplie en dégradé, ligne lissée, points interactifs, tooltip au survol affichant le détail (ex : "3/10 biens · Avril 2026")
+  - **Section 1 — Occupation des biens** : 3 stat cards (total biens, biens occupés, taux actuel) + courbe bleue
+  - **Section 2 — Conversion Prospects → Clients** : 3 stat cards + courbe verte
+  - **Actualisation automatique** toutes les 30 secondes avec `setInterval` + bouton "Actualiser" manuel + horodatage de la dernière mise à jour
+- [x] `(dashboard)/layout.tsx` : label sidebar "Investissements" → **"Statistiques"**
+
+---
+
 ## Récapitulatif de l'avancement
 
 | Phase | Étape | Statut |
@@ -455,5 +739,21 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 | Améliorations | A7 — Card view : Biens & Immeubles | ✅ Terminé |
 | Améliorations | A8 — Correction affichage photos | ✅ Terminé |
 | Améliorations | A9 — Photos des annonces + card view | ✅ Terminé |
+| Améliorations | A10 — Refonte module Contrats (Many-to-Many + aperçu) | ✅ Terminé |
+| Améliorations | A11 — Extension modèle Biens (champs enrichis) | ✅ Terminé |
+| Améliorations | A12 — Module États des lieux (CRUD) | ✅ Terminé |
+| Améliorations | A13 — Module Visites planifiées | ✅ Terminé |
+| Améliorations | A14 — Séparation Clients/Prospects (refonte CRM) | ✅ Terminé |
+| Améliorations | A15 — Email notification création facture | ✅ Terminé |
+| Améliorations | A16 — Conversion prospect → client via contrat | ✅ Terminé |
+| Améliorations | A17 — Détection chevauchement location temps réel | ✅ Terminé |
+| Améliorations | A18 — Champs prospects : identité + source connaissance | ✅ Terminé |
+| Améliorations | A19 — Sidebar Général/CRM + suppression bouton client | ✅ Terminé |
+| Améliorations | A20 — Recherche dynamique Annonces & Contrats | ✅ Terminé |
+| Améliorations | A21 — Période facturation + filtre biens location | ✅ Terminé |
+| Améliorations | A22 — Contrats : toggle Location / Vente | ✅ Terminé |
+| Améliorations | A23 — Correction filtre bien_id (faux conflits de période) | ✅ Terminé |
+| Améliorations | A24 — Auto-remplissage CIN délivrée le (contrats/nouveau) | ✅ Terminé |
+| Améliorations | A25 — Tableau de bord analytique (courbes occupation + conversion) | ✅ Terminé |
 | Intégration | 17 — Intégration complète | ⬜ À faire |
 | Déploiement | 18 — Déploiement | ⬜ À faire |

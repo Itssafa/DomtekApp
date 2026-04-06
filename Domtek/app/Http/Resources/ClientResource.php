@@ -23,6 +23,7 @@ class ClientResource extends JsonResource
             'lieu_naissance'    => $this->lieu_naissance,
             'type_piece'        => $this->type_piece,
             'cin'               => $this->cin,
+            'cin_delivree_le'   => $this->cin_delivree_le?->format('Y-m-d'),
             'document_url'      => $this->document_identite
                                     ? asset('storage/' . $this->document_identite)
                                     : null,

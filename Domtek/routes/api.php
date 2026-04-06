@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Organisation\EtatLieuController;
 use App\Http\Controllers\Api\Organisation\VisiteController;
 use App\Http\Controllers\Api\Organisation\ImmeubleController;
 use App\Http\Controllers\Api\Organisation\InvestissementController;
+use App\Http\Controllers\Api\Organisation\StatistiqueController;
 use App\Http\Controllers\Api\Public\AnnonceController as AnnoncePubliqueController;
 use App\Http\Controllers\Api\Public\OrganisationController as OrganisationPubliqueController;
 use App\Http\Controllers\Api\Public\PaiementController;
@@ -119,6 +120,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Taux d'investissement
         Route::apiResource('investissements', InvestissementController::class);
+
+        // Statistiques analytiques (graphes temps réel)
+        Route::get('statistiques/biens',     [StatistiqueController::class, 'biens']);
+        Route::get('statistiques/prospects', [StatistiqueController::class, 'prospects']);
 
         // États des lieux
         Route::apiResource('etat-lieux', EtatLieuController::class);

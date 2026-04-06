@@ -342,6 +342,21 @@ export default function NouveauContratPage() {
     [form.premiere_echeance, form.date_debut, form.periodicite_paiement]
   );
 
+  // Détection de vente en doublon (un même bien vendu deux fois)
+  const conflitVente = useMemo(() => {
+    if (isLocation || !form.bien_id) return null;
+
+    const dejaVendu = contratsExistants.find(c =>
+      c.type === 'vente' && c.statut !== 'resilie'
+    );
+
+    if (!dejaVendu) return null;
+
+    const debut = new Date(dejaVendu.date_debut).toLocaleDateString('fr-FR');
+    const label = dejaVendu.designation ?? `Contrat de vente du ${debut}`;
+    return `Ce bien a déjà été vendu (${label}). Un bien ne peut faire l'objet que d'un seul contrat de vente.`;
+  }, [isLocation, form.bien_id, contratsExistants]);
+
   // Détection de chevauchement en temps réel
   const conflitLocation = useMemo(() => {
     if (!isLocation || !form.date_debut || !form.bien_id) return null;
@@ -592,7 +607,11 @@ export default function NouveauContratPage() {
                 <div className="space-y-3">
                   <div>
                     <label className={lc}>Sélectionner un client *</label>
-                    <select value={clientId} onChange={e => setClientId(e.target.value)} className={ic}>
+                    <select value={clientId} onChange={e => {
+                      setClientId(e.target.value);
+                      const cl = clients.find(c => c.id === Number(e.target.value));
+                      setForm(prev => ({ ...prev, cin_delivree_le: cl?.cin_delivree_le ?? '' }));
+                    }} className={ic}>
                       <option value="">— Sélectionner —</option>
                       {clients.map(c => (
                         <option key={c.id} value={c.id}>{c.nom_complet}</option>
@@ -633,7 +652,11 @@ export default function NouveauContratPage() {
                   </p>
                   <div>
                     <label className={lc}>Sélectionner un prospect *</label>
-                    <select value={prospectId} onChange={e => setProspectId(e.target.value)} className={ic}>
+                    <select value={prospectId} onChange={e => {
+                      setProspectId(e.target.value);
+                      const pr = prospects.find(p => p.id === Number(e.target.value));
+                      setForm(prev => ({ ...prev, cin_delivree_le: pr?.cin_delivree_le ?? '' }));
+                    }} className={ic}>
                       <option value="">— Sélectionner —</option>
                       {prospects.map(p => (
                         <option key={p.id} value={p.id}>{p.nom_complet}</option>
@@ -772,6 +795,20 @@ export default function NouveauContratPage() {
                 )}
               </div>
 
+              {/* Avertissement vente en doublon */}
+              {conflitVente && (
+                <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800">
+                  <svg className="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                  <div>
+                    <p className="font-semibold">Vente impossible</p>
+                    <p className="text-xs mt-0.5 text-red-700">{conflitVente}</p>
+                  </div>
+                </div>
+              )}
+
               {/* Avertissement chevauchement */}
               {conflitLocation && (
                 <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-300 rounded-lg text-sm text-amber-800">
@@ -887,7 +924,7 @@ export default function NouveauContratPage() {
             {/* ── Actions ── */}
             <div className="flex gap-3 pb-6">
               <button type="submit"
-                disabled={loading || !partieB_valide || !form.bien_id || !form.date_debut || !form.montant_ht || !!conflitLocation}
+                disabled={loading || !partieB_valide || !form.bien_id || !form.date_debut || !form.montant_ht || !!conflitLocation || !!conflitVente}
                 className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
                 {loading ? 'Enregistrement…' : 'Créer le contrat'}
               </button>

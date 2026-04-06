@@ -25,6 +25,9 @@ class ContratService
         if (!empty($filters['statut'])) {
             $query->where('statut', $filters['statut']);
         }
+        if (!empty($filters['bien_id'])) {
+            $query->where('bien_id', $filters['bien_id']);
+        }
         if (!empty($filters['client_id'])) {
             $query->whereHas('clients', fn($q) => $q->where('clients.id', $filters['client_id']));
         }
@@ -46,6 +49,23 @@ class ContratService
     public function store(int $orgId, array $data): Contrat
     {
         Bien::where('id', $data['bien_id'])->where('organisation_id', $orgId)->firstOrFail();
+
+        // ── Vérification unicité de vente (un bien ne peut être vendu qu'une seule fois) ──
+        if ($data['type'] === 'vente') {
+            $dejaVendu = Contrat::where('bien_id', $data['bien_id'])
+                ->where('type', 'vente')
+                ->whereNotIn('statut', ['resilie'])
+                ->exists();
+
+            if ($dejaVendu) {
+                throw ValidationException::withMessages([
+                    'bien_id' => [
+                        'Ce bien a déjà fait l\'objet d\'un contrat de vente. '
+                        . 'Un bien ne peut être vendu qu\'une seule fois.',
+                    ],
+                ]);
+            }
+        }
 
         // ── Vérification chevauchement de période (locations uniquement) ──
         if (in_array($data['type'], Contrat::TYPES_LOCATION)) {
@@ -95,6 +115,7 @@ class ContratService
                     'lieu_naissance'    => $prospect->lieu_naissance,
                     'type_piece'        => $prospect->type_piece,
                     'cin'               => $prospect->cin,
+                    'cin_delivree_le'   => $prospect->cin_delivree_le,
                     'document_identite' => $prospect->document_identite,
                     'notes'             => $prospect->notes,
                 ]);

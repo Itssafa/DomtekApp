@@ -27,7 +27,7 @@ class ContratController extends Controller
     {
         return ContratResource::collection(
             $this->service->index($this->orgId(), $request->only([
-                'type', 'statut', 'client_id', 'search', 'per_page',
+                'type', 'statut', 'bien_id', 'client_id', 'search', 'per_page',
             ]))
         );
     }

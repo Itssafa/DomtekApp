@@ -26,6 +26,7 @@ class Client extends Model
         'lieu_naissance',
         'type_piece',
         'cin',
+        'cin_delivree_le',
         'document_identite',
         'urgence_nom',
         'urgence_telephone',
@@ -38,7 +39,8 @@ class Client extends Model
     protected function casts(): array
     {
         return [
-            'date_naissance' => 'date',
+            'date_naissance'  => 'date',
+            'cin_delivree_le' => 'date',
         ];
     }
 
