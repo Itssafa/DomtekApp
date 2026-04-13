@@ -23,6 +23,7 @@ class Immeuble extends Model
         'adresse',
         'ville',
         'pays',
+        'maps_url',
         'sous_sol',
         'cameras_surveillance',
         'created_by',

@@ -30,7 +30,7 @@ export default function LoginPage() {
       if (data.role === 'admin') {
         router.push('/admin');
       } else if (data.role === 'organisation') {
-        router.push('/dashboard');
+        router.push(`/${data.organisation?.slug ?? 'dashboard'}`);
       } else {
         router.push('/');
       }

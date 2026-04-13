@@ -34,6 +34,7 @@ class UpdateBienRequest extends FormRequest
             'ville'             => ['nullable', 'string', 'max:100'],
             'pays'              => ['nullable', 'string', 'max:100'],
             'code_postal'       => ['nullable', 'string', 'max:20'],
+            'maps_url'          => ['nullable', 'string', 'max:2048'],
             'nb_pieces'         => ['nullable', 'integer', 'min:0'],
             'nb_chambres'       => ['nullable', 'integer', 'min:0'],
             'nb_salles_bain'    => ['nullable', 'integer', 'min:0'],

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs head:*)",
+      "Bash(python)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k:v for k,v in {**d.get\\('dependencies',{}\\),**d.get\\('devDependencies',{}\\)}.items\\(\\) if 'next' in k.lower\\(\\) or 'react' in k.lower\\(\\) or 'turbo' in k.lower\\(\\)}, indent=2\\)\\)\")"
+    ]
+  }
+}

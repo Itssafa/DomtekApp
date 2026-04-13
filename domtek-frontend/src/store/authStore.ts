@@ -27,11 +27,15 @@ export const useAuthStore = create<AuthState>()(
 
       setAuth: (token, user, role, organisation) => {
         Cookies.set(TOKEN_KEY, token, { expires: 7, sameSite: 'Lax' });
+        if (organisation?.slug) {
+          Cookies.set('org-slug', organisation.slug, { expires: 7, sameSite: 'Lax' });
+        }
         set({ token, user, role, organisation: organisation ?? null, isAuthenticated: true });
       },
 
       clearAuth: () => {
         Cookies.remove(TOKEN_KEY);
+        Cookies.remove('org-slug');
         set({ token: null, user: null, role: null, organisation: null, isAuthenticated: false });
       },
 

@@ -19,6 +19,7 @@ class UpdateImmeubleRequest extends FormRequest
             'nb_etages'            => ['sometimes', 'integer', 'min:0'],
             'adresse'              => ['nullable', 'string', 'max:255'],
             'ville'                => ['nullable', 'string', 'max:100'],
+            'maps_url'             => ['nullable', 'string', 'max:2048'],
             'pays'                 => ['nullable', 'string', 'max:100'],
             'sous_sol'             => ['sometimes', 'boolean'],
             'cameras_surveillance' => ['sometimes', 'boolean'],

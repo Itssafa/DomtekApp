@@ -44,7 +44,7 @@ class BienController extends Controller
     public function show(Bien $bien): BienResource
     {
         $this->authorize('view', $bien);
-        $bien->load(['images', 'documents', 'annonces', 'contrats.client']);
+        $bien->load(['images', 'documents', 'annonces', 'contrats.clients']);
 
         return new BienResource($bien);
     }

@@ -60,7 +60,7 @@ export default function OrgAnnoncesPage() {
               <tr key={a.id} className="hover:bg-gray-50">
                 <td className="px-5 py-3">
                   <p className="font-medium text-gray-800">{a.titre}</p>
-                  {a.bien && <p className="text-xs text-gray-400">{a.bien.titre}</p>}
+                  {a.bien && <p className="text-xs text-gray-400">{a.bien.designation}</p>}
                 </td>
                 <td className="px-5 py-3">
                   <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUT_STYLES[a.statut] ?? 'bg-gray-100 text-gray-600'}`}>

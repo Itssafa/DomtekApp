@@ -33,6 +33,7 @@ class Bien extends Model
         'ville',
         'pays',
         'code_postal',
+        'maps_url',
         'nb_pieces',
         'nb_chambres',
         'nb_salles_bain',

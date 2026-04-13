@@ -3,29 +3,38 @@ import type { NextRequest } from 'next/server';
 
 const TOKEN_KEY = 'domtek_token';
 
-// Routes accessibles sans authentification
-const PUBLIC_ROUTES = ['/', '/login', '/register', '/annonces', '/organisations', '/en-attente'];
+// Segments de premier niveau qui sont des routes de l'application (pas des slugs)
+const NON_ORG_SEGMENTS = new Set([
+  '', 'login', 'register', 'admin', 'en-attente',
+  'annonces', 'organisations', 'paiement', 'api',
+]);
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get(TOKEN_KEY)?.value;
+  const token        = request.cookies.get(TOKEN_KEY)?.value;
+  const orgSlug      = request.cookies.get('org-slug')?.value;
+  const firstSegment = pathname.split('/')[1] ?? '';
 
-  // Autoriser les routes publiques
-  const isPublic = PUBLIC_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  // ── Routes publiques ───────────────────────────────────────────────────────
+  const PUBLIC_PREFIXES = ['/login', '/register', '/annonces', '/organisations', '/en-attente', '/paiement'];
+  const isPublic = pathname === '/' || PUBLIC_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`)
   );
 
   if (isPublic) {
-    // Si déjà connecté et sur /login → rediriger
+    // Déjà connecté sur /login ou /register → espace org
     if (token && (pathname === '/login' || pathname.startsWith('/register'))) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      const dest = orgSlug ? `/${orgSlug}` : '/';
+      return NextResponse.redirect(new URL(dest, request.url));
     }
     return NextResponse.next();
   }
 
-  // Routes protégées : token requis
-  if (!token) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  // ── Routes protégées : token requis ──────────────────────────────────────
+  if (!NON_ORG_SEGMENTS.has(firstSegment) || firstSegment === '') {
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
   }
 
   return NextResponse.next();

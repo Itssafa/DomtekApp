@@ -19,6 +19,7 @@ class StoreImmeubleRequest extends FormRequest
             'nb_etages'            => ['required', 'integer', 'min:0'],
             'adresse'              => ['nullable', 'string', 'max:255'],
             'ville'                => ['nullable', 'string', 'max:100'],
+            'maps_url'             => ['nullable', 'string', 'max:2048'],
             'pays'                 => ['nullable', 'string', 'max:100'],
             'sous_sol'             => ['required', 'boolean'],
             'cameras_surveillance' => ['required', 'boolean'],
