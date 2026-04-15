@@ -18,7 +18,7 @@ class UpdateProspectRequest extends FormRequest
             'nom'               => ['sometimes', 'string', 'max:100'],
             'prenom'            => ['sometimes', 'string', 'max:100'],
             'email'             => ['nullable', 'email', 'max:255'],
-            'telephone'         => ['nullable', 'string', 'max:20'],
+            'telephone'         => ['sometimes', 'string', 'max:20'],
             'adresse'           => ['nullable', 'string', 'max:255'],
             'ville'             => ['nullable', 'string', 'max:100'],
             'date_naissance'    => ['nullable', 'date', 'before:today'],
@@ -38,7 +38,7 @@ class UpdateProspectRequest extends FormRequest
             'biens_interet'      => ['nullable', 'array'],
             'biens_interet.*'    => ['integer', 'exists:biens,id'],
             'score_solvabilite'          => ['nullable', 'in:verifie,plutot_verifie,plutot_non_verifie,non_verifie'],
-            'impression_premiere_visite' => ['nullable', 'in:satisfait,neutre,non_satisfait'],
+            'impression_premiere_visite' => ['nullable', 'in:très_satisfait,satisfait,neutre,plutot_non_satisfait,non_satisfait'],
             'hierarchie_besoins' => ['nullable', 'array'],
             'hierarchie_besoins.*' => ['in:prix,emplacement,superficie,transport,commodites'],
         ];

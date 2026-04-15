@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { AuthResponse } from '@/types';
 import { AxiosError } from 'axios';
+import { GoogleAuthButton } from '@/components/GoogleAuthButton';
 
 export default function RegisterClientPage() {
   const router = useRouter();
@@ -52,6 +53,15 @@ export default function RegisterClientPage() {
         <div className="text-center mb-6">
           <Link href="/" className="text-2xl font-bold text-gray-900">Domtek</Link>
           <p className="text-gray-500 text-sm mt-1">Créer un compte client</p>
+        </div>
+
+        {/* Connexion Google */}
+        <GoogleAuthButton label="S'inscrire avec Google" />
+
+        <div className="flex items-center gap-3 my-1">
+          <span className="flex-1 h-px bg-gray-200" />
+          <span className="text-xs text-gray-400">ou avec un email</span>
+          <span className="flex-1 h-px bg-gray-200" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

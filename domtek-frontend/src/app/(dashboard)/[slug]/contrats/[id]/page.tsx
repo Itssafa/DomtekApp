@@ -8,7 +8,7 @@ import { orgPath } from '@/lib/org-path';
 import { useAuthStore } from '@/store/authStore';
 import { Bien, Client, Contrat } from '@/types';
 import { AxiosError } from 'axios';
-import { ContratPreview, type ContratPreviewData } from '@/components/ContratPreview';
+import { ContratPreview, printContrat, type ContratPreviewData } from '@/components/ContratPreview';
 
 // ─── Constantes (identiques à nouveau/page.tsx) ───────────────────────────────
 
@@ -583,19 +583,19 @@ export default function EditContratPage() {
                     style={{ fontFamily: 'Tahoma, Arial, sans-serif' }}
                   >AR — عربي</button>
                 </div>
-                <button type="button" onClick={() => window.print()}
+                <button type="button" onClick={() => printContrat('contrat-edit-doc')}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium rounded-lg transition">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                   </svg>
-                  PDF
+                  Télécharger PDF
                 </button>
               </div>
             </div>
 
             {/* Document A4 — auto-scalé */}
-            <div className="border border-gray-200 rounded-xl shadow-sm bg-white overflow-hidden print:border-none print:shadow-none print:rounded-none">
+            <div id="contrat-edit-doc" className="border border-gray-200 rounded-xl shadow-sm bg-white overflow-hidden">
               <ContratPreview lang={lang} data={previewData} />
             </div>
           </div>

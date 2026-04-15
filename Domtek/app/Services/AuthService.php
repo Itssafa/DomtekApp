@@ -17,13 +17,15 @@ class AuthService
      */
     public function registerOrganisation(array $data): array
     {
-        $user = User::create([
+        $user = User::create(array_filter([
             'name'      => $data['name'],
             'email'     => $data['email'],
             'password'  => $data['password'],
             'role'      => User::ROLE_ORGANISATION,
             'is_active' => true,
-        ]);
+            'google_id' => $data['google_id'] ?? null,
+            'avatar'    => $data['avatar'] ?? null,
+        ], fn($v) => $v !== null));
 
         $organisation = Organisation::create([
             'user_id'     => $user->id,

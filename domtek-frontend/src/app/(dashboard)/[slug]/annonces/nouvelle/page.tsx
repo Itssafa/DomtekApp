@@ -97,7 +97,7 @@ export default function NouvelleAnnoncePage() {
               className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="">— Sélectionner un bien —</option>
               {biens.map((b) => (
-                <option key={b.id} value={b.id}>{b.titre} ({b.ville})</option>
+                <option key={b.id} value={b.id}>{b.designation} ({b.ville})</option>
               ))}
             </select>
             {errors.bien_id && <p className="text-red-500 text-xs mt-1">{errors.bien_id[0]}</p>}

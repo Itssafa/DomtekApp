@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
-import { AuthResponse, ApiError } from '@/types';
+import { AuthResponse } from '@/types';
 import { AxiosError } from 'axios';
+import { GoogleAuthButton } from '@/components/GoogleAuthButton';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -61,6 +62,15 @@ export default function LoginPage() {
           </div>
         )}
 
+        {/* Connexion Google */}
+        <GoogleAuthButton />
+
+        <div className="flex items-center gap-3 my-4">
+          <span className="flex-1 h-px bg-gray-200" />
+          <span className="text-xs text-gray-400">ou avec un email</span>
+          <span className="flex-1 h-px bg-gray-200" />
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -93,6 +103,12 @@ export default function LoginPage() {
           >
             {loading ? 'Connexion...' : 'Se connecter'}
           </button>
+
+          <div className="text-right">
+            <Link href="/forgot-password" className="text-xs text-blue-600 hover:underline">
+              Mot de passe oublié ?
+            </Link>
+          </div>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">

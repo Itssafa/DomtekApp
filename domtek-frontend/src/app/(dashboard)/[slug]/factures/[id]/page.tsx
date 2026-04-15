@@ -8,7 +8,7 @@ import { orgPath } from '@/lib/org-path';
 import { useAuthStore } from '@/store/authStore';
 import { Facture, Client, Contrat } from '@/types';
 import { AxiosError } from 'axios';
-import { FacturePreview, type FacturePreviewData } from '@/components/FacturePreview';
+import { FacturePreview, printFacture, type FacturePreviewData } from '@/components/FacturePreview';
 
 export default function EditFacturePage() {
   const { id }   = useParams<{ id: string }>();
@@ -163,17 +163,17 @@ export default function EditFacturePage() {
       <div className="xl:sticky xl:top-6 space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold text-gray-700">Aperçu de la facture</span>
-          <button type="button" onClick={() => window.print()}
+          <button type="button" onClick={() => printFacture('facture-edit-doc')}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium rounded-lg transition">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
-            PDF
+            Télécharger PDF
           </button>
         </div>
-        <div className="border border-gray-200 rounded-xl shadow-sm bg-white overflow-hidden print:border-none print:shadow-none">
-          <FacturePreview data={previewData} />
+        <div className="border border-gray-200 rounded-xl shadow-sm bg-white overflow-hidden">
+          <FacturePreview data={previewData} printId="facture-edit-doc" />
         </div>
       </div>
       </div>{/* fin grid */}

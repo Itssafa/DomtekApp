@@ -644,6 +644,27 @@ function TemplateAR({ d }: { d: ContratPreviewData }) {
   );
 }
 
+// Templates exportés pour rendu hors-écran (impression depuis la liste)
+export { TemplateFR, TemplateAR };
+
+// ─── Impression isolée (fenêtre dédiée) ───────────────────────────────────────
+
+export function printContrat(containerId: string) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const win = window.open('', '_blank', 'width=900,height=700');
+  if (!win) return;
+  win.document.documentElement.lang = 'fr';
+  win.document.head.innerHTML = `
+    <meta charset="utf-8">
+    <title>Contrat</title>
+    <style>*{margin:0;padding:0;box-sizing:border-box}@page{size:A4 portrait;margin:0}body{background:#fff}</style>`;
+  win.document.body.innerHTML = el.innerHTML;
+  win.focus();
+  win.onload = () => { win.print(); win.close(); };
+  setTimeout(() => { try { win.print(); win.close(); } catch { /* noop */ } }, 600);
+}
+
 // ─── Composant principal exporté ──────────────────────────────────────────────
 
 interface ContratPreviewProps {

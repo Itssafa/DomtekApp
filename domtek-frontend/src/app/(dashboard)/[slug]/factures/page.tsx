@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from '@/components/OrgLink';
 import api from '@/lib/api'
 import { orgPath } from '@/lib/org-path';
+import { useAuthStore } from '@/store/authStore';
 import { Facture, PaginatedResponse } from '@/types';
+import { InvoiceDoc, printFacture, type FacturePreviewData } from '@/components/FacturePreview';
 
 const STATUT_STYLES: Record<string, string> = {
   en_attente: 'bg-yellow-100 text-yellow-700',
@@ -21,8 +23,11 @@ const TYPE_LABELS: Record<string, string> = {
   loyer: 'Loyer',
 };
 
+const PRINT_ID = 'facture-list-print-area';
+
 export default function FacturesPage() {
   const router = useRouter();
+  const { organisation } = useAuthStore();
   const [data, setData] = useState<PaginatedResponse<Facture> | null>(null);
   const [loading, setLoading] = useState(true);
   const [statut, setStatut] = useState('');
@@ -30,6 +35,8 @@ export default function FacturesPage() {
   const [page, setPage] = useState(1);
   const [payingId, setPayingId] = useState<number | null>(null);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const [printData, setPrintData] = useState<FacturePreviewData | null>(null);
+  const printPending = useRef(false);
 
   const fetchFactures = useCallback(() => {
     setLoading(true);
@@ -45,18 +52,40 @@ export default function FacturesPage() {
 
   useEffect(() => { fetchFactures(); }, [fetchFactures]);
 
-  const handleDownloadPdf = async (f: Facture) => {
+  /* Déclencher l'impression dès que printData est rendu dans le DOM caché */
+  useEffect(() => {
+    if (!printData || !printPending.current) return;
+    // Laisser React finir le rendu avant d'appeler printFacture
+    const t = setTimeout(() => {
+      printPending.current = false;
+      printFacture(PRINT_ID);
+      setDownloadingId(null);
+      setPrintData(null);
+    }, 80);
+    return () => clearTimeout(t);
+  }, [printData]);
+
+  const handleDownloadPdf = (f: Facture) => {
     setDownloadingId(f.id);
-    try {
-      const res = await api.get(`/org/factures/${f.id}/pdf`, { responseType: 'blob' });
-      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-      const a   = document.createElement('a');
-      a.href     = url;
-      a.download = `facture-${f.reference ?? f.id}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch { /* noop */ }
-    finally { setDownloadingId(null); }
+    printPending.current = true;
+    setPrintData({
+      reference:    f.reference    ?? '',
+      type:         f.type,
+      statut:       f.statut,
+      montant:      f.montant,
+      dateEmission: f.date_emission,
+      dateEcheance: f.date_echeance,
+      periodeDebut: f.periode_debut ?? '',
+      periodeFin:   f.periode_fin   ?? '',
+      notes:        f.notes         ?? '',
+      orgNom:       organisation?.nom       ?? '',
+      orgAdresse:   organisation?.adresse   ?? '',
+      orgVille:     organisation?.ville     ?? '',
+      orgTelephone: organisation?.telephone ?? '',
+      orgEmail:     organisation?.email     ?? '',
+      clientNom:    f.client?.nom_complet   ?? '',
+      clientAdresse: [f.client?.adresse, f.client?.ville].filter(Boolean).join(', '),
+    });
   };
 
   const handlePayer = async (id: number) => {
@@ -162,6 +191,14 @@ export default function FacturesPage() {
           </div>
         )}
       </div>
+      {/* Div hors-écran pour générer le PDF depuis la liste */}
+      {printData && (
+        <div style={{ position: 'fixed', left: '-9999px', top: 0, pointerEvents: 'none', opacity: 0 }}>
+          <div id={PRINT_ID}>
+            <InvoiceDoc d={printData} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

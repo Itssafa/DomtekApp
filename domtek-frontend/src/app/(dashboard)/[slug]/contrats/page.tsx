@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from '@/components/OrgLink';
 import api from '@/lib/api'
 import { orgPath } from '@/lib/org-path';
+import { useAuthStore } from '@/store/authStore';
 import { Contrat, PaginatedResponse } from '@/types';
+import { TemplateFR, TemplateAR, printContrat, type ContratPreviewData } from '@/components/ContratPreview';
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -205,8 +207,60 @@ function ModalTerminer({ contrat, onClose, onDone }: {
 
 // ─── Page principale ──────────────────────────────────────────────────────────
 
+const PRINT_ID = 'contrat-list-print-area';
+
+function buildPreviewData(c: Contrat, orgNom: string, orgAdresse: string): ContratPreviewData {
+  const isLocation = TYPES_LOCATION.includes(c.type);
+  const client = c.clients?.[0] ?? null;
+  const bien   = c.bien ?? null;
+  const months = (debut: string, fin: string | null) => {
+    if (!debut || !fin) return '';
+    const d1 = new Date(debut), d2 = new Date(fin);
+    const m = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
+    if (m <= 0) return '';
+    if (m < 12) return `${m} mois`;
+    const y = Math.floor(m / 12), r = m % 12;
+    return r > 0 ? `${y} an(s) et ${r} mois` : `${y} an(s)`;
+  };
+  return {
+    type: c.type, isLocation,
+    designation:        c.designation ?? '',
+    utilisation:        c.utilisation ?? '',
+    notes:              c.notes ?? '',
+    orgNom,
+    orgAdresse,
+    orgFormeJuridique:  c.forme_juridique ?? '',
+    orgRepresentant:    c.representant ?? '',
+    clientNom:          client?.nom_complet ?? '',
+    clientCivilite:     client?.civilite ?? '',
+    clientDateNaissance: client?.date_naissance ?? '',
+    clientCin:          client?.cin ?? '',
+    clientTypePiece:    client?.type_piece ?? 'CIN',
+    clientCinDelivreeLe: c.cin_delivree_le ?? '',
+    clientAdresse:      [client?.adresse, client?.ville].filter(Boolean).join(', '),
+    bienDesignation:    bien?.designation ?? '',
+    bienType:           bien?.type_bien ?? '',
+    bienAdresse:        [bien?.adresse, bien?.ville].filter(Boolean).join(', '),
+    bienSuperficie:     bien?.superficie != null ? String(bien.superficie) : '',
+    dateContrat:        c.date_contrat ?? '',
+    dateDebut:          c.date_debut,
+    dateFin:            c.date_fin ?? '',
+    duree:              months(c.date_debut, c.date_fin),
+    montantHt:          String(c.montant_ht),
+    tva:                String(c.tva),
+    montantTtc:         c.montant_ttc != null ? String(c.montant_ttc) : '',
+    periodicite:        c.periodicite_paiement ?? '',
+    jourPaiement:       c.jour_paiement != null ? String(c.jour_paiement) : '',
+    depotGarantie:      c.depot_garantie != null ? String(c.depot_garantie) : '',
+    premiereEcheance:   c.premiere_echeance ?? '',
+    assurance:          c.assurance ?? '',
+    villeSignature:     c.ville_signature ?? '',
+  };
+}
+
 export default function ContratsPage() {
   const router = useRouter();
+  const { organisation } = useAuthStore();
   const [data, setData]           = useState<PaginatedResponse<Contrat> | null>(null);
   const [loading, setLoading]     = useState(true);
   const [statut, setStatut]       = useState('');
@@ -218,6 +272,8 @@ export default function ContratsPage() {
   const [downloading, setDownloading] = useState<number | null>(null);
   const [expanded, setExpanded]   = useState<Set<number>>(new Set());
   const debounceRef               = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [printState, setPrintState] = useState<{ data: ContratPreviewData; lang: 'fr' | 'ar' } | null>(null);
+  const printPending = useRef(false);
 
   // Modales
   const [modalRevision, setModalRevision] = useState<Contrat | null>(null);
@@ -254,16 +310,23 @@ export default function ContratsPage() {
 
   useEffect(() => { fetchContrats(); }, [fetchContrats]);
 
-  const handleDownloadPdf = async (id: number) => {
-    setDownloading(id);
-    try {
-      const res = await api.get(`/org/contrats/${id}/pdf`, { responseType: 'blob' });
-      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-      const a = document.createElement('a');
-      a.href = url; a.download = `contrat-${id}.pdf`; a.click();
-      URL.revokeObjectURL(url);
-    } catch { /* noop */ }
-    finally { setDownloading(null); }
+  /* Déclencher l'impression dès que printState est rendu dans le DOM caché */
+  useEffect(() => {
+    if (!printState || !printPending.current) return;
+    const t = setTimeout(() => {
+      printPending.current = false;
+      printContrat(PRINT_ID);
+      setDownloading(null);
+      setPrintState(null);
+    }, 80);
+    return () => clearTimeout(t);
+  }, [printState]);
+
+  const handleDownloadPdf = (c: Contrat, lang: 'fr' | 'ar') => {
+    setDownloading(c.id);
+    printPending.current = true;
+    const orgAdresse = [organisation?.adresse, organisation?.ville].filter(Boolean).join(', ');
+    setPrintState({ data: buildPreviewData(c, organisation?.nom ?? '', orgAdresse), lang });
   };
 
   const handleDelete = async (id: number) => {
@@ -407,11 +470,18 @@ export default function ContratsPage() {
                               Modifier
                             </Link>
 
-                            <button onClick={e => { e.stopPropagation(); handleDownloadPdf(c.id); }}
+                            <button onClick={e => { e.stopPropagation(); handleDownloadPdf(c, 'fr'); }}
                               disabled={downloading === c.id}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs font-medium rounded-lg transition">
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                              {downloading === c.id ? '…' : 'Télécharger PDF'}
+                              {downloading === c.id ? '…' : 'PDF — FR'}
+                            </button>
+                            <button onClick={e => { e.stopPropagation(); handleDownloadPdf(c, 'ar'); }}
+                              disabled={downloading === c.id}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white text-xs font-medium rounded-lg transition"
+                              style={{ fontFamily: 'Tahoma, Arial, sans-serif' }}>
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                              {downloading === c.id ? '…' : 'PDF — عربي'}
                             </button>
 
                             {isLocation && isActif && (
@@ -459,6 +529,17 @@ export default function ContratsPage() {
           </div>
         )}
       </div>
+
+      {/* Div hors-écran pour générer le PDF contrat depuis la liste */}
+      {printState && (
+        <div style={{ position: 'fixed', left: '-9999px', top: 0, pointerEvents: 'none', opacity: 0 }}>
+          <div id={PRINT_ID}>
+            {printState.lang === 'ar'
+              ? <TemplateAR d={printState.data} />
+              : <TemplateFR d={printState.data} />}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

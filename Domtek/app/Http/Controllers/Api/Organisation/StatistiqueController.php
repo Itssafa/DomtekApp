@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\Organisation;
 use App\Http\Controllers\Controller;
 use App\Models\Bien;
 use App\Models\Prospect;
+use App\Models\Visite;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class StatistiqueController extends Controller
 {
@@ -89,5 +91,61 @@ class StatistiqueController extends Controller
         }
 
         return response()->json(['data' => $points]);
+    }
+
+    /**
+     * Visites planifiées vs effectuées sur les 12 derniers mois.
+     */
+    public function visites(): JsonResponse
+    {
+        $orgId  = $this->orgId();
+        $points = [];
+
+        for ($i = 11; $i >= 0; $i--) {
+            $debut = Carbon::now()->startOfMonth()->subMonths($i);
+            $fin   = $debut->copy()->endOfMonth();
+
+            $planifiees = Visite::where('organisation_id', $orgId)
+                ->whereBetween('date_visite', [$debut, $fin])
+                ->count();
+
+            $effectuees = Visite::where('organisation_id', $orgId)
+                ->whereBetween('date_visite', [$debut, $fin])
+                ->where('statut', 'effectuee')
+                ->count();
+
+            $points[] = [
+                'mois_key'   => $debut->format('Y-m'),
+                'planifiees' => $planifiees,
+                'effectuees' => $effectuees,
+            ];
+        }
+
+        return response()->json(['data' => $points]);
+    }
+
+    /**
+     * Répartition des canaux de découverte (source_connaissance) des prospects.
+     */
+    public function canaux(): JsonResponse
+    {
+        $orgId = $this->orgId();
+
+        $rows = Prospect::where('organisation_id', $orgId)
+            ->whereNotNull('source_connaissance')
+            ->select('source_connaissance', DB::raw('count(*) as total'))
+            ->groupBy('source_connaissance')
+            ->orderByDesc('total')
+            ->get();
+
+        $grandTotal = $rows->sum('total');
+
+        $data = $rows->map(fn ($r) => [
+            'canal' => $r->source_connaissance,
+            'count' => (int) $r->total,
+            'pct'   => $grandTotal > 0 ? round($r->total / $grandTotal * 100, 1) : 0,
+        ])->values();
+
+        return response()->json(['data' => $data, 'total' => $grandTotal]);
     }
 }

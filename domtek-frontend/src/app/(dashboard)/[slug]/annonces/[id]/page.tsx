@@ -140,7 +140,7 @@ export default function EditAnnoncePage() {
             <select value={form.bien_id} onChange={set('bien_id')}
               className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="">— Sélectionner —</option>
-              {biens.map((b) => <option key={b.id} value={b.id}>{b.titre}</option>)}
+              {biens.map((b) => <option key={b.id} value={b.id}>{b.designation}</option>)}
             </select>
           </div>
 

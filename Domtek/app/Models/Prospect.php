@@ -31,8 +31,10 @@ class Prospect extends Model
     ];
 
     const IMPRESSION_SCORES = [
-        'satisfait'     => 20,
+        'très_satisfait'=>20,
+        'satisfait'     =>15 ,
         'neutre'        => 10,
+        'plutot_non_satisfait' => 5,
         'non_satisfait' => 0,
     ];
 

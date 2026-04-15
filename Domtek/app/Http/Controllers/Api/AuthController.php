@@ -7,9 +7,12 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterClientRequest;
 use App\Http\Requests\Auth\RegisterOrganisationRequest;
 use App\Models\Organisation;
+use App\Models\User;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -42,6 +45,54 @@ class AuthController extends Controller
             'token'   => $result['token'],
             'user'    => $result['user'],
             'role'    => $result['user']->role,
+        ], 201);
+    }
+
+    /**
+     * Inscription organisation via Google OAuth (2e étape).
+     * Reçoit le token chiffré Google + les infos de l'organisation.
+     */
+    public function registerOrganisationGoogle(Request $request): JsonResponse
+    {
+        $request->validate([
+            'google_token'       => ['required', 'string'],
+            'nom_organisation'   => ['required', 'string', 'max:255'],
+            'ville'              => ['nullable', 'string', 'max:100'],
+            'telephone'          => ['nullable', 'string', 'max:20'],
+            'email_organisation' => ['nullable', 'email', 'max:255'],
+            'description'        => ['nullable', 'string'],
+        ]);
+
+        // Déchiffrer et vérifier le token Google
+        try {
+            $google = json_decode(Crypt::decryptString($request->google_token), true);
+        } catch (\Throwable) {
+            return response()->json(['message' => 'Token Google invalide ou expiré.'], 422);
+        }
+
+        if (($google['expires'] ?? 0) < now()->timestamp) {
+            return response()->json(['message' => 'Le lien Google a expiré. Recommencez.'], 422);
+        }
+
+        // Vérifier que l'email n'est pas déjà pris
+        if (User::where('email', $google['email'])->exists()) {
+            return response()->json(['message' => 'Un compte existe déjà avec cette adresse Google.'], 422);
+        }
+
+        $result = $this->service->registerOrganisation(array_merge($request->only(
+            'nom_organisation', 'ville', 'telephone', 'email_organisation', 'description'
+        ), [
+            'name'      => $google['name'],
+            'email'     => $google['email'],
+            'password'  => Str::random(32),   // inutilisable — authentification via Google
+            'google_id' => $google['google_id'],
+            'avatar'    => $google['avatar'] ?? null,
+        ]));
+
+        return response()->json([
+            'message'      => "Compte créé avec succès. En attente d'activation par un administrateur.",
+            'user'         => $result['user'],
+            'organisation' => $result['organisation'],
         ], 201);
     }
 

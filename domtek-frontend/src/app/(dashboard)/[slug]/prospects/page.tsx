@@ -142,11 +142,14 @@ function ModalVisite({ prospects, defaultProspectId, onClose, onDone }: {
               <label className={lc}>Impression du prospect</label>
               <div className="flex gap-2">
                 {(['satisfait','neutre','non_satisfait'] as ImpressionVisite[]).map(v => {
-                  const labels = { satisfait: '😊 Satisfait', neutre: '😐 Neutre', non_satisfait: '😞 Non satisfait' };
+                  const labels = { très_satisfait : '😄très satisfait' ,satisfait: '😊 Satisfait', neutre: '😐 Neutre',  plutot_non_satisfait: ' 😞 plutot Non satisfait' , non_satisfait: '😠 Non satisfait'  };
                   const styles = {
-                    satisfait:     form.impression_client === v ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-green-100',
-                    neutre:        form.impression_client === v ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-yellow-100',
-                    non_satisfait: form.impression_client === v ? 'bg-red-500 text-white'   : 'bg-gray-100 text-gray-600 hover:bg-red-100',
+                    très_satisfait:    form.impression_client === v ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-green-100',
+                    satisfait:          form.impression_client === v ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-green-100',
+                    neutre:           form.impression_client === v ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-yellow-100',
+                    plutot_non_satisfait: form.impression_client === v ? 'bg-red-500 text-white'   : 'bg-gray-100 text-gray-600 hover:bg-red-100',
+                    non_satisfait:        form.impression_client === v ? 'bg-red-500 text-white'   : 'bg-gray-100 text-gray-600 hover:bg-red-100',
+                     
                   };
                   return (
                     <button key={v} type="button"

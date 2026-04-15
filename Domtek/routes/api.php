@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\SocialAuthController;
 use App\Http\Controllers\Api\Admin\OrganisationController as AdminOrganisationController;
 use App\Http\Controllers\Api\Organisation\AnnonceController;
 use App\Http\Controllers\Api\Organisation\BienController;
@@ -25,9 +27,19 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::prefix('auth')->group(function () {
-    Route::post('register/organisation', [AuthController::class, 'registerOrganisation']);
-    Route::post('register/client',       [AuthController::class, 'registerClient']);
+    Route::post('register/organisation',        [AuthController::class, 'registerOrganisation']);
+    Route::post('register/organisation-google', [AuthController::class, 'registerOrganisationGoogle']);
+    Route::post('register/client',              [AuthController::class, 'registerClient']);
     Route::post('login',                 [AuthController::class, 'login']);
+
+    // OAuth Google
+    Route::get('google',           [SocialAuthController::class, 'redirectToGoogle']);
+    Route::get('google/callback',  [SocialAuthController::class, 'handleGoogleCallback']);
+    Route::post('google/prefill',  [SocialAuthController::class, 'prefillFromToken']);
+
+    // Mot de passe oublié
+    Route::post('forgot-password', [PasswordResetController::class, 'sendResetLink']);
+    Route::post('reset-password',  [PasswordResetController::class, 'resetPassword']);
 });
 
 /*
@@ -124,6 +136,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // Statistiques analytiques (graphes temps réel)
         Route::get('statistiques/biens',     [StatistiqueController::class, 'biens']);
         Route::get('statistiques/prospects', [StatistiqueController::class, 'prospects']);
+        Route::get('statistiques/visites',   [StatistiqueController::class, 'visites']);
+        Route::get('statistiques/canaux',    [StatistiqueController::class, 'canaux']);
 
         // États des lieux
         Route::apiResource('etat-lieux', EtatLieuController::class);

@@ -364,9 +364,11 @@ export default function NouveauProspectPage() {
                 <label className="block text-xs font-medium text-gray-600 mb-1">Première impression du prospect</label>
                 <div className="flex gap-2">
                   {([
+                    { v: 'très_satisfait',     label: '😄 Très Satisfait',     active: 'bg-green-500 text-white',  idle: 'bg-white border-gray-200 text-gray-600 hover:bg-green-50' },
                     { v: 'satisfait',     label: '😊 Satisfait',     active: 'bg-green-500 text-white',  idle: 'bg-white border-gray-200 text-gray-600 hover:bg-green-50' },
                     { v: 'neutre',        label: '😐 Neutre',         active: 'bg-yellow-500 text-white', idle: 'bg-white border-gray-200 text-gray-600 hover:bg-yellow-50' },
-                    { v: 'non_satisfait', label: '😞 Non satisfait',  active: 'bg-red-500 text-white',    idle: 'bg-white border-gray-200 text-gray-600 hover:bg-red-50' },
+                    { v: 'plutot_non_satisfait', label: '😞 Plutot Non satisfait',  active: 'bg-red-500 text-white',    idle: 'bg-white border-gray-200 text-gray-600 hover:bg-red-50' },
+                    { v: 'non_satisfait', label: '😠 Non satisfait',  active: 'bg-red-500 text-white',    idle: 'bg-white border-gray-200 text-gray-600 hover:bg-red-50' },
                   ] as const).map(({ v, label, active, idle }) => (
                     <button key={v} type="button"
                       onClick={() => setForm(p => ({ ...p, impression_premiere_visite: p.impression_premiere_visite === v ? '' : v }))}
