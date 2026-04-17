@@ -171,7 +171,7 @@ export default function FacturesPage() {
                         <button onClick={() => handlePayer(f.id)} disabled={payingId === f.id}
                           className="text-xs text-green-600 hover:underline disabled:opacity-40">Marquer payée</button>
                       )}
-                      <Link href={`/dashboard/factures/${f.id}`} className="text-xs text-blue-600 hover:underline">Modifier</Link>
+                      <Link href={`/dashboard/factures/${f.id}`} className="text-xs text-blue-600 hover:underline">Voir</Link>
                     </div>
                   </td>
                 </tr>

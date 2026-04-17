@@ -1,22 +1,30 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from '@/components/OrgLink';
 import api from '@/lib/api'
-import { orgPath } from '@/lib/org-path';
 import { Contrat, EtatLieu } from '@/types';
 import { AxiosError } from 'axios';
 
+const Field = ({ label, value }: { label: string; value?: string | null }) => (
+  <div>
+    <p className="text-xs text-gray-400 mb-0.5">{label}</p>
+    <p className="text-sm text-gray-800 font-medium">{value || '—'}</p>
+  </div>
+);
+
+const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
+
 export default function EditEtatLieuPage() {
   const { id } = useParams<{ id: string }>();
-  const router  = useRouter();
 
-  const [etatLieu, setEtatLieu] = useState<EtatLieu | null>(null);
-  const [contrats, setContrats] = useState<Contrat[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [saving, setSaving]     = useState(false);
-  const [errors, setErrors]     = useState<Record<string, string[]>>({});
+  const [editing, setEditing]         = useState(false);
+  const [etatLieu, setEtatLieu]       = useState<EtatLieu | null>(null);
+  const [contrats, setContrats]       = useState<Contrat[]>([]);
+  const [loading, setLoading]         = useState(true);
+  const [saving, setSaving]           = useState(false);
+  const [errors, setErrors]           = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState('');
 
   const [form, setForm] = useState({
@@ -31,7 +39,8 @@ export default function EditEtatLieuPage() {
     commentaire:         '',
   });
 
-  useEffect(() => {
+  const fetchEtatLieu = () => {
+    setLoading(true);
     Promise.all([
       api.get<{ data: EtatLieu }>(`/org/etat-lieux/${id}`),
       api.get('/org/contrats?per_page=200'),
@@ -52,7 +61,9 @@ export default function EditEtatLieuPage() {
       setContrats(c.data.data ?? []);
     }).catch(() => {})
     .finally(() => setLoading(false));
-  }, [id]);
+  };
+
+  useEffect(() => { fetchEtatLieu(); }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (field: string) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -77,7 +88,8 @@ export default function EditEtatLieuPage() {
         remise_cles:        form.remise_cles,
         commentaire:        form.commentaire || undefined,
       });
-      router.push(orgPath('/dashboard/etat-lieux'));
+      setEditing(false);
+      fetchEtatLieu();
     } catch (err) {
       const ae = err as AxiosError<{ errors?: Record<string, string[]>; message?: string }>;
       if (ae.response?.data?.errors) setErrors(ae.response.data.errors);
@@ -96,6 +108,70 @@ export default function EditEtatLieuPage() {
 
   if (loading) return <div className="p-8 animate-pulse h-40 bg-gray-100 rounded-xl" />;
 
+  /* ── Vue fiche (lecture seule) ── */
+  if (!editing) {
+    const typeLabel = form.type === 'entree' ? "État d'entrée" : "État de sortie";
+    return (
+      <div className="p-6 max-w-2xl">
+        <div className="mb-6">
+          <Link href="/dashboard/etat-lieux" className="text-sm text-gray-400 hover:text-gray-600">← Retour</Link>
+          <div className="flex items-center justify-between mt-2">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">{etatLieu?.designation || typeLabel}</h1>
+              <p className="text-gray-400 text-sm mt-0.5">{fmtDate(form.date)}</p>
+            </div>
+            <button onClick={() => setEditing(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+              Modifier
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
+            <h2 className="text-sm font-semibold text-gray-700">Identification</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Type" value={typeLabel} />
+              <Field label="Date" value={fmtDate(form.date)} />
+            </div>
+            {form.designation && <Field label="Désignation" value={form.designation} />}
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
+            <h2 className="text-sm font-semibold text-gray-700">Contrat de location</h2>
+            {selectedContrat ? (
+              <div className="space-y-1 text-sm text-gray-700">
+                <p><span className="text-gray-400 text-xs">Bien : </span>{selectedContrat.bien?.designation ?? '—'}</p>
+                <p><span className="text-gray-400 text-xs">Client(s) : </span>{selectedContrat.clients?.map(c => c.nom_complet).join(', ') ?? '—'}</p>
+                <p><span className="text-gray-400 text-xs">Début : </span>{fmtDate(selectedContrat.date_debut)}</p>
+              </div>
+            ) : <p className="text-sm text-gray-400">Aucun contrat associé.</p>}
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
+            <h2 className="text-sm font-semibold text-gray-700">Relevés de compteurs</h2>
+            <div className="grid grid-cols-3 gap-4">
+              <Field label="Eau (m³)" value={form.releve_eau} />
+              <Field label="Électricité (kWh)" value={form.releve_electricite} />
+              <Field label="Gaz (m³)" value={form.releve_gaz} />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
+            <h2 className="text-sm font-semibold text-gray-700">Remise des clés & Commentaire</h2>
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${form.remise_cles ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                {form.remise_cles ? '✓ Clés remises' : 'Clés non remises'}
+              </span>
+            </div>
+            {form.commentaire && <p className="text-sm text-gray-700 whitespace-pre-line">{form.commentaire}</p>}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Formulaire de modification ── */
   return (
     <div className="p-6 max-w-2xl">
       <div className="mb-6">
@@ -112,7 +188,6 @@ export default function EditEtatLieuPage() {
 
       <form onSubmit={handleSave} className="space-y-4">
 
-        {/* ── Identification ── */}
         <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
           <h2 className="text-sm font-semibold text-gray-700">Identification</h2>
           <div className="grid grid-cols-2 gap-3">
@@ -137,7 +212,6 @@ export default function EditEtatLieuPage() {
           </div>
         </div>
 
-        {/* ── Contrat lié ── */}
         <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
           <h2 className="text-sm font-semibold text-gray-700">Contrat de location *</h2>
           <div>
@@ -161,7 +235,6 @@ export default function EditEtatLieuPage() {
           )}
         </div>
 
-        {/* ── Relevés de compteurs ── */}
         <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
           <h2 className="text-sm font-semibold text-gray-700">Relevés de compteurs</h2>
           <div className="grid grid-cols-3 gap-3">
@@ -186,7 +259,6 @@ export default function EditEtatLieuPage() {
           </div>
         </div>
 
-        {/* ── Remise des clés & Commentaire ── */}
         <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
           <h2 className="text-sm font-semibold text-gray-700">Remise des clés & Commentaire</h2>
           <div>
@@ -211,16 +283,15 @@ export default function EditEtatLieuPage() {
           </div>
         </div>
 
-        {/* ── Actions ── */}
         <div className="flex gap-3 pb-6">
           <button type="submit" disabled={saving}
             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
-          <Link href="/dashboard/etat-lieux"
+          <button type="button" onClick={() => setEditing(false)}
             className="px-6 py-2.5 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
             Annuler
-          </Link>
+          </button>
         </div>
       </form>
     </div>

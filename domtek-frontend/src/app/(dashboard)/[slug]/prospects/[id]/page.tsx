@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from '@/components/OrgLink';
 import api from '@/lib/api'
-import { orgPath } from '@/lib/org-path';
 import { Bien, BesoinProspect, Prospect } from '@/types';
 import { AxiosError } from 'axios';
 
@@ -77,13 +76,22 @@ function ScoreBadge({ score }: { score: number }) {
   );
 }
 
+const Field = ({ label, value }: { label: string; value?: string | null }) => (
+  <div>
+    <p className="text-xs text-gray-400 mb-0.5">{label}</p>
+    <p className="text-sm text-gray-800 font-medium">{value || '—'}</p>
+  </div>
+);
+
+const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function FicheProspectPage() {
   const { id } = useParams<{ id: string }>();
-  const router  = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [editing, setEditing]   = useState(false);
   const [prospect, setProspect] = useState<Prospect | null>(null);
   const [biens, setBiens]       = useState<Bien[]>([]);
 
@@ -178,7 +186,8 @@ export default function FicheProspectPage() {
         score_solvabilite:          visitEffectuee ? (form.score_solvabilite || null) : null,
         impression_premiere_visite: visitEffectuee ? (form.impression_premiere_visite || null) : null,
       });
-      router.push(orgPath('/dashboard/prospects'));
+      setEditing(false);
+      fetchProspect();
     } catch (err) {
       const axiosError = err as AxiosError<{ errors?: Record<string, string[]> }>;
       setErrors(axiosError.response?.data?.errors ?? {});
@@ -216,6 +225,144 @@ export default function FicheProspectPage() {
 
   if (loading) return <div className="p-8 animate-pulse h-40 bg-gray-100 rounded-xl" />;
 
+  /* ── Vue fiche (lecture seule) ── */
+  if (!editing) {
+    const CANAL_LABELS: Record<string, string> = {
+      facebook: 'Facebook', instagram: 'Instagram', amis_famille: 'Amis / Famille',
+      publicite: 'Publicité', site_web: 'Site web', google: 'Google',
+      agence_partenaire: 'Agence partenaire', autre: 'Autre',
+    };
+    const REVENUS_LABELS: Record<string, string> = {
+      moins_1000: '< 1 000 DT', '1000_2000': '1 000 – 2 000 DT',
+      '3000_6000': '3 000 – 6 000 DT', '7000_10000': '7 000 – 10 000 DT', plus_10000: '> 10 000 DT',
+    };
+    const SOLVABILITE_LABELS: Record<string, string> = {
+      verifie: '✅ Vérifié', plutot_verifie: '🟢 Plutôt vérifié',
+      plutot_non_verifie: '🟠 Plutôt non vérifié', non_verifie: '❌ Non vérifié',
+    };
+    const IMPRESSION_LABELS: Record<string, string> = {
+      satisfait: '😊 Satisfait', neutre: '😐 Neutre', non_satisfait: '😞 Non satisfait',
+    };
+    const bienNoms = biens.filter(b => biensInteret.includes(b.id)).map(b => b.designation).join(', ');
+    return (
+      <div className="p-8 max-w-3xl">
+        <div className="mb-6">
+          <Link href="/dashboard/prospects" className="text-sm text-gray-400 hover:text-gray-600">← Retour</Link>
+          <div className="flex items-start justify-between mt-2">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">{prospect?.nom_complet}</h1>
+              {prospect?.converti && (
+                <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                  Converti en client
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              {prospect && (
+                <div className="w-48">
+                  <p className="text-xs text-gray-400 mb-1">Score d&apos;opportunité</p>
+                  <ScoreBadge score={prospect.score_opportunite ?? 0} />
+                </div>
+              )}
+              <button onClick={() => setEditing(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+                Modifier
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-6 space-y-5">
+          <Section title="Identité" />
+          <div className="grid grid-cols-3 gap-4">
+            <Field label="Civilité" value={form.civilite} />
+            <Field label="Nom" value={form.nom} />
+            <Field label="Prénom" value={form.prenom} />
+          </div>
+
+          <Section title="Contact" />
+          <div className="grid grid-cols-3 gap-4">
+            <Field label="Téléphone" value={form.telephone} />
+            <Field label="Email" value={form.email} />
+            <Field label="Ville" value={form.ville} />
+          </div>
+
+          <Section title="Naissance" />
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Date de naissance" value={fmtDate(form.date_naissance)} />
+            <Field label="Lieu de naissance" value={form.lieu_naissance} />
+          </div>
+
+          <Section title="Document d'identité" />
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Type de pièce" value={form.type_piece} />
+            <Field label="N° de pièce (CIN)" value={form.cin} />
+            <Field label="Délivrée le" value={fmtDate(form.cin_delivree_le)} />
+            <Field label="Délivrée à" value={form.cin_delivree_a} />
+          </div>
+          {prospect?.document_url && (
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm">
+              <span className="text-gray-500 flex-1">Pièce jointe</span>
+              <a href={prospect.document_url} target="_blank" rel="noopener noreferrer"
+                className="text-blue-600 hover:underline text-xs">Voir le fichier</a>
+            </div>
+          )}
+
+          <Section title="Profil" />
+          <div className="grid grid-cols-3 gap-4">
+            <Field label="Source" value={CANAL_LABELS[form.source_connaissance] ?? form.source_connaissance} />
+            <Field label="Profession" value={form.profession} />
+            <Field label="Revenus mensuels" value={REVENUS_LABELS[form.revenus_mensuels] ?? form.revenus_mensuels} />
+          </div>
+          {compositionFoyer.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              {compositionFoyer.map(v => (
+                <span key={v} className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full capitalize">
+                  {v === 'enfants' ? '👶 Enfants' : '🐾 Animaux'}
+                </span>
+              ))}
+            </div>
+          )}
+          {bienNoms && <Field label="Biens d'intérêt" value={bienNoms} />}
+
+          {visitEffectuee && (
+            <>
+              <Section title="Évaluation" />
+              <div className="grid grid-cols-2 gap-4">
+                {form.score_solvabilite && (
+                  <Field label="Score de solvabilité" value={SOLVABILITE_LABELS[form.score_solvabilite] ?? form.score_solvabilite} />
+                )}
+                {form.impression_premiere_visite && (
+                  <Field label="Impression" value={IMPRESSION_LABELS[form.impression_premiere_visite] ?? form.impression_premiere_visite} />
+                )}
+              </div>
+              {hierarchie.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-400 mb-2">Hiérarchie des besoins</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {hierarchie.map((b, i) => (
+                      <span key={b} className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                        {i + 1}. {BESOINS_LABELS[b]}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {form.notes && (
+            <>
+              <Section title="Note" />
+              <p className="text-sm text-gray-700 whitespace-pre-line">{form.notes}</p>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Formulaire de modification ── */
   return (
     <div className="p-8 max-w-3xl">
       <div className="mb-6">
@@ -257,7 +404,7 @@ export default function FicheProspectPage() {
 
           <Section title="Contact" />
           <div className="grid grid-cols-3 gap-4">
-            {inp('N° Téléphone', 'telephone', 'tel')}
+            {inp('N° Téléphone', 'telephone', 'tel', '', true)}
             {inp('Email', 'email', 'email')}
             {inp('Ville', 'ville')}
           </div>
@@ -279,9 +426,9 @@ export default function FicheProspectPage() {
                 <option value="Passeport">Passeport</option>
               </select>
             </div>
-            {inp('N° de pièce', 'cin')}
-            {inp('Délivrée le', 'cin_delivree_le', 'date')}
-            {inp('Délivrée à (ville)', 'cin_delivree_a', 'text', 'Tunis')}
+            {inp('N° de pièce (CIN)', 'cin', 'text', '', true)}
+            {inp('Délivrée le', 'cin_delivree_le', 'date', '', true)}
+            {inp('Délivrée à (ville)', 'cin_delivree_a', 'text', '', true)}
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -465,10 +612,16 @@ export default function FicheProspectPage() {
             </div>
           )}
 
-          <button type="submit" disabled={saving}
-            className="mt-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
-            {saving ? 'Enregistrement…' : 'Enregistrer'}
-          </button>
+          <div className="flex gap-3 mt-2">
+            <button type="submit" disabled={saving}
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+              {saving ? 'Enregistrement…' : 'Enregistrer'}
+            </button>
+            <button type="button" onClick={() => setEditing(false)}
+              className="px-6 py-2.5 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
+              Annuler
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -100,7 +100,7 @@ export default function EmployesPage() {
                   </td>
                   <td className="px-5 py-3" onClick={e2 => e2.stopPropagation()}>
                     <div className="flex gap-2">
-                      <Link href={`/dashboard/employes/${e.id}`} className="text-xs text-blue-600 hover:underline">Modifier</Link>
+                      <Link href={`/dashboard/employes/${e.id}`} className="text-xs text-blue-600 hover:underline">Voir</Link>
                       <button onClick={() => handleDelete(e.id, e.nom_complet)} disabled={deleting === e.id}
                         className="text-xs text-red-600 hover:underline disabled:opacity-40">Supprimer</button>
                     </div>

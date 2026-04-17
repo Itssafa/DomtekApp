@@ -128,8 +128,8 @@ export default function AnnoncesPage() {
             const coverUrl = a.photos?.[0]?.url ?? a.bien?.image_principale?.url ?? PLACEHOLDER;
             return (
               <div key={a.id} className="bg-white rounded-xl shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
-                {/* Photo */}
-                <div className="relative h-44 overflow-hidden bg-gray-100">
+                {/* Photo — cliquable vers la fiche */}
+                <Link href={`/dashboard/annonces/${a.id}`} className="block relative h-44 overflow-hidden bg-gray-100">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={coverUrl} alt={a.titre}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -143,10 +143,10 @@ export default function AnnoncesPage() {
                       {a.photos!.length} photo{a.photos!.length > 1 ? 's' : ''}
                     </span>
                   )}
-                </div>
+                </Link>
 
-                {/* Infos */}
-                <div className="p-4">
+                {/* Infos — cliquables vers la fiche */}
+                <Link href={`/dashboard/annonces/${a.id}`} className="block p-4 hover:bg-gray-50 transition">
                   <p className="font-semibold text-gray-800 truncate">{a.titre}</p>
                   {a.bien && (
                     <p className="text-xs text-gray-400 mt-0.5 truncate">
@@ -158,10 +158,12 @@ export default function AnnoncesPage() {
                       {new Date(a.date_publication).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </p>
                   )}
+                </Link>
 
-                  {/* Actions */}
-                  <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100 flex-wrap">
-                    <Link href={`/dashboard/annonces/${a.id}`}
+                {/* Actions */}
+                <div className="p-4 pt-0 border-t border-gray-100">
+                  <div className="flex gap-2 mt-3 flex-wrap">
+                    <Link href={`/dashboard/annonces/${a.id}/modifier`}
                       className="text-xs text-blue-600 hover:text-blue-700 font-medium py-1 px-2 rounded hover:bg-blue-50 transition">
                       Modifier
                     </Link>

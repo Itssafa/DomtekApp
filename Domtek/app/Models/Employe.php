@@ -18,6 +18,9 @@ class Employe extends Model
         'prenom',
         'email',
         'telephone',
+        'cin',
+        'cin_delivree_le',
+        'cin_delivree_a',
         'poste',
         'date_embauche',
         'statut',
@@ -28,7 +31,8 @@ class Employe extends Model
     protected function casts(): array
     {
         return [
-            'date_embauche' => 'date',
+            'date_embauche'   => 'date',
+            'cin_delivree_le' => 'date',
         ];
     }
 

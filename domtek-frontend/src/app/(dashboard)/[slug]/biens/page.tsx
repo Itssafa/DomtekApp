@@ -102,8 +102,8 @@ export default function BiensPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {data.data.map((b) => (
             <div key={b.id} className="bg-white rounded-xl shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
-              {/* Photo */}
-              <div className="relative h-44 overflow-hidden bg-gray-100">
+              {/* Photo — cliquable vers la fiche */}
+              <Link href={`/dashboard/biens/${b.id}`} className="block relative h-44 overflow-hidden bg-gray-100">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={b.image_principale?.url ?? PLACEHOLDER}
@@ -118,10 +118,10 @@ export default function BiensPage() {
                 <span className={`absolute top-2 right-2 text-xs font-medium px-2 py-0.5 rounded-full ${STATUT_STYLES[b.statut]}`}>
                   {STATUT_LABELS[b.statut]}
                 </span>
-              </div>
+              </Link>
 
-              {/* Infos */}
-              <div className="p-4">
+              {/* Infos — cliquables vers la fiche */}
+              <Link href={`/dashboard/biens/${b.id}`} className="block p-4 hover:bg-gray-50 transition">
                 <p className="font-semibold text-gray-800 truncate">{b.titre}</p>
                 <p className="text-xs text-gray-400 capitalize mt-0.5">{b.type_bien}{b.ville ? ` · ${b.ville}` : ''}</p>
 
@@ -137,18 +137,18 @@ export default function BiensPage() {
                   {b.nb_pieces  && <span>{b.nb_pieces} pièces</span>}
                   {b.etage != null && <span>Étage {b.etage}</span>}
                 </div>
+              </Link>
 
-                {/* Actions */}
-                <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
-                  <Link href={`/dashboard/biens/${b.id}`}
-                    className="flex-1 text-center text-xs text-blue-600 hover:text-blue-700 font-medium py-1.5 rounded-lg hover:bg-blue-50 transition">
-                    Modifier
-                  </Link>
-                  <button onClick={() => handleDelete(b.id, b.titre)} disabled={deleting === b.id}
-                    className="flex-1 text-center text-xs text-red-500 hover:text-red-600 font-medium py-1.5 rounded-lg hover:bg-red-50 transition disabled:opacity-40">
-                    Supprimer
-                  </button>
-                </div>
+              {/* Actions */}
+              <div className="flex gap-2 px-4 pb-4 pt-0 border-t border-gray-100">
+                <Link href={`/dashboard/biens/${b.id}/modifier`}
+                  className="flex-1 text-center text-xs text-blue-600 hover:text-blue-700 font-medium py-1.5 rounded-lg hover:bg-blue-50 transition">
+                  Modifier
+                </Link>
+                <button onClick={() => handleDelete(b.id, b.titre)} disabled={deleting === b.id}
+                  className="flex-1 text-center text-xs text-red-500 hover:text-red-600 font-medium py-1.5 rounded-lg hover:bg-red-50 transition disabled:opacity-40">
+                  Supprimer
+                </button>
               </div>
             </div>
           ))}

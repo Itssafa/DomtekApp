@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from '@/components/OrgLink';
 import api from '@/lib/api'
-import { orgPath } from '@/lib/org-path';
 import { Client, Contrat, Facture } from '@/types';
 import { AxiosError } from 'axios';
 
@@ -15,20 +14,29 @@ const Section = ({ title }: { title: string }) => (
   </div>
 );
 
+const Field = ({ label, value }: { label: string; value?: string | null }) => (
+  <div>
+    <p className="text-xs text-gray-400 mb-0.5">{label}</p>
+    <p className="text-sm text-gray-800 font-medium">{value || '—'}</p>
+  </div>
+);
+
+const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
+
 export default function FicheClientPage() {
   const { id } = useParams<{ id: string }>();
-  const router  = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [client, setClient]     = useState<Client | null>(null);
-  const [contrats, setContrats] = useState<Contrat[]>([]);
-  const [factures, setFactures] = useState<Facture[]>([]);
+  const [editing, setEditing]       = useState(false);
+  const [client, setClient]         = useState<Client | null>(null);
+  const [contrats, setContrats]     = useState<Contrat[]>([]);
+  const [factures, setFactures]     = useState<Facture[]>([]);
 
   const [form, setForm] = useState({
     civilite: '', nom: '', prenom: '',
     telephone: '', email: '', ville: '',
     date_naissance: '', lieu_naissance: '',
-    type_piece: '', cin: '',
+    type_piece: '', cin: '', cin_delivree_le: '', cin_delivree_a: '',
     urgence_nom: '', urgence_telephone: '', urgence_relation: '',
     notes: '',
   });
@@ -59,6 +67,8 @@ export default function FicheClientPage() {
         lieu_naissance:    cl.lieu_naissance ?? '',
         type_piece:        cl.type_piece ?? '',
         cin:               cl.cin ?? '',
+        cin_delivree_le:   (cl as any).cin_delivree_le ?? '',
+        cin_delivree_a:    (cl as any).cin_delivree_a ?? '',
         urgence_nom:       cl.urgence_nom ?? '',
         urgence_telephone: cl.urgence_telephone ?? '',
         urgence_relation:  cl.urgence_relation ?? '',
@@ -94,7 +104,8 @@ export default function FicheClientPage() {
     setSaving(true);
     try {
       await api.put(`/org/clients/${id}`, form);
-      router.push(orgPath('/dashboard/clients'));
+      setEditing(false);
+      fetchClient();
     } catch (err) {
       const axiosError = err as AxiosError<{ errors?: Record<string, string[]> }>;
       setErrors(axiosError.response?.data?.errors ?? {});
@@ -118,8 +129,120 @@ export default function FicheClientPage() {
     finally { setUploading(false); }
   };
 
+  /* ── Sections contrats & factures (réutilisées en mode fiche et édition) ── */
+  const contratsSection = (
+    <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+      <h2 className="text-sm font-semibold text-gray-700 mb-3">Contrats ({contrats.length})</h2>
+      {!contrats.length ? <p className="text-sm text-gray-400">Aucun contrat.</p> : (
+        <div className="space-y-2">
+          {contrats.map(c => (
+            <Link key={c.id} href={`/dashboard/contrats/${c.id}`}
+              className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm transition">
+              <span className="font-medium text-gray-700">{c.bien?.designation ?? c.designation ?? `Contrat #${c.id}`}</span>
+              <span className="text-gray-500">{Number(c.montant_ht).toLocaleString('fr-TN')} TND — {c.statut}</span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const facturesSection = (
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <h2 className="text-sm font-semibold text-gray-700 mb-3">Factures ({factures.length})</h2>
+      {!factures.length ? <p className="text-sm text-gray-400">Aucune facture.</p> : (
+        <div className="space-y-2">
+          {factures.map(f => (
+            <Link key={f.id} href={`/dashboard/factures/${f.id}`}
+              className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm transition">
+              <span className="font-medium text-gray-700 capitalize">{f.type} — {f.reference ?? `#${f.id}`}</span>
+              <span className="text-gray-500">{Number(f.montant).toLocaleString('fr-TN')} TND — {f.statut}</span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   if (loading) return <div className="p-8 animate-pulse h-40 bg-gray-100 rounded-xl" />;
 
+  /* ── Vue fiche (lecture seule) ── */
+  if (!editing) {
+    return (
+      <div className="p-8 max-w-3xl">
+        <div className="mb-6">
+          <Link href="/dashboard/clients" className="text-sm text-gray-400 hover:text-gray-600">← Retour</Link>
+          <div className="flex items-center justify-between mt-2">
+            <h1 className="text-2xl font-bold text-gray-800">{client?.nom_complet}</h1>
+            <button onClick={() => setEditing(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+              Modifier
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6 space-y-5">
+          <Section title="Identité" />
+          <div className="grid grid-cols-3 gap-4">
+            <Field label="Civilité" value={form.civilite} />
+            <Field label="Nom" value={form.nom} />
+            <Field label="Prénom" value={form.prenom} />
+          </div>
+
+          <Section title="Contact" />
+          <div className="grid grid-cols-3 gap-4">
+            <Field label="Téléphone" value={form.telephone} />
+            <Field label="Email" value={form.email} />
+            <Field label="Ville" value={form.ville} />
+          </div>
+
+          <Section title="Naissance" />
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Date de naissance" value={fmtDate(form.date_naissance)} />
+            <Field label="Lieu de naissance" value={form.lieu_naissance} />
+          </div>
+
+          <Section title="Document d'identité" />
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Type de pièce" value={form.type_piece} />
+            <Field label="N° de pièce (CIN)" value={form.cin} />
+            <Field label="Délivrée le" value={fmtDate(form.cin_delivree_le)} />
+            <Field label="Délivrée à" value={form.cin_delivree_a} />
+          </div>
+          {client?.document_url && (
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm">
+              <span className="text-gray-500 flex-1">Pièce jointe</span>
+              <a href={client.document_url} target="_blank" rel="noopener noreferrer"
+                className="text-blue-600 hover:underline text-xs">Voir le fichier</a>
+            </div>
+          )}
+
+          {(form.urgence_nom || form.urgence_telephone) && (
+            <>
+              <Section title="Contact d'urgence" />
+              <div className="grid grid-cols-3 gap-4">
+                <Field label="Nom" value={form.urgence_nom} />
+                <Field label="Téléphone" value={form.urgence_telephone} />
+                <Field label="Relation" value={form.urgence_relation} />
+              </div>
+            </>
+          )}
+
+          {form.notes && (
+            <>
+              <Section title="Note" />
+              <p className="text-sm text-gray-700 whitespace-pre-line">{form.notes}</p>
+            </>
+          )}
+        </div>
+
+        {contratsSection}
+        {facturesSection}
+      </div>
+    );
+  }
+
+  /* ── Formulaire de modification ── */
   return (
     <div className="p-8 max-w-3xl">
       <div className="mb-6">
@@ -127,7 +250,6 @@ export default function FicheClientPage() {
         <h1 className="text-2xl font-bold text-gray-800 mt-2">{client?.nom_complet}</h1>
       </div>
 
-      {/* ── Formulaire principal ── */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
         <form onSubmit={handleSave} className="space-y-4">
 
@@ -149,7 +271,7 @@ export default function FicheClientPage() {
 
           <Section title="Contact" />
           <div className="grid grid-cols-3 gap-4">
-            {inp('N° Téléphone', 'telephone', 'tel')}
+            {inp('N° Téléphone', 'telephone', 'tel', '', true)}
             {inp('Email', 'email', 'email')}
             {inp('Ville', 'ville')}
           </div>
@@ -171,7 +293,9 @@ export default function FicheClientPage() {
                 <option value="Passeport">Passeport</option>
               </select>
             </div>
-            {inp('N° de pièce', 'cin')}
+            {inp('N° de pièce (CIN)', 'cin', 'text', '', true)}
+            {inp('Délivrée le', 'cin_delivree_le', 'date', '', true)}
+            {inp('Délivrée à (ville)', 'cin_delivree_a', 'text', '', true)}
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -206,44 +330,21 @@ export default function FicheClientPage() {
             placeholder="Remarques internes…"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
 
-          <button type="submit" disabled={saving}
-            className="mt-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
-            {saving ? 'Enregistrement…' : 'Enregistrer'}
-          </button>
+          <div className="flex gap-3 mt-2">
+            <button type="submit" disabled={saving}
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+              {saving ? 'Enregistrement…' : 'Enregistrer'}
+            </button>
+            <button type="button" onClick={() => setEditing(false)}
+              className="px-6 py-2.5 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
+              Annuler
+            </button>
+          </div>
         </form>
       </div>
 
-      {/* ── Contrats ── */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-        <h2 className="text-sm font-semibold text-gray-700 mb-3">Contrats ({contrats.length})</h2>
-        {!contrats.length ? <p className="text-sm text-gray-400">Aucun contrat.</p> : (
-          <div className="space-y-2">
-            {contrats.map(c => (
-              <Link key={c.id} href={`/dashboard/contrats/${c.id}`}
-                className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm transition">
-                <span className="font-medium text-gray-700">{c.bien?.designation ?? c.designation ?? `Contrat #${c.id}`}</span>
-                <span className="text-gray-500">{Number(c.montant_ht).toLocaleString('fr-TN')} TND — {c.statut}</span>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* ── Factures ── */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-sm font-semibold text-gray-700 mb-3">Factures ({factures.length})</h2>
-        {!factures.length ? <p className="text-sm text-gray-400">Aucune facture.</p> : (
-          <div className="space-y-2">
-            {factures.map(f => (
-              <Link key={f.id} href={`/dashboard/factures/${f.id}`}
-                className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm transition">
-                <span className="font-medium text-gray-700 capitalize">{f.type} — {f.reference ?? `#${f.id}`}</span>
-                <span className="text-gray-500">{Number(f.montant).toLocaleString('fr-TN')} TND — {f.statut}</span>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
+      {contratsSection}
+      {facturesSection}
     </div>
   );
 }

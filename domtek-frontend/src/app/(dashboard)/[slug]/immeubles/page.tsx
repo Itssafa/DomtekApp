@@ -89,8 +89,8 @@ export default function ImmeublesPage() {
             const coverUrl = imm.photos?.[0]?.url ?? PLACEHOLDER;
             return (
               <div key={imm.id} className="bg-white rounded-xl shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
-                {/* Photo */}
-                <div className="relative h-44 overflow-hidden bg-gray-100">
+                {/* Photo — cliquable vers la fiche */}
+                <Link href={`/dashboard/immeubles/${imm.id}`} className="block relative h-44 overflow-hidden bg-gray-100">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={coverUrl} alt={imm.nom}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -104,10 +104,10 @@ export default function ImmeublesPage() {
                       {imm.photos_count} photo{(imm.photos_count ?? 0) > 1 ? 's' : ''}
                     </span>
                   )}
-                </div>
+                </Link>
 
-                {/* Infos */}
-                <div className="p-4">
+                {/* Infos — cliquables vers la fiche */}
+                <Link href={`/dashboard/immeubles/${imm.id}`} className="block p-4 hover:bg-gray-50 transition">
                   <p className="font-semibold text-gray-800 truncate">{imm.nom}</p>
                   <p className="text-xs text-gray-400 mt-0.5">
                     {imm.type_propriete === 'auto_propriete' ? 'Auto-propriété' : 'Co-propriété'}
@@ -129,18 +129,18 @@ export default function ImmeublesPage() {
                       <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">Caméras</span>
                     )}
                   </div>
+                </Link>
 
-                  {/* Actions */}
-                  <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
-                    <Link href={`/dashboard/immeubles/${imm.id}`}
-                      className="flex-1 text-center text-xs text-blue-600 hover:text-blue-700 font-medium py-1.5 rounded-lg hover:bg-blue-50 transition">
-                      Modifier
-                    </Link>
-                    <button onClick={() => handleDelete(imm.id, imm.nom)} disabled={deletingId === imm.id}
-                      className="flex-1 text-center text-xs text-red-500 hover:text-red-600 font-medium py-1.5 rounded-lg hover:bg-red-50 transition disabled:opacity-40">
-                      Supprimer
-                    </button>
-                  </div>
+                {/* Actions */}
+                <div className="flex gap-2 px-4 pb-4 pt-0 border-t border-gray-100">
+                  <Link href={`/dashboard/immeubles/${imm.id}/modifier`}
+                    className="flex-1 text-center text-xs text-blue-600 hover:text-blue-700 font-medium py-1.5 rounded-lg hover:bg-blue-50 transition">
+                    Modifier
+                  </Link>
+                  <button onClick={() => handleDelete(imm.id, imm.nom)} disabled={deletingId === imm.id}
+                    className="flex-1 text-center text-xs text-red-500 hover:text-red-600 font-medium py-1.5 rounded-lg hover:bg-red-50 transition disabled:opacity-40">
+                    Supprimer
+                  </button>
                 </div>
               </div>
             );

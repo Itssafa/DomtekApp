@@ -178,7 +178,7 @@ export default function NouveauProspectPage() {
           {/* ── 2. Contact ── */}
           <Section title="Contact" />
           <div className="grid grid-cols-3 gap-4">
-            {inp('N° Téléphone', 'telephone', 'tel', '+216 22 000 000')}
+            {inp('N° Téléphone', 'telephone', 'tel', '+216 22 000 000', true)}
             {inp('Email', 'email', 'email', 'ahmed@email.com')}
             {inp('Ville', 'ville', 'text', 'Tunis')}
           </div>
@@ -202,9 +202,9 @@ export default function NouveauProspectPage() {
                 <option value="Passeport">Passeport</option>
               </select>
             </div>
-            {inp('N° de pièce', 'cin', 'text', '12345678')}
-            {inp('Délivrée le', 'cin_delivree_le', 'date')}
-            {inp('Délivrée à (ville)', 'cin_delivree_a', 'text', 'Tunis')}
+            {inp('N° de pièce (CIN)', 'cin', 'text', '12345678', true)}
+            {inp('Délivrée le', 'cin_delivree_le', 'date', '', true)}
+            {inp('Délivrée à (ville)', 'cin_delivree_a', 'text', 'Tunis', true)}
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">

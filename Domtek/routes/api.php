@@ -15,7 +15,9 @@ use App\Http\Controllers\Api\Organisation\EtatLieuController;
 use App\Http\Controllers\Api\Organisation\VisiteController;
 use App\Http\Controllers\Api\Organisation\ImmeubleController;
 use App\Http\Controllers\Api\Organisation\InvestissementController;
+use App\Http\Controllers\Api\Organisation\NotificationController;
 use App\Http\Controllers\Api\Organisation\StatistiqueController;
+use App\Http\Controllers\Api\Organisation\TacheController;
 use App\Http\Controllers\Api\Public\AnnonceController as AnnoncePubliqueController;
 use App\Http\Controllers\Api\Public\OrganisationController as OrganisationPubliqueController;
 use App\Http\Controllers\Api\Public\PaiementController;
@@ -138,6 +140,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('statistiques/prospects', [StatistiqueController::class, 'prospects']);
         Route::get('statistiques/visites',   [StatistiqueController::class, 'visites']);
         Route::get('statistiques/canaux',    [StatistiqueController::class, 'canaux']);
+
+        // Tâches
+        Route::apiResource('taches', TacheController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->parameters(['taches' => 'tache']);
+
+        // Notifications (anniversaires + visites demain)
+        Route::get('notifications', [NotificationController::class, 'index']);
 
         // États des lieux
         Route::apiResource('etat-lieux', EtatLieuController::class);

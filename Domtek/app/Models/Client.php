@@ -27,6 +27,7 @@ class Client extends Model
         'type_piece',
         'cin',
         'cin_delivree_le',
+        'cin_delivree_a',
         'document_identite',
         'urgence_nom',
         'urgence_telephone',

@@ -22,7 +22,7 @@ export default function NouveauClientPage() {
     civilite: '', nom: '', prenom: '',
     telephone: '', email: '', ville: '',
     date_naissance: '', lieu_naissance: '',
-    type_piece: '', cin: '',
+    type_piece: '', cin: '', cin_delivree_le: '', cin_delivree_a: '',
     urgence_nom: '', urgence_telephone: '', urgence_relation: '',
     notes: '',
   });
@@ -101,7 +101,7 @@ export default function NouveauClientPage() {
           {/* ── 2. Contact ── */}
           <Section title="Contact" />
           <div className="grid grid-cols-3 gap-4">
-            {inp('N° Téléphone', 'telephone', 'tel', '+216 22 000 000')}
+            {inp('N° Téléphone', 'telephone', 'tel', '+216 22 000 000', true)}
             {inp('Email', 'email', 'email', 'ahmed@email.com')}
             {inp('Ville', 'ville', 'text', 'Tunis')}
           </div>
@@ -125,7 +125,9 @@ export default function NouveauClientPage() {
                 <option value="Passeport">Passeport</option>
               </select>
             </div>
-            {inp('N° de pièce', 'cin', 'text', '12345678')}
+            {inp('N° de pièce (CIN)', 'cin', 'text', '12345678', true)}
+            {inp('Délivrée le', 'cin_delivree_le', 'date', '', true)}
+            {inp('Délivrée à (ville)', 'cin_delivree_a', 'text', 'Tunis', true)}
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
