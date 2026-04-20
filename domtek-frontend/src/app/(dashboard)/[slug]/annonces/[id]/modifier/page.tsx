@@ -31,6 +31,7 @@ export default function ModifierAnnoncePage() {
     setLoading(true);
     Promise.all([
       api.get<{ data: Annonce }>(`/org/annonces/${id}`),
+
       api.get('/org/biens?per_page=100'),
     ]).then(([annonceRes, biensRes]) => {
       const a = annonceRes.data.data;

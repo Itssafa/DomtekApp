@@ -1,6 +1,6 @@
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
-export type Role = 'admin' | 'organisation' | 'client';
+export type Role = 'admin' | 'organisation' | 'client' | 'employe';
 
 export interface User {
   id: number;
@@ -207,7 +207,12 @@ export interface Employe {
   email: string | null;
   telephone: string | null;
   poste: string | null;
-  statut: 'actif' | 'inactif';
+  statut: 'actif' | 'inactif' | 'en_attente';
+  cin: string | null;
+  cin_delivree_le: string | null;
+  cin_delivree_a: string | null;
+  date_naissance: string | null;
+  user_id: number | null;
   date_embauche: string | null;
   created_at: string;
   updated_at: string;

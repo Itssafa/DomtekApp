@@ -21,6 +21,7 @@ class Employe extends Model
         'cin',
         'cin_delivree_le',
         'cin_delivree_a',
+        'date_naissance',
         'poste',
         'date_embauche',
         'statut',
@@ -33,6 +34,7 @@ class Employe extends Model
         return [
             'date_embauche'   => 'date',
             'cin_delivree_le' => 'date',
+            'date_naissance'  => 'date',
         ];
     }
 

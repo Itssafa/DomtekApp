@@ -17,6 +17,7 @@ class User extends Authenticatable
     const ROLE_ADMIN        = 'admin';
     const ROLE_ORGANISATION = 'organisation';
     const ROLE_CLIENT       = 'client';
+    const ROLE_EMPLOYE      = 'employe';
 
     protected $fillable = [
         'name',
@@ -59,6 +60,19 @@ class User extends Authenticatable
     public function isClient(): bool
     {
         return $this->role === self::ROLE_CLIENT;
+    }
+
+    public function isEmploye(): bool
+    {
+        return $this->role === self::ROLE_EMPLOYE;
+    }
+
+    public function resolveOrgId(): ?int
+    {
+        if ($this->isEmploye()) {
+            return $this->employe?->organisation_id;
+        }
+        return $this->organisation?->id;
     }
 
     // --- Relations ---

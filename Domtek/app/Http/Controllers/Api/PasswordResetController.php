@@ -35,10 +35,15 @@ class PasswordResetController extends Controller
             . '/reset-password?token=' . $token
             . '&email=' . urlencode($user->email);
 
-        Mail::send('emails.reset_password', ['user' => $user, 'resetUrl' => $resetUrl], function ($m) use ($user) {
-            $m->to($user->email, $user->name)
-              ->subject('Réinitialisation de votre mot de passe — Domtek');
-        });
+        try {
+            Mail::send('emails.reset_password', ['user' => $user, 'resetUrl' => $resetUrl], function ($m) use ($user) {
+                $m->to($user->email, $user->name)
+                  ->subject('Réinitialisation de votre mot de passe — Domtek');
+            });
+        } catch (\Throwable $e) {
+            \Log::error('Password reset mail failed: ' . $e->getMessage());
+            return response()->json(['message' => "L'envoi de l'e-mail a échoué. Veuillez réessayer plus tard."], 500);
+        }
 
         return response()->json([
             'message' => 'Si un compte existe avec cet e-mail, un lien vous a été envoyé.',

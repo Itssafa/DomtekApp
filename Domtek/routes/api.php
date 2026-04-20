@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\SocialAuthController;
 use App\Http\Controllers\Api\Admin\OrganisationController as AdminOrganisationController;
 use App\Http\Controllers\Api\Organisation\AnnonceController;
@@ -32,6 +33,7 @@ Route::prefix('auth')->group(function () {
     Route::post('register/organisation',        [AuthController::class, 'registerOrganisation']);
     Route::post('register/organisation-google', [AuthController::class, 'registerOrganisationGoogle']);
     Route::post('register/client',              [AuthController::class, 'registerClient']);
+    Route::post('register/employe',             [AuthController::class, 'registerEmploye']);
     Route::post('login',                 [AuthController::class, 'login']);
 
     // OAuth Google
@@ -65,8 +67,13 @@ Route::post('stripe/webhook',     [PaiementController::class, 'webhook']);
 */
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::get('auth/me',      [AuthController::class, 'me']);
-    Route::post('auth/logout', [AuthController::class, 'logout']);
+    Route::get('auth/me',               [AuthController::class, 'me']);
+    Route::post('auth/logout',          [AuthController::class, 'logout']);
+
+    // Profil utilisateur
+    Route::put('auth/me',               [ProfileController::class, 'updateUser']);
+    Route::put('auth/me/password',      [ProfileController::class, 'updatePassword']);
+    Route::post('org/profil',           [ProfileController::class, 'updateOrganisation']);
 
     /*
     |----------------------------------------------------------------------
@@ -95,25 +102,47 @@ Route::middleware('auth:sanctum')->group(function () {
     | FRONTOFFICE — Organisation (agence immobilière)
     |----------------------------------------------------------------------
     */
+    // Routes accessibles par l'organisation ET les employés (lecture + tâches)
+    Route::middleware('role:organisation,employe')->prefix('org')->group(function () {
+        Route::get('biens',              [BienController::class, 'index']);
+        Route::get('biens/{bien}',       [BienController::class, 'show']);
+        Route::get('annonces',           [AnnonceController::class, 'index']);
+        Route::get('annonces/{annonce}', [AnnonceController::class, 'show']);
+        Route::get('contrats',           [ContratController::class, 'index']);
+        Route::get('contrats/{contrat}', [ContratController::class, 'show']);
+        Route::get('contrats/{contrat}/pdf', [ContratController::class, 'telechargerPdf']);
+        Route::get('clients',            [ClientController::class, 'index']);
+        Route::get('clients/{client}',   [ClientController::class, 'show']);
+        Route::get('prospects',          [ProspectController::class, 'index']);
+        Route::get('prospects/{prospect}', [ProspectController::class, 'show']);
+        Route::get('etat-lieux',         [EtatLieuController::class, 'index']);
+        Route::get('etat-lieux/{etat_lieu}', [EtatLieuController::class, 'show']);
+        Route::get('immeubles',              [ImmeubleController::class, 'index']);
+        Route::get('immeubles/{immeuble}',   [ImmeubleController::class, 'show']);
+        Route::apiResource('taches', TacheController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->parameters(['taches' => 'tache']);
+        Route::get('notifications', [NotificationController::class, 'index']);
+    });
+
     Route::middleware('role:organisation')->prefix('org')->group(function () {
 
         // Biens immobiliers
-        Route::apiResource('biens', BienController::class);
+        Route::apiResource('biens', BienController::class)->except(['index', 'show']);
         Route::post('biens/{bien}/images',                    [BienController::class, 'uploadImages']);
         Route::delete('biens/{bien}/images/{image}',          [BienController::class, 'deleteImage']);
         Route::post('biens/{bien}/documents',                 [BienController::class, 'uploadDocument']);
         Route::delete('biens/{bien}/documents/{document}',    [BienController::class, 'deleteDocument']);
 
         // Annonces (+ actions de statut + photos)
-        Route::apiResource('annonces', AnnonceController::class);
+        Route::apiResource('annonces', AnnonceController::class)->except(['index', 'show']);
         Route::patch('annonces/{annonce}/publier',             [AnnonceController::class, 'publier']);
         Route::patch('annonces/{annonce}/archiver',            [AnnonceController::class, 'archiver']);
         Route::post('annonces/{annonce}/photos',               [AnnonceController::class, 'uploadPhotos']);
         Route::delete('annonces/{annonce}/photos/{photo}',     [AnnonceController::class, 'deletePhoto']);
 
-        // Contrats (+ téléchargement PDF + upload fichier)
-        Route::apiResource('contrats', ContratController::class);
-        Route::get('contrats/{contrat}/pdf',      [ContratController::class, 'telechargerPdf']);
+        // Contrats (+ upload fichier)
+        Route::apiResource('contrats', ContratController::class)->except(['index', 'show']);
         Route::post('contrats/{contrat}/fichier', [ContratController::class, 'uploadFichier']);
 
         // Factures (+ marquage paiement + téléchargement PDF)
@@ -121,16 +150,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('factures/{facture}/payer', [FactureController::class, 'marquerPayee']);
         Route::get('factures/{facture}/pdf',     [FactureController::class, 'telechargerPdf']);
 
-        // CRM Clients (ayant signé un contrat)
-        Route::apiResource('clients', ClientController::class);
+        // CRM Clients
+        Route::apiResource('clients', ClientController::class)->except(['index', 'show']);
         Route::post('clients/{client}/document', [ClientController::class, 'uploadDocument']);
 
         // CRM Prospects
-        Route::apiResource('prospects', ProspectController::class);
+        Route::apiResource('prospects', ProspectController::class)->except(['index', 'show']);
         Route::post('prospects/{prospect}/document', [ProspectController::class, 'uploadDocument']);
 
         // CRM Employés
         Route::apiResource('employes', EmployeController::class);
+        Route::get('employes-en-attente',           [EmployeController::class, 'enAttente']);
+        Route::post('employes/{employe}/activer',   [EmployeController::class, 'activerCompte']);
 
         // Taux d'investissement
         Route::apiResource('investissements', InvestissementController::class);
@@ -141,22 +172,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('statistiques/visites',   [StatistiqueController::class, 'visites']);
         Route::get('statistiques/canaux',    [StatistiqueController::class, 'canaux']);
 
-        // Tâches
-        Route::apiResource('taches', TacheController::class)
-            ->only(['index', 'store', 'update', 'destroy'])
-            ->parameters(['taches' => 'tache']);
-
-        // Notifications (anniversaires + visites demain)
-        Route::get('notifications', [NotificationController::class, 'index']);
-
         // États des lieux
-        Route::apiResource('etat-lieux', EtatLieuController::class);
+        Route::apiResource('etat-lieux', EtatLieuController::class)->except(['index', 'show']);
 
         // Visites
         Route::apiResource('visites', VisiteController::class);
 
-        // Immeubles
-        Route::apiResource('immeubles', ImmeubleController::class);
+        // Immeubles (index + show sont dans le groupe role:organisation,employe)
+        Route::apiResource('immeubles', ImmeubleController::class)->except(['index', 'show']);
         Route::post('immeubles/{immeuble}/photos',               [ImmeubleController::class, 'uploadPhotos']);
         Route::delete('immeubles/{immeuble}/photos/{photo}',     [ImmeubleController::class, 'deletePhoto']);
     });

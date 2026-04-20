@@ -22,7 +22,8 @@ class BienController extends Controller
 
     private function orgId(): int
     {
-        return auth()->user()->organisation->id;
+        $user = auth()->user();
+        return $user->isEmploye() ? $user->employe->organisation_id : $user->organisation->id;
     }
 
     public function index(Request $request): AnonymousResourceCollection

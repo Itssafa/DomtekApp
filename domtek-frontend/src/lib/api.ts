@@ -21,20 +21,39 @@ api.interceptors.request.use((config) => {
 });
 
 // ── Intercepteur de réponse : redirige vers /login si 401 ─────────────────────
+// api.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     if (error.response?.status === 401) {
+//       Cookies.remove(TOKEN_KEY);
+//       if (typeof window !== 'undefined') {
+//         window.location.href = '/login';
+//       }
+//     }
+//     return Promise.reject(error);
+//   }
+// );
+
+// ── Intercepteur de réponse : redirige vers /login si 401 ─────────────────────
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      Cookies.remove(TOKEN_KEY);
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+      // 1. Vérifier si on est sur une page où la redirection est interdite
+      const isAuthPage = typeof window !== 'undefined' && 
+                         (window.location.pathname.includes('/auth/google/callback') || 
+                          window.location.pathname === '/login');
+
+      if (!isAuthPage) {
+        Cookies.remove(TOKEN_KEY);
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
   }
 );
-
-
 
 export { TOKEN_KEY };
 export default api;

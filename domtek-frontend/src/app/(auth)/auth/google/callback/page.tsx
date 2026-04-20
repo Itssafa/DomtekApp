@@ -13,6 +13,7 @@ export default function GoogleCallbackPage() {
     const token  = params.get('token');
     const role   = params.get('role');
     const name   = params.get('name') ?? '';
+    const email  = params.get('email') ?? '';
     const err    = params.get('error');
 
     if (err) {
@@ -30,7 +31,7 @@ export default function GoogleCallbackPage() {
     }
 
     // Stocker l'auth (cookie + zustand)
-    setAuth(token, { name, role, email: '' } as never, role as never);
+    setAuth(token, { name, role, email } as never, role as never);
 
     // Rechargement complet pour que le cookie soit bien lu dès la prochaine page
     if (role === 'admin') {

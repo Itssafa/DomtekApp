@@ -9,16 +9,16 @@ class FacturePolicy
 {
     public function view(User $user, Facture $facture): bool
     {
-        return $user->organisation?->id === $facture->organisation_id;
+        return $user->resolveOrgId() === $facture->organisation_id;
     }
 
     public function update(User $user, Facture $facture): bool
     {
-        return $user->organisation?->id === $facture->organisation_id;
+        return $user->resolveOrgId() === $facture->organisation_id;
     }
 
     public function delete(User $user, Facture $facture): bool
     {
-        return $user->organisation?->id === $facture->organisation_id;
+        return $user->resolveOrgId() === $facture->organisation_id;
     }
 }

@@ -11,12 +11,23 @@ class TacheController extends Controller
 {
     private function orgId(): int
     {
-        return auth()->user()->organisation->id;
+        $user = auth()->user();
+        return $user->isEmploye() ? $user->employe->organisation_id : $user->organisation->id;
+    }
+
+    private function applyScope(\Illuminate\Database\Eloquent\Builder $q): \Illuminate\Database\Eloquent\Builder
+    {
+        $user = auth()->user();
+        $q->where('organisation_id', $this->orgId());
+        if ($user->isEmploye()) {
+            $q->where('created_by', $user->id);
+        }
+        return $q;
     }
 
     public function index(Request $request): JsonResponse
     {
-        $q = Tache::where('organisation_id', $this->orgId());
+        $q = $this->applyScope(Tache::query());
 
         if ($request->statut) {
             $q->where('statut', $request->statut);
@@ -49,7 +60,7 @@ class TacheController extends Controller
 
     public function update(Request $request, Tache $tache): JsonResponse
     {
-        abort_if((int) $tache->organisation_id !== $this->orgId(), 403);
+        $this->applyScope(Tache::where('id', $tache->id))->firstOrFail();
 
         $data = $request->validate([
             'titre'         => ['sometimes', 'string', 'max:255'],
@@ -66,7 +77,7 @@ class TacheController extends Controller
 
     public function destroy(Tache $tache): JsonResponse
     {
-        abort_if((int) $tache->organisation_id !== $this->orgId(), 403);
+        $this->applyScope(Tache::where('id', $tache->id))->firstOrFail();
         $tache->delete();
 
         return response()->json(null, 204);

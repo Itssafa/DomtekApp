@@ -36,8 +36,12 @@ class SocialAuthController extends Controller
         $intent      = $request->get('state', 'client');
 
         try {
-            $googleUser = Socialite::driver('google')->stateless()->user();
-        } catch (\Throwable) {
+            $googleUser = Socialite::driver('google')
+                ->stateless()
+                ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
+                ->user();
+        } catch (\Throwable $e) {
+            \Log::error('Google OAuth callback failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect("{$frontendUrl}/login?error=google_failed");
         }
 
@@ -95,6 +99,7 @@ class SocialAuthController extends Controller
             'token' => $token,
             'role'  => $user->role,
             'name'  => $user->name,
+            'email' => $user->email,
         ]);
 
         return redirect("{$frontendUrl}/auth/google/callback?{$params}");

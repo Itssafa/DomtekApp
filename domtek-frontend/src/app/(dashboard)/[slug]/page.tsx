@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from '@/components/OrgLink';
 import api from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 
 interface DashStats {
   biens: number;
@@ -13,18 +14,58 @@ interface DashStats {
   factures_en_attente: number;
 }
 
-const statCards = (s: DashStats) => [
-  { label: 'Biens', value: s.biens, href: '/dashboard/biens', color: 'text-blue-600', bg: 'bg-blue-50' },
-  { label: 'Annonces publiées', value: s.annonces_publiees, href: '/dashboard/annonces', color: 'text-green-600', bg: 'bg-green-50' },
-  { label: 'Contrats actifs', value: s.contrats_actifs, href: '/dashboard/contrats', color: 'text-purple-600', bg: 'bg-purple-50' },
-  { label: 'Prospects', value: s.clients, href: '/dashboard/prospects', color: 'text-orange-600', bg: 'bg-orange-50' },
-  { label: 'Employés', value: s.employes, href: '/dashboard/employes', color: 'text-teal-600', bg: 'bg-teal-50' },
-  { label: 'Factures en attente', value: s.factures_en_attente, href: '/dashboard/factures', color: 'text-red-600', bg: 'bg-red-50' },
+const STAT_CARDS = (s: DashStats) => [
+  {
+    label: 'Biens', value: s.biens, href: '/dashboard/biens',
+    gradient: 'from-blue-500 to-blue-600',
+    icon: 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z',
+  },
+  {
+    label: 'Annonces publiées', value: s.annonces_publiees, href: '/dashboard/annonces',
+    gradient: 'from-emerald-500 to-green-600',
+    icon: 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z',
+  },
+  {
+    label: 'Contrats actifs', value: s.contrats_actifs, href: '/dashboard/contrats',
+    gradient: 'from-violet-500 to-purple-600',
+    icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+  },
+  {
+    label: 'Prospects', value: s.clients, href: '/dashboard/prospects',
+    gradient: 'from-orange-500 to-amber-500',
+    icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
+  },
+  {
+    label: 'Employés', value: s.employes, href: '/dashboard/employes',
+    gradient: 'from-teal-500 to-cyan-600',
+    icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+  },
+  {
+    label: 'Factures en attente', value: s.factures_en_attente, href: '/dashboard/factures',
+    gradient: 'from-rose-500 to-red-600',
+    icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z',
+  },
+];
+
+const QUICK_ACTIONS = [
+  { href: '/dashboard/biens/nouveau',      label: 'Nouveau bien',      color: 'bg-blue-600 hover:bg-blue-700',    icon: 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z' },
+  { href: '/dashboard/annonces/nouvelle',  label: 'Annonce',           color: 'bg-emerald-600 hover:bg-emerald-700', icon: 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z' },
+  { href: '/dashboard/contrats/nouveau',   label: 'Contrat',           color: 'bg-violet-600 hover:bg-violet-700', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+  { href: '/dashboard/prospects/nouveau',  label: 'Prospect',          color: 'bg-orange-600 hover:bg-orange-700', icon: 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' },
+  { href: '/dashboard/factures/nouvelle',  label: 'Facture',           color: 'bg-rose-600 hover:bg-rose-700',    icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z' },
 ];
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashStats | null>(null);
+  const [stats, setStats]   = useState<DashStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const { user, organisation } = useAuthStore();
+
+  const greet = () => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Bonjour';
+    if (h < 18) return 'Bon après-midi';
+    return 'Bonsoir';
+  };
 
   useEffect(() => {
     Promise.all([
@@ -34,66 +75,77 @@ export default function DashboardPage() {
       api.get('/org/prospects?per_page=1'),
       api.get('/org/employes?per_page=1'),
       api.get('/org/factures?statut=en_attente&per_page=1'),
-    ])
-      .then(([biens, annonces, contrats, clients, employes, factures]) => {
-        setStats({
-          biens: biens.data.meta?.total ?? 0,
-          annonces_publiees: annonces.data.meta?.total ?? 0,
-          contrats_actifs: contrats.data.meta?.total ?? 0,
-          clients: clients.data.meta?.total ?? 0,
-          employes: employes.data.meta?.total ?? 0,
-          factures_en_attente: factures.data.meta?.total ?? 0,
-        });
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    ]).then(([biens, annonces, contrats, clients, employes, factures]) => {
+      setStats({
+        biens:               biens.data.meta?.total    ?? 0,
+        annonces_publiees:   annonces.data.meta?.total ?? 0,
+        contrats_actifs:     contrats.data.meta?.total ?? 0,
+        clients:             clients.data.meta?.total  ?? 0,
+        employes:            employes.data.meta?.total ?? 0,
+        factures_en_attente: factures.data.meta?.total ?? 0,
+      });
+    }).catch(() => {}).finally(() => setLoading(false));
   }, []);
+
+  const displayName = user?.name ?? organisation?.nom ?? 'votre organisation';
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold text-gray-800 mb-1">Tableau de bord</h1>
-      <p className="text-gray-500 text-sm mb-8">Vue d'ensemble de votre organisation</p>
 
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white rounded-xl shadow-sm p-6 animate-pulse h-24" />
-          ))}
+      {/* ── Bannière d'accueil ── */}
+      <div className="mb-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
+        <div className="absolute bottom-0 left-1/2 w-40 h-40 bg-white/5 rounded-full translate-y-1/2" />
+        <div className="relative z-10">
+          <p className="text-blue-200 text-sm font-medium mb-1">{greet()},</p>
+          <h1 className="text-2xl font-bold capitalize">{displayName}</h1>
+          <p className="text-blue-100 text-sm mt-1 opacity-80">Voici un aperçu de votre activité en temps réel</p>
         </div>
-      ) : stats ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {statCards(stats).map((card) => (
-            <Link
-              key={card.label}
-              href={card.href}
-              className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
-            >
-              <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${card.bg} mb-3`}>
-                <span className={`text-lg font-bold ${card.color}`}>{card.value}</span>
+      </div>
+
+      {/* ── Statistiques ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+        {loading
+          ? [...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 animate-pulse h-28" />
+            ))
+          : stats && STAT_CARDS(stats).map((card, i) => (
+              <Link
+                key={card.label}
+                href={card.href}
+                style={{ animationDelay: `${i * 60}ms` }}
+                className="animate-fade-in bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
+              >
+                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-200`}>
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d={card.icon} />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-3xl font-bold text-gray-900 leading-none">{card.value}</p>
+                  <p className="text-sm text-gray-500 mt-1">{card.label}</p>
+                </div>
+                <svg className="w-4 h-4 text-gray-300 ml-auto group-hover:text-gray-400 group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            ))
+        }
+      </div>
+
+      {/* ── Actions rapides ── */}
+      <div>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">Actions rapides</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {QUICK_ACTIONS.map((a) => (
+            <Link key={a.href} href={a.href}
+              className={`${a.color} text-white rounded-xl px-4 py-4 flex flex-col items-center gap-2.5 text-center transition-all hover:shadow-md hover:-translate-y-0.5 group`}>
+              <div className="w-9 h-9 bg-white/15 rounded-lg flex items-center justify-center group-hover:bg-white/25 transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={a.icon} />
+                </svg>
               </div>
-              <p className="text-sm text-gray-500">{card.label}</p>
-            </Link>
-          ))}
-        </div>
-      ) : null}
-
-      {/* Raccourcis */}
-      <div className="mt-10">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Actions rapides</h2>
-        <div className="flex flex-wrap gap-3">
-          {[
-            { href: '/dashboard/biens/nouveau', label: '+ Nouveau bien' },
-            { href: '/dashboard/annonces/nouvelle', label: '+ Nouvelle annonce' },
-            { href: '/dashboard/contrats/nouveau', label: '+ Nouveau contrat' },
-            { href: '/dashboard/prospects/nouveau', label: '+ Nouveau prospect' },
-            { href: '/dashboard/factures/nouvelle', label: '+ Nouvelle facture' },
-          ].map((a) => (
-            <Link
-              key={a.href}
-              href={a.href}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition"
-            >
-              {a.label}
+              <span className="text-xs font-semibold leading-tight">{a.label}</span>
             </Link>
           ))}
         </div>

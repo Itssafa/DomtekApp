@@ -31,6 +31,12 @@ const NAV_SECTIONS_DEF = [
       { path: '/taches',          label: 'Mes tâches',      icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
     ],
   },
+  {
+    label: 'Compte',
+    items: [
+      { path: '/compte', label: 'Mon compte', icon: 'M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+    ],
+  },
 ];
 
 function NavIcon({ d }: { d: string }) {
@@ -49,23 +55,30 @@ interface SidebarInnerProps {
   orgNom?: string;
   userName?: string;
   userEmail?: string;
-  collapsed: boolean;           // mode icônes seulement (desktop)
-  showCloseBtn: boolean;        // bouton ✕ (mobile)
+  role?: string;
+  collapsed: boolean;
+  showCloseBtn: boolean;
   onClose: () => void;
   onLogout: () => void;
 }
 
+const EMPLOYE_PATHS = new Set(['', '/immeubles', '/biens', '/annonces', '/etat-lieux', '/contrats', '/clients', '/prospects', '/taches', '/compte']);
+
 function SidebarInner({
   base, pathname, orgNom, userName, userEmail,
-  collapsed, showCloseBtn, onClose, onLogout,
+  collapsed, showCloseBtn, onClose, onLogout, role,
 }: SidebarInnerProps) {
-  const navSections = NAV_SECTIONS_DEF.map(s => ({
-    ...s,
-    items: s.items.map(item => ({
-      ...item,
-      href: item.path === '' ? base : `${base}${item.path}`,
-    })),
-  }));
+  const navSections = NAV_SECTIONS_DEF
+    .map(s => ({
+      ...s,
+      items: s.items
+        .filter(item => role !== 'employe' || EMPLOYE_PATHS.has(item.path))
+        .map(item => ({
+          ...item,
+          href: item.path === '' ? base : `${base}${item.path}`,
+        })),
+    }))
+    .filter(s => s.items.length > 0);
 
   const isActive = (href: string) =>
     href === base
@@ -178,7 +191,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
   useEffect(() => {
-    if (role && role !== 'organisation') router.replace('/admin');
+    if (role && role !== 'organisation' && role !== 'employe') router.replace('/admin');
   }, [role, router]);
 
   const handleLogout = () => { clearAuth(); router.push('/login'); };
@@ -190,6 +203,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     userName:  user?.name,
     userEmail: user?.email,
     onLogout:  handleLogout,
+    role:      role ?? undefined,
   };
 
   return (

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Employe;
 use App\Models\Organisation;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -62,6 +63,39 @@ class AuthService
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return compact('token', 'user');
+    }
+
+    /**
+     * Inscrire un nouvel employé (statut: en_attente, is_active=false).
+     *
+     * @return array{user: User, employe: Employe}
+     */
+    public function registerEmploye(array $data): array
+    {
+        $user = User::create([
+            'name'      => $data['prenom'] . ' ' . $data['nom'],
+            'email'     => $data['email'],
+            'password'  => $data['password'],
+            'role'      => User::ROLE_EMPLOYE,
+            'is_active' => false,
+        ]);
+
+        $employe = Employe::create([
+            'organisation_id' => $data['organisation_id'],
+            'user_id'         => $user->id,
+            'nom'             => $data['nom'],
+            'prenom'          => $data['prenom'],
+            'email'           => $data['email'],
+            'date_naissance'  => $data['date_naissance'] ?? null,
+            'cin'             => $data['cin'] ?? null,
+            'cin_delivree_le' => $data['cin_delivree_le'] ?? null,
+            'cin_delivree_a'  => $data['cin_delivree_a'] ?? 'Tunis',
+            'statut'          => 'en_attente',
+            'created_by'      => $user->id,
+            'updated_by'      => $user->id,
+        ]);
+
+        return compact('user', 'employe');
     }
 
     /**

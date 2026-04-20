@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterClientRequest;
+use App\Http\Requests\Auth\RegisterEmployeRequest;
 use App\Http\Requests\Auth\RegisterOrganisationRequest;
 use App\Models\Organisation;
 use App\Models\User;
@@ -30,6 +31,20 @@ class AuthController extends Controller
             'message'      => "Compte créé avec succès. En attente d'activation par un administrateur.",
             'user'         => $result['user'],
             'organisation' => $result['organisation'],
+        ], 201);
+    }
+
+    /**
+     * Inscription d'un employé — compte inactif, en attente d'activation par l'organisation.
+     */
+    public function registerEmploye(RegisterEmployeRequest $request): JsonResponse
+    {
+        $result = $this->service->registerEmploye($request->validated());
+
+        return response()->json([
+            'message' => "Compte créé avec succès. En attente d'activation par l'organisation.",
+            'user'    => $result['user'],
+            'employe' => $result['employe'],
         ], 201);
     }
 
@@ -105,6 +120,13 @@ class AuthController extends Controller
         $user = $result['user'];
 
         if (!$user->is_active) {
+            // Employee pending activation
+            if ($user->isEmploye()) {
+                return response()->json([
+                    'message' => "Votre compte est en attente d'activation par votre organisation.",
+                    'statut'  => 'en_attente',
+                ], 403);
+            }
             return response()->json([
                 'message' => "Votre compte a été désactivé. Contactez l'administrateur.",
             ], 403);
@@ -141,6 +163,14 @@ class AuthController extends Controller
             $responseData['organisation'] = $organisation;
         }
 
+        if ($user->isEmploye()) {
+            $employe = $user->employe;
+            if ($employe) {
+                $responseData['organisation'] = $employe->organisation;
+                $responseData['employe']      = $employe;
+            }
+        }
+
         return response()->json($responseData);
     }
 
@@ -168,6 +198,14 @@ class AuthController extends Controller
 
         if ($user->isClient()) {
             $data['profil_client'] = $user->clientProfile;
+        }
+
+        if ($user->isEmploye()) {
+            $employe = $user->employe;
+            if ($employe) {
+                $data['organisation'] = $employe->organisation;
+                $data['employe']      = $employe;
+            }
         }
 
         return response()->json($data);

@@ -9,16 +9,16 @@ class ClientPolicy
 {
     public function view(User $user, Client $client): bool
     {
-        return $user->organisation?->id === $client->organisation_id;
+        return $user->resolveOrgId() === $client->organisation_id;
     }
 
     public function update(User $user, Client $client): bool
     {
-        return $user->organisation?->id === $client->organisation_id;
+        return $user->resolveOrgId() === $client->organisation_id;
     }
 
     public function delete(User $user, Client $client): bool
     {
-        return $user->organisation?->id === $client->organisation_id;
+        return $user->resolveOrgId() === $client->organisation_id;
     }
 }

@@ -9,16 +9,16 @@ class EtatLieuPolicy
 {
     public function view(User $user, EtatLieu $etatLieu): bool
     {
-        return $user->organisation?->id === $etatLieu->organisation_id;
+        return $user->resolveOrgId() === $etatLieu->organisation_id;
     }
 
     public function update(User $user, EtatLieu $etatLieu): bool
     {
-        return $user->organisation?->id === $etatLieu->organisation_id;
+        return $user->resolveOrgId() === $etatLieu->organisation_id;
     }
 
     public function delete(User $user, EtatLieu $etatLieu): bool
     {
-        return $user->organisation?->id === $etatLieu->organisation_id;
+        return $user->resolveOrgId() === $etatLieu->organisation_id;
     }
 }
