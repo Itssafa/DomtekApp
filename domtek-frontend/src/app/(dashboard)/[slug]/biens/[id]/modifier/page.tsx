@@ -47,8 +47,8 @@ const Section = ({ title }: { title: string }) => (
   </div>
 );
 
-const inputCls  = 'w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
-const selectCls = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+const inputCls  = 'w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
+const selectCls = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
 
 export default function ModifierBienPage() {
   const { id }     = useParams<{ id: string }>();
@@ -292,7 +292,7 @@ export default function ModifierBienPage() {
               <button key={v} type="button"
                 onClick={() => { setBatiment(v); setImmeubleId(''); setForm((p) => ({ ...p, bloc: '', etage: '', num: '' })); }}
                 className={`flex-1 py-2.5 rounded-lg border text-sm font-medium transition ${
-                  batiment === v ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                  batiment === v ? 'bg-violet-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
                 }`}>
                 {v === 'independant' ? 'Indépendant' : 'Appartient à un immeuble'}
               </button>
@@ -414,7 +414,7 @@ export default function ModifierBienPage() {
 
           <div className="flex gap-3">
             <button type="submit" disabled={saving}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+              className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
               {saving ? 'Enregistrement…' : 'Enregistrer'}
             </button>
             <Link href={`/dashboard/biens/${id}`}
@@ -443,7 +443,7 @@ export default function ModifierBienPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={img.url} alt="" className="w-full h-32 object-cover rounded-lg" />
                 {img.is_principale && (
-                  <span className="absolute top-1 left-1 text-xs bg-blue-600 text-white px-1.5 py-0.5 rounded">Principale</span>
+                  <span className="absolute top-1 left-1 text-xs bg-violet-600 text-white px-1.5 py-0.5 rounded">Principale</span>
                 )}
                 <button onClick={() => handleDeleteImage(img.id)} disabled={deletingImg === img.id}
                   className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded p-1 opacity-0 group-hover:opacity-100 transition disabled:opacity-40">
@@ -474,7 +474,7 @@ export default function ModifierBienPage() {
                   <span className="text-lg">📄</span>
                   <div className="min-w-0">
                     <a href={doc.url} target="_blank" rel="noreferrer"
-                      className="text-sm font-medium text-blue-600 hover:underline truncate block">{doc.nom}</a>
+                      className="text-sm font-medium text-violet-600 hover:underline truncate block">{doc.nom}</a>
                     {doc.type_document && <span className="text-xs text-gray-400">{doc.type_document}</span>}
                   </div>
                 </div>

@@ -78,7 +78,7 @@ export default function ImmeubleShowPage() {
         <div className="flex items-center justify-between mt-2">
           <h1 className="text-2xl font-bold text-gray-800">{immeuble.nom}</h1>
           <Link href={`/dashboard/immeubles/${id}/modifier`}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+            className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
             Modifier
           </Link>
         </div>
@@ -114,7 +114,7 @@ export default function ImmeubleShowPage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-gray-700">Photos ({immeuble.photos?.length ?? 0})</h2>
           <button onClick={() => photosRef.current?.click()} disabled={uploading}
-            className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-lg transition">
+            className="text-xs px-3 py-1.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white rounded-lg transition">
             {uploading ? 'Envoi…' : '+ Ajouter'}
           </button>
         </div>

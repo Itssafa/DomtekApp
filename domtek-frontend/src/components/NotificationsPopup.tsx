@@ -80,28 +80,28 @@ export function NotificationsPopup() {
   return (
     <div className="fixed bottom-6 right-6 z-50 w-80 animate-in slide-in-from-bottom-4 fade-in duration-300">
       <div className={`rounded-2xl shadow-2xl border overflow-hidden
-        ${isAnniv ? 'bg-amber-50 border-amber-200' : 'bg-blue-50 border-blue-200'}`}>
+        ${isAnniv ? 'bg-amber-50 border-amber-200' : 'bg-violet-50 border-violet-200'}`}>
 
         {/* Header */}
         <div className={`px-4 py-3 flex items-center justify-between
-          ${isAnniv ? 'bg-amber-100' : 'bg-blue-100'}`}>
+          ${isAnniv ? 'bg-amber-100' : 'bg-violet-100'}`}>
           <div className="flex items-center gap-2">
             <span className="text-xl">{isAnniv ? '🎂' : '📅'}</span>
             <span className={`text-sm font-semibold
-              ${isAnniv ? 'text-amber-800' : 'text-blue-800'}`}>
+              ${isAnniv ? 'text-amber-800' : 'text-violet-800'}`}>
               {isAnniv ? 'Anniversaire aujourd\'hui' : 'Visite demain'}
             </span>
           </div>
           <div className="flex items-center gap-1">
             {notifs.length > 1 && (
               <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium
-                ${isAnniv ? 'bg-amber-200 text-amber-700' : 'bg-blue-200 text-blue-700'}`}>
+                ${isAnniv ? 'bg-amber-200 text-amber-700' : 'bg-violet-200 text-violet-700'}`}>
                 {current + 1}/{notifs.length}
               </span>
             )}
             <button onClick={dismissAll}
               className={`ml-1 p-1 rounded-lg transition
-                ${isAnniv ? 'hover:bg-amber-200 text-amber-600' : 'hover:bg-blue-200 text-blue-600'}`}>
+                ${isAnniv ? 'hover:bg-amber-200 text-amber-600' : 'hover:bg-violet-200 text-violet-600'}`}>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -112,14 +112,14 @@ export function NotificationsPopup() {
         {/* Corps */}
         <div className="px-4 py-4">
           <p className={`font-semibold text-sm mb-0.5
-            ${isAnniv ? 'text-amber-900' : 'text-blue-900'}`}>
+            ${isAnniv ? 'text-amber-900' : 'text-violet-900'}`}>
             {notif.nom}
           </p>
           {isAnniv && notif.age && (
             <p className="text-xs text-amber-700 mb-2">{notif.age} ans aujourd&apos;hui</p>
           )}
           {!isAnniv && notif.bien && (
-            <p className="text-xs text-blue-700 mb-2">Bien : {notif.bien}</p>
+            <p className="text-xs text-violet-700 mb-2">Bien : {notif.bien}</p>
           )}
 
           <div className="flex gap-2 mt-3">
@@ -127,7 +127,7 @@ export function NotificationsPopup() {
               className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition
                 ${isAnniv
                   ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                  : 'bg-blue-500 hover:bg-blue-600 text-white'}`}>
+                  : 'bg-violet-600 hover:bg-violet-700 text-white'}`}>
               {current + 1 < notifs.length ? 'Suivant →' : 'Fermer'}
             </button>
           </div>

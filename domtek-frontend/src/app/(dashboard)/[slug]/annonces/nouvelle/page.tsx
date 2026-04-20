@@ -81,20 +81,20 @@ export default function NouvelleAnnoncePage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
             <input type="text" value={form.titre} onChange={set('titre')} placeholder="Beau F3 lumineux…"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
             {errors.titre && <p className="text-red-500 text-xs mt-1">{errors.titre[0]}</p>}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea value={form.description} onChange={set('description')} rows={4}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Bien associé</label>
             <select value={form.bien_id} onChange={set('bien_id')}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
               <option value="">— Sélectionner un bien —</option>
               {biens.map((b) => (
                 <option key={b.id} value={b.id}>{b.designation} ({b.ville})</option>
@@ -107,7 +107,7 @@ export default function NouvelleAnnoncePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
               <select value={form.statut} onChange={set('statut')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="brouillon">Brouillon</option>
                 <option value="planifiee">Planifiée</option>
                 <option value="publiee">Publier maintenant</option>
@@ -117,7 +117,7 @@ export default function NouvelleAnnoncePage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date de publication</label>
                 <input type="datetime-local" value={form.date_publication} onChange={set('date_publication')}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
                 {errors.date_publication && <p className="text-red-500 text-xs mt-1">{errors.date_publication[0]}</p>}
               </div>
             )}
@@ -158,7 +158,7 @@ export default function NouvelleAnnoncePage() {
 
           <div className="flex gap-3 pt-2">
             <button type="submit" disabled={loading}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+              className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
               {loading ? 'Enregistrement…' : 'Créer l\'annonce'}
             </button>
             <Link href="/dashboard/annonces"

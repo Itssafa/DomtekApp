@@ -246,7 +246,7 @@ export default function EditContratPage() {
     <p className="text-red-500 text-xs mt-1">{errors[field][0]}</p>
   ) : null;
 
-  const ic = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const ic = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
   const dc = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500';
   const lc = 'block text-xs font-medium text-gray-500 mb-1';
 
@@ -294,7 +294,7 @@ export default function EditContratPage() {
                 PDF
               </button>
               <button onClick={() => setEditing(true)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+                className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
                 Modifier
               </button>
             </div>
@@ -640,7 +640,7 @@ export default function EditContratPage() {
         {/* ── Actions ── */}
         <div className="flex gap-3 pb-6">
           <button type="submit" disabled={saving}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+            className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
           <button type="button" onClick={() => setEditing(false)}

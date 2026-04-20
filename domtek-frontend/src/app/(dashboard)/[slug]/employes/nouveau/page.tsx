@@ -57,7 +57,7 @@ export default function NouvelEmployePage() {
         onChange={set(field)}
         placeholder={placeholder}
         required={required}
-        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
       />
       {errors[field] && <p className="text-red-500 text-xs mt-1">{errors[field][0]}</p>}
     </div>
@@ -105,7 +105,7 @@ export default function NouvelEmployePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
               <select value={form.statut} onChange={set('statut')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="actif">Actif</option>
                 <option value="inactif">Inactif</option>
               </select>
@@ -114,7 +114,7 @@ export default function NouvelEmployePage() {
 
           <div className="flex gap-3 pt-2">
             <button type="submit" disabled={loading}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+              className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
               {loading ? 'Enregistrement…' : "Créer l'employé"}
             </button>
             <Link href="/dashboard/employes"

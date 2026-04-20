@@ -124,7 +124,7 @@ export default function BienShowPage() {
         <div className="flex items-center justify-between mt-2">
           <h1 className="text-2xl font-bold text-gray-800">{form.designation}</h1>
           <Link href={`/dashboard/biens/${id}/modifier`}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+            className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
             Modifier
           </Link>
         </div>
@@ -212,7 +212,7 @@ export default function BienShowPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={img.url} alt="" className="w-full h-32 object-cover rounded-lg" />
                 {img.is_principale && (
-                  <span className="absolute top-1 left-1 text-xs bg-blue-600 text-white px-1.5 py-0.5 rounded">Principale</span>
+                  <span className="absolute top-1 left-1 text-xs bg-violet-600 text-white px-1.5 py-0.5 rounded">Principale</span>
                 )}
               </div>
             ))}
@@ -228,7 +228,7 @@ export default function BienShowPage() {
               <div key={doc.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <span className="text-lg">📄</span>
                 <a href={doc.url} target="_blank" rel="noreferrer"
-                  className="text-sm font-medium text-blue-600 hover:underline truncate flex-1">{doc.nom}</a>
+                  className="text-sm font-medium text-violet-600 hover:underline truncate flex-1">{doc.nom}</a>
                 {doc.type_document && <span className="text-xs text-gray-400">{doc.type_document}</span>}
               </div>
             ))}

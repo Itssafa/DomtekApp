@@ -75,7 +75,7 @@ export default function AnnoncesPage() {
           </p>
         </div>
         <Link href="/dashboard/annonces/nouvelle"
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+          className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
           + Nouvelle annonce
         </Link>
       </div>
@@ -91,11 +91,11 @@ export default function AnnoncesPage() {
             value={searchInput}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Rechercher titre, bien…"
-            className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-violet-500"
           />
         </div>
         <select value={statut} onChange={(e) => { setStatut(e.target.value); setPage(1); }}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
           <option value="">Tous les statuts</option>
           <option value="brouillon">Brouillon</option>
           <option value="planifiee">Planifiée</option>
@@ -164,7 +164,7 @@ export default function AnnoncesPage() {
                 <div className="p-4 pt-0 border-t border-gray-100">
                   <div className="flex gap-2 mt-3 flex-wrap">
                     <Link href={`/dashboard/annonces/${a.id}/modifier`}
-                      className="text-xs text-blue-600 hover:text-blue-700 font-medium py-1 px-2 rounded hover:bg-blue-50 transition">
+                      className="text-xs text-violet-600 hover:text-blue-700 font-medium py-1 px-2 rounded hover:bg-blue-50 transition">
                       Modifier
                     </Link>
                     {(a.statut === 'brouillon' || a.statut === 'planifiee') && (

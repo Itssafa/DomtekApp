@@ -71,7 +71,7 @@ export default function NouvelEtatLieuPage() {
     ? <p className="text-red-500 text-xs mt-1">{errors[f][0]}</p>
     : null;
 
-  const ic = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const ic = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
   const dc = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500';
   const lc = 'block text-xs font-medium text-gray-500 mb-1';
 
@@ -191,7 +191,7 @@ export default function NouvelEtatLieuPage() {
         <div className="flex gap-3 pb-6">
           <button type="submit"
             disabled={loading || !form.contrat_id || !form.date}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+            className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
             {loading ? 'Enregistrement…' : 'Créer l\'état des lieux'}
           </button>
           <Link href="/dashboard/etat-lieux"

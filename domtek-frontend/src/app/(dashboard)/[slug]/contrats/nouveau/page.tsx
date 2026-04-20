@@ -363,7 +363,7 @@ export default function NouveauContratPage() {
     <p className="text-red-500 text-xs mt-1">{errors[field][0]}</p>
   ) : null;
 
-  const ic = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const ic = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
   const dc = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500';
   const lc = 'block text-xs font-medium text-gray-500 mb-1';
 
@@ -400,7 +400,7 @@ export default function NouveauContratPage() {
                 <button type="button" onClick={() => handleNatureChange('location')}
                   className={`py-2.5 rounded-lg text-sm font-medium border transition ${
                     nature === 'location'
-                      ? 'bg-blue-600 text-white border-blue-600'
+                      ? 'bg-violet-600 text-white border-blue-600'
                       : 'border-gray-300 text-gray-600 hover:bg-gray-50'
                   }`}>
                   Location
@@ -823,7 +823,7 @@ export default function NouveauContratPage() {
             <div className="flex gap-3 pb-6">
               <button type="submit"
                 disabled={loading || !partieB_valide || !form.bien_id || !form.date_debut || !form.montant_ht || !!conflitLocation || !!conflitVente}
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+                className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
                 {loading ? 'Enregistrement…' : 'Créer le contrat'}
               </button>
               <Link href="/dashboard/contrats"

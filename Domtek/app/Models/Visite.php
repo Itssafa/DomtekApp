@@ -15,6 +15,7 @@ class Visite extends Model
         'organisation_id',
         'prospect_id',
         'bien_id',
+        'employe_id',
         'nom_agent',
         'date_visite',
         'statut',
@@ -50,5 +51,10 @@ class Visite extends Model
     public function bien(): BelongsTo
     {
         return $this->belongsTo(Bien::class);
+    }
+
+    public function employe(): BelongsTo
+    {
+        return $this->belongsTo(Employe::class);
     }
 }

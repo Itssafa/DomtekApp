@@ -141,7 +141,7 @@ export default function EditFacturePage() {
                 PDF
               </button>
               <button onClick={() => setEditing(true)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+                className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
                 Modifier
               </button>
             </div>
@@ -188,7 +188,7 @@ export default function EditFacturePage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                 <select value={form.type} onChange={set('type')}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                   <option value="eau">Eau</option>
                   <option value="electricite">Électricité</option>
                   <option value="gaz">Gaz</option>
@@ -197,7 +197,7 @@ export default function EditFacturePage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
                 <select value={form.statut} onChange={set('statut')}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                   <option value="en_attente">En attente</option>
                   <option value="payee">Payée</option>
                   <option value="en_retard">En retard</option>
@@ -207,7 +207,7 @@ export default function EditFacturePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
               <select value={form.client_id} onChange={set('client_id')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">— Sélectionner —</option>
                 {clients.map((c) => <option key={c.id} value={c.id}>{c.nom_complet}</option>)}
               </select>
@@ -216,28 +216,28 @@ export default function EditFacturePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Montant (TND)</label>
               <input type="number" step="0.01" value={form.montant} onChange={set('montant')}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date émission</label>
                 <input type="date" value={form.date_emission} onChange={set('date_emission')}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date échéance</label>
                 <input type="date" value={form.date_echeance} onChange={set('date_echeance')}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Référence</label>
               <input type="text" value={form.reference} onChange={set('reference')}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
             </div>
             <div className="flex gap-3">
               <button type="submit" disabled={saving}
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+                className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
                 {saving ? 'Enregistrement…' : 'Enregistrer'}
               </button>
               <button type="button" onClick={() => setEditing(false)}

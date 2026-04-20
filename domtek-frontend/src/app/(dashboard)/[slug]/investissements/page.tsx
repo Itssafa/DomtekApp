@@ -504,7 +504,7 @@ export default function StatistiquesPage() {
         <div className="px-6 py-5">
           {loadingBiens ? (
             <div className="h-[220px] flex items-center justify-center">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <LineChart<BienPoint>
@@ -522,7 +522,7 @@ export default function StatistiquesPage() {
             % biens loués / vendus
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full border-2 border-blue-500 bg-white inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full border-2 border-violet-500 bg-white inline-block" />
             Point mensuel (survoler pour le détail)
           </span>
         </div>
@@ -601,7 +601,7 @@ export default function StatistiquesPage() {
         <div className="px-6 py-5">
           {loadingVis ? (
             <div className="h-[240px] flex items-center justify-center">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <DualLineChart points={visites} />

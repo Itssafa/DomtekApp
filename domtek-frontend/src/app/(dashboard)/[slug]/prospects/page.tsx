@@ -3,8 +3,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from '@/components/OrgLink';
 import api from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 import { Bien, Prospect, ImpressionVisite, PaginatedResponse } from '@/types';
 import { AxiosError } from 'axios';
+
+interface EmployeOption { id: number; nom: string; }
 
 // ─── Modale planifier une visite ──────────────────────────────────────────────
 
@@ -14,9 +17,13 @@ function ModalVisite({ prospects, defaultProspectId, onClose, onDone }: {
   onClose: () => void;
   onDone: () => void;
 }) {
-  const [biens, setBiens]     = useState<Bien[]>([]);
-  const [saving, setSaving]   = useState(false);
-  const [errors, setErrors]   = useState<Record<string, string[]>>({});
+  const { role, user } = useAuthStore();
+  const isEmploye = role === 'employe';
+
+  const [biens, setBiens]         = useState<Bien[]>([]);
+  const [employes, setEmployes]   = useState<EmployeOption[]>([]);
+  const [saving, setSaving]       = useState(false);
+  const [errors, setErrors]       = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState('');
 
   const now = new Date();
@@ -25,20 +32,21 @@ function ModalVisite({ prospects, defaultProspectId, onClose, onDone }: {
   const defaultDatetime = now.toISOString().slice(0, 16);
 
   const [form, setForm] = useState({
-    prospect_id:      defaultProspectId ? String(defaultProspectId) : '',
-    bien_id:          '',
-    nom_agent:        '',
-    date_visite:      defaultDatetime,
-    statut:           'planifiee',
-    impression_client:'' as ImpressionVisite | '',
-    notes:            '',
+    prospect_id:       defaultProspectId ? String(defaultProspectId) : '',
+    bien_id:           '',
+    employe_id:        '',
+    date_visite:       defaultDatetime,
+    statut:            'planifiee',
+    impression_client: '' as ImpressionVisite | '',
+    notes:             '',
   });
 
   useEffect(() => {
-    api.get('/org/biens?per_page=200')
-      .then(r => setBiens(r.data.data ?? []))
-      .catch(() => {});
-  }, []);
+    api.get('/org/biens?per_page=200').then(r => setBiens(r.data.data ?? [])).catch(() => {});
+    if (!isEmploye) {
+      api.get('/org/visites-employes').then(r => setEmployes(r.data.data ?? [])).catch(() => {});
+    }
+  }, [isEmploye]);
 
   const set = (field: string) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -53,7 +61,7 @@ function ModalVisite({ prospects, defaultProspectId, onClose, onDone }: {
       await api.post('/org/visites', {
         prospect_id:       Number(form.prospect_id),
         bien_id:           Number(form.bien_id),
-        nom_agent:         form.nom_agent,
+        employe_id:        form.employe_id ? Number(form.employe_id) : null,
         date_visite:       form.date_visite,
         statut:            form.statut,
         impression_client: form.statut === 'effectuee' && form.impression_client ? form.impression_client : undefined,
@@ -73,7 +81,7 @@ function ModalVisite({ prospects, defaultProspectId, onClose, onDone }: {
     ? <p className="text-red-500 text-xs mt-1">{errors[f][0]}</p>
     : null;
 
-  const ic = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const ic = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
   const lc = 'block text-xs font-medium text-gray-500 mb-1';
 
   const selectedBien = biens.find(b => b.id === Number(form.bien_id));
@@ -83,8 +91,8 @@ function ModalVisite({ prospects, defaultProspectId, onClose, onDone }: {
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
-              <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
@@ -105,7 +113,7 @@ function ModalVisite({ prospects, defaultProspectId, onClose, onDone }: {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={lc}>Prospect *</label>
-              <select value={form.prospect_id} onChange={set('prospect_id')} className={ic}>
+              <select required value={form.prospect_id} onChange={set('prospect_id')} className={ic}>
                 <option value="">— Sélectionner —</option>
                 {prospects.map(c => (
                   <option key={c.id} value={c.id}>{c.nom_complet}</option>
@@ -114,17 +122,23 @@ function ModalVisite({ prospects, defaultProspectId, onClose, onDone }: {
               {errMsg('prospect_id')}
             </div>
             <div>
-              <label className={lc}>Agent accompagnateur *</label>
-              <input type="text" value={form.nom_agent} onChange={set('nom_agent')}
-                placeholder="Nom de l'agent" className={ic} autoFocus />
-              {errMsg('nom_agent')}
+              <label className={lc}>Agent accompagnateur</label>
+              {isEmploye ? (
+                <input type="text" readOnly value={user?.name ?? ''} className={ic + ' bg-gray-100 cursor-default'} />
+              ) : (
+                <select value={form.employe_id} onChange={set('employe_id')} className={ic}>
+                  <option value="">— Aucun —</option>
+                  {employes.map(e => <option key={e.id} value={e.id}>{e.nom}</option>)}
+                </select>
+              )}
+              {errMsg('employe_id')}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={lc}>Date et heure *</label>
-              <input type="datetime-local" value={form.date_visite} onChange={set('date_visite')} className={ic} />
+              <input required type="datetime-local" value={form.date_visite} onChange={set('date_visite')} className={ic} />
               {errMsg('date_visite')}
             </div>
             <div>
@@ -142,19 +156,21 @@ function ModalVisite({ prospects, defaultProspectId, onClose, onDone }: {
               <label className={lc}>Impression du prospect</label>
               <div className="flex gap-2">
                 {(['satisfait','neutre','non_satisfait'] as ImpressionVisite[]).map(v => {
-                  const labels = { très_satisfait : '😄très satisfait' ,satisfait: '😊 Satisfait', neutre: '😐 Neutre',  plutot_non_satisfait: ' 😞 plutot Non satisfait' , non_satisfait: '😠 Non satisfait'  };
-                  const styles = {
-                    très_satisfait:    form.impression_client === v ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-green-100',
-                    satisfait:          form.impression_client === v ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-green-100',
-                    neutre:           form.impression_client === v ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-yellow-100',
-                    plutot_non_satisfait: form.impression_client === v ? 'bg-red-500 text-white'   : 'bg-gray-100 text-gray-600 hover:bg-red-100',
-                    non_satisfait:        form.impression_client === v ? 'bg-red-500 text-white'   : 'bg-gray-100 text-gray-600 hover:bg-red-100',
-                     
+                  const labels: Record<string, string> = { satisfait: '😊 Satisfait', neutre: '😐 Neutre', non_satisfait: '😠 Non satisfait' };
+                  const activeStyle: Record<string, string> = {
+                    satisfait:    'bg-green-500 text-white',
+                    neutre:       'bg-yellow-500 text-white',
+                    non_satisfait:'bg-red-500 text-white',
+                  };
+                  const inactiveStyle: Record<string, string> = {
+                    satisfait:    'bg-gray-100 text-gray-600 hover:bg-green-100',
+                    neutre:       'bg-gray-100 text-gray-600 hover:bg-yellow-100',
+                    non_satisfait:'bg-gray-100 text-gray-600 hover:bg-red-100',
                   };
                   return (
                     <button key={v} type="button"
                       onClick={() => setForm(p => ({ ...p, impression_client: p.impression_client === v ? '' : v }))}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition ${styles[v]}`}>
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition ${form.impression_client === v ? activeStyle[v] : inactiveStyle[v]}`}>
                       {labels[v]}
                     </button>
                   );
@@ -165,7 +181,7 @@ function ModalVisite({ prospects, defaultProspectId, onClose, onDone }: {
 
           <div>
             <label className={lc}>Bien à visiter *</label>
-            <select value={form.bien_id} onChange={set('bien_id')} className={ic}>
+            <select required value={form.bien_id} onChange={set('bien_id')} className={ic}>
               <option value="">— Sélectionner un bien —</option>
               {biens.map(b => (
                 <option key={b.id} value={b.id}>
@@ -195,8 +211,8 @@ function ModalVisite({ prospects, defaultProspectId, onClose, onDone }: {
 
           <div className="flex gap-3 pt-1">
             <button type="submit"
-              disabled={saving || !form.prospect_id || !form.bien_id || !form.nom_agent || !form.date_visite}
-              className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+              disabled={saving || !form.prospect_id || !form.bien_id || !form.date_visite}
+              className="flex-1 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
               {saving ? 'Enregistrement…' : 'Planifier la visite'}
             </button>
             <button type="button" onClick={onClose}
@@ -294,7 +310,7 @@ export default function ProspectsPage() {
         </div>
         <div className="flex gap-3">
           <button onClick={() => openVisite()}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -302,7 +318,7 @@ export default function ProspectsPage() {
             Planifier une visite
           </button>
           <Link href="/dashboard/prospects/nouveau"
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+            className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
             + Nouveau prospect
           </Link>
         </div>
@@ -311,7 +327,7 @@ export default function ProspectsPage() {
       <div className="mb-6">
         <input type="text" placeholder="Rechercher par nom, email ou téléphone…" value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-80" />
+          className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-80" />
       </div>
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -356,7 +372,7 @@ export default function ProspectsPage() {
                         </svg>
                         Visite
                       </button>
-                      <Link href={`/dashboard/prospects/${c.id}`} className="text-xs text-blue-600 hover:underline">
+                      <Link href={`/dashboard/prospects/${c.id}`} className="text-xs text-violet-600 hover:underline">
                         Voir/Modifier
                       </Link>
                       <button onClick={() => handleDelete(c.id, c.nom_complet)} disabled={deleting === c.id}

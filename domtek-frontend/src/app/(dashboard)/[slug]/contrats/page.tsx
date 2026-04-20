@@ -76,7 +76,7 @@ function ModalRevision({ contrat, onClose, onDone }: {
     }
   };
 
-  const ic = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const ic = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
   const dc = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500';
 
   return (
@@ -127,7 +127,7 @@ function ModalRevision({ contrat, onClose, onDone }: {
 
         <div className="flex gap-3 mt-5">
           <button onClick={handleSave} disabled={saving}
-            className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+            className="flex-1 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
             {saving ? 'Enregistrement…' : 'Appliquer la révision'}
           </button>
           <button onClick={onClose}
@@ -363,7 +363,7 @@ export default function ContratsPage() {
           <p className="text-gray-500 text-sm">Baux, ventes et locations</p>
         </div>
         <Link href="/dashboard/contrats/nouveau"
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+          className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
           + Nouveau contrat
         </Link>
       </div>
@@ -379,16 +379,16 @@ export default function ContratsPage() {
             value={searchInput}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Rechercher désignation, bien, client…"
-            className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm w-72 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm w-72 focus:outline-none focus:ring-2 focus:ring-violet-500"
           />
         </div>
         <select value={type} onChange={e => { setType(e.target.value); setPage(1); }}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
           <option value="">Tous types</option>
           {TYPES_CONTRAT.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
         <select value={statut} onChange={e => { setStatut(e.target.value); setPage(1); }}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
           <option value="">Tous statuts</option>
           <option value="actif">Actif</option>
           <option value="termine">Terminé</option>
@@ -465,7 +465,7 @@ export default function ContratsPage() {
                           <div className="flex flex-wrap gap-2">
                             <Link href={`/dashboard/contrats/${c.id}`}
                               onClick={e => e.stopPropagation()}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition">
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-medium rounded-lg transition">
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                               Modifier
                             </Link>

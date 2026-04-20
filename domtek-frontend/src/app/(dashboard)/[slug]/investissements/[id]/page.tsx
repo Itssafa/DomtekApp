@@ -75,13 +75,13 @@ export default function EditTauxPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Taux (%)</label>
               <input type="number" step="0.01" min="0" max="100" value={form.taux} onChange={set('taux')}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
               {err('taux')}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Période</label>
               <select value={form.periode} onChange={set('periode')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="mensuel">Mensuel</option>
                 <option value="trimestriel">Trimestriel</option>
                 <option value="annuel">Annuel</option>
@@ -93,24 +93,24 @@ export default function EditTauxPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date début</label>
               <input type="date" value={form.date_debut} onChange={set('date_debut')}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
               {err('date_debut')}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date fin</label>
               <input type="date" value={form.date_fin} onChange={set('date_fin')}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea value={form.description} onChange={set('description')} rows={3}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
           </div>
 
           <button type="submit" disabled={saving}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+            className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
         </form>

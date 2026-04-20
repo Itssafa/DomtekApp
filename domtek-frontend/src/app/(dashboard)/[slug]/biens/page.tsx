@@ -63,7 +63,7 @@ export default function BiensPage() {
           </p>
         </div>
         <Link href="/dashboard/biens/nouveau"
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+          className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
           + Nouveau bien
         </Link>
       </div>
@@ -72,9 +72,9 @@ export default function BiensPage() {
       <div className="flex gap-3 mb-6">
         <input type="text" placeholder="Rechercher…" value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64" />
+          className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-64" />
         <select value={typeTransaction} onChange={(e) => { setTypeTransaction(e.target.value); setPage(1); }}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
           <option value="">Tous types</option>
           <option value="vente">Vente</option>
           <option value="loyer">Location</option>
@@ -142,7 +142,7 @@ export default function BiensPage() {
               {/* Actions */}
               <div className="flex gap-2 px-4 pb-4 pt-0 border-t border-gray-100">
                 <Link href={`/dashboard/biens/${b.id}/modifier`}
-                  className="flex-1 text-center text-xs text-blue-600 hover:text-blue-700 font-medium py-1.5 rounded-lg hover:bg-blue-50 transition">
+                  className="flex-1 text-center text-xs text-violet-600 hover:text-blue-700 font-medium py-1.5 rounded-lg hover:bg-blue-50 transition">
                   Modifier
                 </Link>
                 <button onClick={() => handleDelete(b.id, b.titre)} disabled={deleting === b.id}

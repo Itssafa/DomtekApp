@@ -45,7 +45,7 @@ export default function ClientsPage() {
       <div className="mb-6">
         <input type="text" placeholder="Rechercher par nom, email ou téléphone…" value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-80" />
+          className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-80" />
       </div>
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -85,7 +85,7 @@ export default function ClientsPage() {
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex gap-3 items-center">
-                      <Link href={`/dashboard/clients/${c.id}`} className="text-xs text-blue-600 hover:underline">
+                      <Link href={`/dashboard/clients/${c.id}`} className="text-xs text-violet-600 hover:underline">
                         Voir/Modifier
                       </Link>
                       <button onClick={() => handleDelete(c.id, c.nom_complet)} disabled={deleting === c.id}

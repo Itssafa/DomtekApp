@@ -105,21 +105,21 @@ export default function FacturesPage() {
           <p className="text-gray-500 text-sm">Eau, électricité et gaz, loyer</p>
         </div>
         <Link href="/dashboard/factures/nouvelle"
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+          className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
           + Nouvelle facture
         </Link>
       </div>
 
       <div className="flex gap-3 mb-6">
         <select value={type} onChange={(e) => { setType(e.target.value); setPage(1); }}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
           <option value="">Tous types</option>
           <option value="eau">Eau</option>
           <option value="electricite_gaz">Électricité et Gaz</option>
           <option value="loyer">Loyer</option>
         </select>
         <select value={statut} onChange={(e) => { setStatut(e.target.value); setPage(1); }}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
           <option value="">Tous statuts</option>
           <option value="en_attente">En attente</option>
           <option value="payee">Payée</option>
@@ -171,7 +171,7 @@ export default function FacturesPage() {
                         <button onClick={() => handlePayer(f.id)} disabled={payingId === f.id}
                           className="text-xs text-green-600 hover:underline disabled:opacity-40">Marquer payée</button>
                       )}
-                      <Link href={`/dashboard/factures/${f.id}`} className="text-xs text-blue-600 hover:underline">Voir</Link>
+                      <Link href={`/dashboard/factures/${f.id}`} className="text-xs text-violet-600 hover:underline">Voir</Link>
                     </div>
                   </td>
                 </tr>

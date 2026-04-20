@@ -93,7 +93,7 @@ export default function FicheClientPage() {
       </label>
       <input type={type} value={(form as Record<string, string>)[key]} onChange={set(key)}
         placeholder={placeholder} required={required}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
       {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
     </div>
   );
@@ -175,7 +175,7 @@ export default function FicheClientPage() {
           <div className="flex items-center justify-between mt-2">
             <h1 className="text-2xl font-bold text-gray-800">{client?.nom_complet}</h1>
             <button onClick={() => setEditing(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+              className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
               Modifier
             </button>
           </div>
@@ -213,7 +213,7 @@ export default function FicheClientPage() {
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm">
               <span className="text-gray-500 flex-1">Pièce jointe</span>
               <a href={client.document_url} target="_blank" rel="noopener noreferrer"
-                className="text-blue-600 hover:underline text-xs">Voir le fichier</a>
+                className="text-violet-600 hover:underline text-xs">Voir le fichier</a>
             </div>
           )}
 
@@ -258,7 +258,7 @@ export default function FicheClientPage() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Civilité</label>
               <select value={form.civilite} onChange={set('civilite')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">—</option>
                 <option value="M.">M.</option>
                 <option value="Mme">Mme</option>
@@ -287,7 +287,7 @@ export default function FicheClientPage() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Type de pièce</label>
               <select value={form.type_piece} onChange={set('type_piece')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">— Sélectionner —</option>
                 <option value="CIN">CIN</option>
                 <option value="Passeport">Passeport</option>
@@ -305,7 +305,7 @@ export default function FicheClientPage() {
               <div className="flex items-center gap-3 mb-2 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm">
                 <span className="text-gray-500 flex-1">Document actuel</span>
                 <a href={client.document_url} target="_blank" rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline text-xs">Voir le fichier</a>
+                  className="text-violet-600 hover:underline text-xs">Voir le fichier</a>
               </div>
             )}
             <div onClick={() => fileRef.current?.click()}
@@ -328,11 +328,11 @@ export default function FicheClientPage() {
           <Section title="Note" />
           <textarea value={form.notes} onChange={set('notes')} rows={2}
             placeholder="Remarques internes…"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
 
           <div className="flex gap-3 mt-2">
             <button type="submit" disabled={saving}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+              className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
               {saving ? 'Enregistrement…' : 'Enregistrer'}
             </button>
             <button type="button" onClick={() => setEditing(false)}

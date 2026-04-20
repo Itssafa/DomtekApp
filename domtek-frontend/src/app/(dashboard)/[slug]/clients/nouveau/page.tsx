@@ -45,7 +45,7 @@ export default function NouveauClientPage() {
       </label>
       <input type={type} value={(form as Record<string, string>)[key]} onChange={set(key)}
         placeholder={placeholder} required={required}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
       {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
     </div>
   );
@@ -87,7 +87,7 @@ export default function NouveauClientPage() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Civilité</label>
               <select value={form.civilite} onChange={set('civilite')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">—</option>
                 <option value="M.">M.</option>
                 <option value="Mme">Mme</option>
@@ -119,7 +119,7 @@ export default function NouveauClientPage() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Type de pièce</label>
               <select value={form.type_piece} onChange={set('type_piece')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">— Sélectionner —</option>
                 <option value="CIN">CIN</option>
                 <option value="Passeport">Passeport</option>
@@ -157,11 +157,11 @@ export default function NouveauClientPage() {
           <Section title="Note" />
           <textarea value={form.notes} onChange={set('notes')} rows={2}
             placeholder="Remarques internes…"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
 
           <div className="flex gap-3 pt-2">
             <button type="submit" disabled={loading}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+              className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
               {loading ? 'Enregistrement…' : 'Créer le client'}
             </button>
             <Link href="/dashboard/clients"

@@ -218,7 +218,7 @@ export default function FicheProspectPage() {
       </label>
       <input type={type} value={(form as Record<string, string>)[key]} onChange={set(key)}
         placeholder={placeholder} required={required}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
       {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
     </div>
   );
@@ -265,7 +265,7 @@ export default function FicheProspectPage() {
                 </div>
               )}
               <button onClick={() => setEditing(true)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+                className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
                 Modifier
               </button>
             </div>
@@ -304,7 +304,7 @@ export default function FicheProspectPage() {
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm">
               <span className="text-gray-500 flex-1">Pièce jointe</span>
               <a href={prospect.document_url} target="_blank" rel="noopener noreferrer"
-                className="text-blue-600 hover:underline text-xs">Voir le fichier</a>
+                className="text-violet-600 hover:underline text-xs">Voir le fichier</a>
             </div>
           )}
 
@@ -391,7 +391,7 @@ export default function FicheProspectPage() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Civilité</label>
               <select value={form.civilite} onChange={set('civilite')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">—</option>
                 <option value="M.">M.</option>
                 <option value="Mme">Mme</option>
@@ -420,7 +420,7 @@ export default function FicheProspectPage() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Type de pièce</label>
               <select value={form.type_piece} onChange={set('type_piece')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">— Sélectionner —</option>
                 <option value="CIN">CIN</option>
                 <option value="Passeport">Passeport</option>
@@ -438,7 +438,7 @@ export default function FicheProspectPage() {
               <div className="flex items-center gap-3 mb-2 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm">
                 <span className="text-gray-500 flex-1">Document actuel</span>
                 <a href={prospect.document_url} target="_blank" rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline text-xs">Voir le fichier</a>
+                  className="text-violet-600 hover:underline text-xs">Voir le fichier</a>
               </div>
             )}
             <div onClick={() => fileRef.current?.click()}
@@ -454,7 +454,7 @@ export default function FicheProspectPage() {
           <Section title="Note" />
           <textarea value={form.notes} onChange={set('notes')} rows={2}
             placeholder="Remarques internes…"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
 
           {/* ── Source de connaissance ── */}
           <Section title="Comment nous avez-vous connus ?" />
@@ -462,7 +462,7 @@ export default function FicheProspectPage() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Canal</label>
               <select value={form.source_connaissance} onChange={set('source_connaissance')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">— Sélectionner —</option>
                 <option value="facebook">Facebook</option>
                 <option value="instagram">Instagram</option>
@@ -480,7 +480,7 @@ export default function FicheProspectPage() {
                 <input type="text" value={form.source_connaissance_detail}
                   onChange={set('source_connaissance_detail')}
                   placeholder="Ex : panneau publicitaire, salon immobilier…"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
               </div>
             )}
           </div>
@@ -491,7 +491,7 @@ export default function FicheProspectPage() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Profession</label>
               <select value={form.profession} onChange={set('profession')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">— Sélectionner —</option>
                 <option value="Salarié du privé">Salarié du privé</option>
                 <option value="Fonctionnaire / Salarié public">Fonctionnaire / Salarié public</option>
@@ -512,13 +512,13 @@ export default function FicheProspectPage() {
                 <input type="text" value={form.profession_detail}
                   onChange={set('profession_detail')}
                   placeholder="Préciser la profession…"
-                  className="mt-2 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="mt-2 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
               )}
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Revenus mensuels</label>
               <select value={form.revenus_mensuels} onChange={set('revenus_mensuels')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">— Non précisé —</option>
                 <option value="moins_1000">{'< 1 000 DT'}</option>
                 <option value="1000_2000">1 000 – 2 000 DT</option>
@@ -535,7 +535,7 @@ export default function FicheProspectPage() {
               {[{ v:'enfants', label:'👶 Enfants' }, { v:'animaux', label:'🐾 Animaux de compagnie' }].map(({ v, label }) => (
                 <button key={v} type="button" onClick={() => toggleFoyer(v)}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm transition
-                    ${compositionFoyer.includes(v) ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}>
+                    ${compositionFoyer.includes(v) ? 'bg-violet-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}>
                   {label}
                 </button>
               ))}
@@ -560,7 +560,7 @@ export default function FicheProspectPage() {
           <Section title="Évaluation prospect" />
           <div className="flex items-center gap-3">
             <button type="button" onClick={() => setVisitEffectuee(p => !p)}
-              className={`w-10 h-6 rounded-full transition-colors relative ${visitEffectuee ? 'bg-blue-600' : 'bg-gray-300'}`}>
+              className={`w-10 h-6 rounded-full transition-colors relative ${visitEffectuee ? 'bg-violet-600' : 'bg-gray-300'}`}>
               <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${visitEffectuee ? 'left-5' : 'left-1'}`} />
             </button>
             <span className="text-sm text-gray-700 font-medium">Visite effectuée</span>
@@ -614,7 +614,7 @@ export default function FicheProspectPage() {
 
           <div className="flex gap-3 mt-2">
             <button type="submit" disabled={saving}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+              className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
               {saving ? 'Enregistrement…' : 'Enregistrer'}
             </button>
             <button type="button" onClick={() => setEditing(false)}

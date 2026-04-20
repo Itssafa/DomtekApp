@@ -119,6 +119,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('etat-lieux/{etat_lieu}', [EtatLieuController::class, 'show']);
         Route::get('immeubles',              [ImmeubleController::class, 'index']);
         Route::get('immeubles/{immeuble}',   [ImmeubleController::class, 'show']);
+        Route::apiResource('visites', VisiteController::class);
+        Route::get('visites-employes',       [VisiteController::class, 'employes']);
         Route::apiResource('taches', TacheController::class)
             ->only(['index', 'store', 'update', 'destroy'])
             ->parameters(['taches' => 'tache']);
@@ -174,9 +176,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // États des lieux
         Route::apiResource('etat-lieux', EtatLieuController::class)->except(['index', 'show']);
-
-        // Visites
-        Route::apiResource('visites', VisiteController::class);
 
         // Immeubles (index + show sont dans le groupe role:organisation,employe)
         Route::apiResource('immeubles', ImmeubleController::class)->except(['index', 'show']);

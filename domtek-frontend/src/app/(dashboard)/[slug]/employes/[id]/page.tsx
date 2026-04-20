@@ -93,7 +93,7 @@ export default function EditEmployePage() {
         onChange={set(field)}
         placeholder={placeholder}
         required={required}
-        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
       />
       {errors[field] && <p className="text-red-500 text-xs mt-1">{errors[field][0]}</p>}
     </div>
@@ -110,7 +110,7 @@ export default function EditEmployePage() {
           <div className="flex items-center justify-between mt-2">
             <h1 className="text-2xl font-bold text-gray-800">{form.prenom} {form.nom}</h1>
             <button onClick={() => setEditing(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+              className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
               Modifier
             </button>
           </div>
@@ -186,7 +186,7 @@ export default function EditEmployePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
               <select value={form.statut} onChange={set('statut')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="actif">Actif</option>
                 <option value="inactif">Inactif</option>
               </select>
@@ -195,7 +195,7 @@ export default function EditEmployePage() {
 
           <div className="flex gap-3 pt-2">
             <button type="submit" disabled={saving}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+              className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
               {saving ? 'Enregistrement…' : 'Enregistrer'}
             </button>
             <button type="button" onClick={() => setEditing(false)}

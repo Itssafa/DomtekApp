@@ -19,6 +19,6 @@ class VisitePolicy
 
     public function delete(User $user, Visite $visite): bool
     {
-        return $user->resolveOrgId() === $visite->organisation_id;
+        return !$user->isEmploye() && $user->resolveOrgId() === $visite->organisation_id;
     }
 }

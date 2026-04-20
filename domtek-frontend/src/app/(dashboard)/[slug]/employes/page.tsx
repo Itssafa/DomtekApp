@@ -87,7 +87,7 @@ export default function EmployesPage() {
           <p className="text-gray-500 text-sm">CRM — Gestion de l&apos;équipe</p>
         </div>
         <Link href="/dashboard/employes/nouveau"
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+          className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
           + Nouvel employé
         </Link>
       </div>
@@ -118,9 +118,9 @@ export default function EmployesPage() {
           <div className="flex gap-3 mb-6">
             <input type="text" placeholder="Rechercher…" value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64" />
+              className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-64" />
             <select value={statut} onChange={(e) => { setStatut(e.target.value); setPage(1); }}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
               <option value="">Tous</option>
               <option value="actif">Actif</option>
               <option value="inactif">Inactif</option>
@@ -162,7 +162,7 @@ export default function EmployesPage() {
                       </td>
                       <td className="px-5 py-3" onClick={(ev) => ev.stopPropagation()}>
                         <div className="flex gap-2">
-                          <Link href={`/dashboard/employes/${e.id}`} className="text-xs text-blue-600 hover:underline">Voir</Link>
+                          <Link href={`/dashboard/employes/${e.id}`} className="text-xs text-violet-600 hover:underline">Voir</Link>
                           <button onClick={() => handleDelete(e.id, e.nom_complet)} disabled={deleting === e.id}
                             className="text-xs text-red-600 hover:underline disabled:opacity-40">Supprimer</button>
                         </div>

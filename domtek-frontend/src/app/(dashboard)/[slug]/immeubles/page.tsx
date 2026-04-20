@@ -54,7 +54,7 @@ export default function ImmeublesPage() {
           </p>
         </div>
         <Link href="/dashboard/immeubles/nouveau"
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+          className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
           + Nouvel immeuble
         </Link>
       </div>
@@ -63,7 +63,7 @@ export default function ImmeublesPage() {
       <div className="mb-6">
         <input type="text" placeholder="Rechercher par nom ou ville…" value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="w-80 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          className="w-80 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
       </div>
 
       {/* Grille */}
@@ -134,7 +134,7 @@ export default function ImmeublesPage() {
                 {/* Actions */}
                 <div className="flex gap-2 px-4 pb-4 pt-0 border-t border-gray-100">
                   <Link href={`/dashboard/immeubles/${imm.id}/modifier`}
-                    className="flex-1 text-center text-xs text-blue-600 hover:text-blue-700 font-medium py-1.5 rounded-lg hover:bg-blue-50 transition">
+                    className="flex-1 text-center text-xs text-violet-600 hover:text-blue-700 font-medium py-1.5 rounded-lg hover:bg-blue-50 transition">
                     Modifier
                   </Link>
                   <button onClick={() => handleDelete(imm.id, imm.nom)} disabled={deletingId === imm.id}

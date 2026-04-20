@@ -32,6 +32,11 @@ class VisiteResource extends JsonResource
                 'type_bien'   => $this->bien->type_bien,
                 'ville'       => $this->bien->ville,
             ]),
+            'employe_id'  => $this->employe_id,
+            'employe'     => $this->whenLoaded('employe', fn () => $this->employe ? [
+                'id'  => $this->employe->id,
+                'nom' => "{$this->employe->prenom} {$this->employe->nom}",
+            ] : null),
             'created_at'  => $this->created_at,
         ];
     }

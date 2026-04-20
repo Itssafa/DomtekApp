@@ -123,7 +123,7 @@ function TacheModal({ tache, onClose, onSaved }: ModalProps) {
               type="text"
               value={form.titre}
               onChange={e => set('titre', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
               placeholder="Ex : Appeler le propriétaire…"
               autoFocus
             />
@@ -136,7 +136,7 @@ function TacheModal({ tache, onClose, onSaved }: ModalProps) {
               value={form.description}
               onChange={e => set('description', e.target.value)}
               rows={3}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
               placeholder="Détails optionnels…"
             />
           </div>
@@ -149,7 +149,7 @@ function TacheModal({ tache, onClose, onSaved }: ModalProps) {
                 type="date"
                 value={form.date_echeance}
                 onChange={e => set('date_echeance', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
             </div>
 
@@ -159,7 +159,7 @@ function TacheModal({ tache, onClose, onSaved }: ModalProps) {
               <select
                 value={form.priorite}
                 onChange={e => set('priorite', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
               >
                 <option value="basse">Basse</option>
                 <option value="normale">Normale</option>
@@ -175,7 +175,7 @@ function TacheModal({ tache, onClose, onSaved }: ModalProps) {
               <select
                 value={form.statut}
                 onChange={e => set('statut', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
               >
                 <option value="a_faire">À faire</option>
                 <option value="en_cours">En cours</option>
@@ -197,7 +197,7 @@ function TacheModal({ tache, onClose, onSaved }: ModalProps) {
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2 rounded-lg bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 transition disabled:opacity-60"
+              className="flex-1 py-2 rounded-lg bg-violet-600 text-sm font-medium text-white hover:bg-violet-700 transition disabled:opacity-60"
             >
               {saving ? 'Sauvegarde…' : isEdit ? 'Enregistrer' : 'Ajouter'}
             </button>
@@ -287,7 +287,7 @@ function TacheCard({ tache, onEdit, onDelete, onToggleStatut, onMarkDone }: {
       <div className="flex-shrink-0 flex items-start gap-1 opacity-0 group-hover:opacity-100 transition">
         <button
           onClick={onEdit}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition"
+          className="p-1.5 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-blue-50 transition"
           title="Modifier"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -438,7 +438,7 @@ export default function TachesPage() {
         </div>
         <button
           onClick={() => setModal({})}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
+          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

@@ -53,7 +53,7 @@ export default function EtatLieuxPage() {
           <p className="text-gray-500 text-sm">Entrée et sortie des locataires</p>
         </div>
         <Link href="/dashboard/etat-lieux/nouveau"
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+          className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
           + Nouvel état des lieux
         </Link>
       </div>
@@ -61,7 +61,7 @@ export default function EtatLieuxPage() {
       {/* Filtre */}
       <div className="flex gap-3 mb-6">
         <select value={type} onChange={e => { setType(e.target.value); setPage(1); }}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
           <option value="">Tous types</option>
           <option value="entree">État d'entrée</option>
           <option value="sortie">État de sortie</option>
@@ -115,7 +115,7 @@ export default function EtatLieuxPage() {
                   <td className="px-5 py-3">
                     <div className="flex gap-2">
                       <Link href={`/dashboard/etat-lieux/${e.id}`}
-                        className="text-xs text-blue-600 hover:underline">Voir</Link>
+                        className="text-xs text-violet-600 hover:underline">Voir</Link>
                       <button onClick={() => handleDelete(e.id)} disabled={deleting === e.id}
                         className="text-xs text-red-600 hover:underline disabled:opacity-40">
                         {deleting === e.id ? '…' : 'Supprimer'}

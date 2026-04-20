@@ -13,7 +13,8 @@ class StoreVisiteRequest extends FormRequest
         return [
             'prospect_id' => ['required', 'integer', 'exists:prospects,id'],
             'bien_id'     => ['required', 'integer', 'exists:biens,id'],
-            'nom_agent'   => ['required', 'string', 'max:255'],
+            'employe_id'  => ['nullable', 'integer', 'exists:employes,id'],
+            'nom_agent'   => ['nullable', 'string', 'max:255'],
             'date_visite' => ['required', 'date'],
             'notes'       => ['nullable', 'string'],
         ];

@@ -21,7 +21,7 @@ const Toggle = ({
 }: { label: string; value: boolean; onChange: (v: boolean) => void }) => (
   <button type="button" onClick={() => onChange(!value)}
     className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition ${
-      value ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+      value ? 'bg-violet-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
     }`}>
     <span className={`w-4 h-4 rounded-full border-2 ${value ? 'border-white bg-white' : 'border-gray-400'}`} />
     {label}
@@ -83,7 +83,7 @@ export default function ModifierImmeubelPage() {
         value={(form as Record<string, string | boolean>)[key] as string}
         onChange={(e) => set(key, e.target.value)}
         placeholder={placeholder} required={required}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
       {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
     </div>
   );
@@ -95,7 +95,7 @@ export default function ModifierImmeubelPage() {
       </label>
       <select value={(form as Record<string, string | boolean>)[key] as string}
         onChange={(e) => set(key, e.target.value)}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
       {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
@@ -190,7 +190,7 @@ export default function ModifierImmeubelPage() {
 
           <div className="flex gap-3 pt-2">
             <button type="submit" disabled={saving}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+              className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
               {saving ? 'Enregistrement…' : 'Enregistrer'}
             </button>
             <Link href={`/dashboard/immeubles/${id}`}

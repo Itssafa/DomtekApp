@@ -47,8 +47,8 @@ const Section = ({ title }: { title: string }) => (
   </div>
 );
 
-const inputCls = 'w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
-const selectCls = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+const inputCls = 'w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
+const selectCls = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
 
 export default function NouveauBienPage() {
   const router = useRouter();
@@ -196,7 +196,7 @@ export default function NouveauBienPage() {
               <button key={v} type="button"
                 onClick={() => { setBatiment(v); setImmeubleId(''); setForm((p) => ({ ...p, bloc: '', etage: '', num: '' })); }}
                 className={`flex-1 py-2.5 rounded-lg border text-sm font-medium transition ${
-                  batiment === v ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                  batiment === v ? 'bg-violet-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
                 }`}>
                 {v === 'independant' ? 'Indépendant' : 'Appartient à un immeuble'}
               </button>
@@ -335,7 +335,7 @@ export default function NouveauBienPage() {
           {/* ── Actions ── */}
           <div className="flex gap-3 pt-2">
             <button type="submit" disabled={loading}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
+              className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
               {loading ? 'Enregistrement…' : 'Créer le bien'}
             </button>
             <Link href="/dashboard/biens"
