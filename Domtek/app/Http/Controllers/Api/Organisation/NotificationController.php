@@ -31,7 +31,7 @@ class NotificationController extends Controller
             ->whereNotNull('date_naissance')
             ->whereRaw('MONTH(date_naissance) = ?', [$today->month])
             ->whereRaw('DAY(date_naissance) = ?',   [$today->day])
-            ->get(['id', 'nom_complet', 'date_naissance'])
+            ->get(['id', 'civilite', 'nom', 'prenom', 'date_naissance'])
             ->map(fn ($c) => [
                 'type'    => 'anniversaire',
                 'cible'   => 'client',
