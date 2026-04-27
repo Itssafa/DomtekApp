@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\Organisation\EtatLieuController;
 use App\Http\Controllers\Api\Organisation\VisiteController;
 use App\Http\Controllers\Api\Organisation\ImmeubleController;
 use App\Http\Controllers\Api\Organisation\InvestissementController;
+use App\Http\Controllers\Api\Organisation\LocationController;
 use App\Http\Controllers\Api\Organisation\NotificationController;
 use App\Http\Controllers\Api\Organisation\StatistiqueController;
 use App\Http\Controllers\Api\Organisation\TacheController;
@@ -125,6 +126,8 @@ Route::middleware('auth:sanctum')->group(function () {
             ->only(['index', 'store', 'update', 'destroy'])
             ->parameters(['taches' => 'tache']);
         Route::get('notifications', [NotificationController::class, 'index']);
+        Route::get('locations',              [LocationController::class, 'index']);
+        Route::get('locations/{location}',   [LocationController::class, 'show']);
     });
 
     Route::middleware('role:organisation')->prefix('org')->group(function () {
@@ -181,5 +184,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('immeubles', ImmeubleController::class)->except(['index', 'show']);
         Route::post('immeubles/{immeuble}/photos',               [ImmeubleController::class, 'uploadPhotos']);
         Route::delete('immeubles/{immeuble}/photos/{photo}',     [ImmeubleController::class, 'deletePhoto']);
+
+        // Locations
+        Route::post('locations',                                                          [LocationController::class, 'store']);
+        Route::put('locations/{location}',                                                [LocationController::class, 'update']);
+        Route::patch('locations/{location}',                                              [LocationController::class, 'update']);
+        Route::delete('locations/{location}',                                             [LocationController::class, 'destroy']);
+        Route::post('locations/{location}/assurance',                                     [LocationController::class, 'uploadAssurance']);
+        Route::patch('locations/{location}/quittances/{quittance}/payer',                 [LocationController::class, 'payerQuittance']);
     });
 });
