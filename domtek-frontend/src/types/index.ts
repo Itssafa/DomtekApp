@@ -144,6 +144,7 @@ export interface Client {
   lieu_naissance: string | null;
   type_piece: 'CIN' | 'Passeport' | null;
   cin: string | null;
+  cin_delivree_le: string | null;
   document_url: string | null;
   urgence_nom: string | null;
   urgence_telephone: string | null;
