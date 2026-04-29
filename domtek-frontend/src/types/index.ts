@@ -267,6 +267,15 @@ export interface Contrat {
 
 export type TypeEtatLieu = 'entree' | 'sortie';
 
+export interface EtatLieuInventaire {
+  id?: number;
+  piece: string;
+  categorie: 'meuble' | 'electromenager' | 'equipement' | 'textile';
+  designation: string;
+  description: string;
+  date: string;
+}
+
 export interface EtatLieu {
   id: number;
   designation: string | null;
@@ -285,6 +294,7 @@ export interface EtatLieu {
     bien?: { id: number; designation: string } | null;
     clients?: { id: number; nom_complet: string }[] | null;
   };
+  inventaires?: EtatLieuInventaire[];
   created_at: string;
   updated_at: string;
 }

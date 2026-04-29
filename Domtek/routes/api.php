@@ -104,95 +104,130 @@ Route::middleware('auth:sanctum')->group(function () {
     | FRONTOFFICE — Organisation (agence immobilière)
     |----------------------------------------------------------------------
     */
-    // Routes accessibles par l'organisation ET les employés (lecture + tâches)
+    // Routes accessibles par l'organisation ET les employés (lecture + création)
     Route::middleware('role:organisation,employe')->prefix('org')->group(function () {
+        // Biens
         Route::get('biens',              [BienController::class, 'index']);
         Route::get('biens/{bien}',       [BienController::class, 'show']);
+        Route::post('biens',             [BienController::class, 'store']);
+        Route::put('biens/{bien}',       [BienController::class, 'update']);
+        Route::patch('biens/{bien}',     [BienController::class, 'update']);
+        Route::delete('biens/{bien}',    [BienController::class, 'destroy']);
+
+        // Annonces
         Route::get('annonces',           [AnnonceController::class, 'index']);
         Route::get('annonces/{annonce}', [AnnonceController::class, 'show']);
+        Route::post('annonces',          [AnnonceController::class, 'store']);
+        Route::put('annonces/{annonce}',    [AnnonceController::class, 'update']);
+        Route::patch('annonces/{annonce}',  [AnnonceController::class, 'update']);
+        Route::delete('annonces/{annonce}', [AnnonceController::class, 'destroy']);
+
+        // Contrats
         Route::get('contrats',           [ContratController::class, 'index']);
         Route::get('contrats/{contrat}', [ContratController::class, 'show']);
         Route::get('contrats/{contrat}/pdf', [ContratController::class, 'telechargerPdf']);
+        Route::post('contrats',          [ContratController::class, 'store']);
+        Route::put('contrats/{contrat}',    [ContratController::class, 'update']);
+        Route::patch('contrats/{contrat}',  [ContratController::class, 'update']);
+        Route::delete('contrats/{contrat}', [ContratController::class, 'destroy']);
+
+        // Clients
         Route::get('clients',            [ClientController::class, 'index']);
         Route::get('clients/{client}',   [ClientController::class, 'show']);
+        Route::post('clients',           [ClientController::class, 'store']);
+        Route::put('clients/{client}',      [ClientController::class, 'update']);
+        Route::patch('clients/{client}',    [ClientController::class, 'update']);
+        Route::delete('clients/{client}',   [ClientController::class, 'destroy']);
+
+        // Prospects
         Route::get('prospects',          [ProspectController::class, 'index']);
         Route::get('prospects/{prospect}', [ProspectController::class, 'show']);
-        Route::get('etat-lieux',         [EtatLieuController::class, 'index']);
+        Route::post('prospects',           [ProspectController::class, 'store']);
+        Route::put('prospects/{prospect}',    [ProspectController::class, 'update']);
+        Route::patch('prospects/{prospect}',  [ProspectController::class, 'update']);
+        Route::delete('prospects/{prospect}', [ProspectController::class, 'destroy']);
+
+        // Locations
+        Route::get('locations',              [LocationController::class, 'index']);
+        Route::get('locations/{location}',   [LocationController::class, 'show']);
+        Route::post('locations',             [LocationController::class, 'store']);
+        Route::put('locations/{location}',      [LocationController::class, 'update']);
+        Route::patch('locations/{location}',    [LocationController::class, 'update']);
+        Route::delete('locations/{location}',   [LocationController::class, 'destroy']);
+
+        // États des lieux
+        Route::get('etat-lieux',             [EtatLieuController::class, 'index']);
         Route::get('etat-lieux/{etat_lieu}', [EtatLieuController::class, 'show']);
+        Route::post('etat-lieux',            [EtatLieuController::class, 'store']);
+        Route::put('etat-lieux/{etat_lieu}',    [EtatLieuController::class, 'update']);
+        Route::patch('etat-lieux/{etat_lieu}',  [EtatLieuController::class, 'update']);
+        Route::delete('etat-lieux/{etat_lieu}', [EtatLieuController::class, 'destroy']);
+
+        // Immeubles
         Route::get('immeubles',              [ImmeubleController::class, 'index']);
         Route::get('immeubles/{immeuble}',   [ImmeubleController::class, 'show']);
+        Route::post('immeubles',             [ImmeubleController::class, 'store']);
+        Route::put('immeubles/{immeuble}',      [ImmeubleController::class, 'update']);
+        Route::patch('immeubles/{immeuble}',    [ImmeubleController::class, 'update']);
+        Route::delete('immeubles/{immeuble}',   [ImmeubleController::class, 'destroy']);
+
+        // Visites, tâches, notifications, calendrier
         Route::apiResource('visites', VisiteController::class);
         Route::get('visites-employes',       [VisiteController::class, 'employes']);
         Route::apiResource('taches', TacheController::class)
             ->only(['index', 'store', 'update', 'destroy'])
             ->parameters(['taches' => 'tache']);
         Route::get('notifications', [NotificationController::class, 'index']);
-        Route::get('locations',              [LocationController::class, 'index']);
-        Route::get('locations/{location}',   [LocationController::class, 'show']);
         Route::get('calendrier',             [CalendrierController::class, 'index']);
     });
 
+    // Routes réservées au gérant de l'organisation uniquement
     Route::middleware('role:organisation')->prefix('org')->group(function () {
 
-        // Biens immobiliers
-        Route::apiResource('biens', BienController::class)->except(['index', 'show']);
-        Route::post('biens/{bien}/images',                    [BienController::class, 'uploadImages']);
-        Route::delete('biens/{bien}/images/{image}',          [BienController::class, 'deleteImage']);
-        Route::post('biens/{bien}/documents',                 [BienController::class, 'uploadDocument']);
-        Route::delete('biens/{bien}/documents/{document}',    [BienController::class, 'deleteDocument']);
+        // Uploads liés aux biens
+        Route::post('biens/{bien}/images',                 [BienController::class, 'uploadImages']);
+        Route::delete('biens/{bien}/images/{image}',       [BienController::class, 'deleteImage']);
+        Route::post('biens/{bien}/documents',              [BienController::class, 'uploadDocument']);
+        Route::delete('biens/{bien}/documents/{document}', [BienController::class, 'deleteDocument']);
 
-        // Annonces (+ actions de statut + photos)
-        Route::apiResource('annonces', AnnonceController::class)->except(['index', 'show']);
-        Route::patch('annonces/{annonce}/publier',             [AnnonceController::class, 'publier']);
-        Route::patch('annonces/{annonce}/archiver',            [AnnonceController::class, 'archiver']);
-        Route::post('annonces/{annonce}/photos',               [AnnonceController::class, 'uploadPhotos']);
-        Route::delete('annonces/{annonce}/photos/{photo}',     [AnnonceController::class, 'deletePhoto']);
+        // Actions de statut + uploads annonces
+        Route::patch('annonces/{annonce}/publier',          [AnnonceController::class, 'publier']);
+        Route::patch('annonces/{annonce}/archiver',         [AnnonceController::class, 'archiver']);
+        Route::post('annonces/{annonce}/photos',            [AnnonceController::class, 'uploadPhotos']);
+        Route::delete('annonces/{annonce}/photos/{photo}',  [AnnonceController::class, 'deletePhoto']);
 
-        // Contrats (+ upload fichier)
-        Route::apiResource('contrats', ContratController::class)->except(['index', 'show']);
+        // Upload contrat
         Route::post('contrats/{contrat}/fichier', [ContratController::class, 'uploadFichier']);
 
-        // Factures (+ marquage paiement + téléchargement PDF)
+        // Factures
         Route::apiResource('factures', FactureController::class);
         Route::patch('factures/{facture}/payer', [FactureController::class, 'marquerPayee']);
         Route::get('factures/{facture}/pdf',     [FactureController::class, 'telechargerPdf']);
 
-        // CRM Clients
-        Route::apiResource('clients', ClientController::class)->except(['index', 'show']);
-        Route::post('clients/{client}/document', [ClientController::class, 'uploadDocument']);
-
-        // CRM Prospects
-        Route::apiResource('prospects', ProspectController::class)->except(['index', 'show']);
+        // Uploads clients / prospects
+        Route::post('clients/{client}/document',     [ClientController::class, 'uploadDocument']);
         Route::post('prospects/{prospect}/document', [ProspectController::class, 'uploadDocument']);
 
-        // CRM Employés
+        // Gestion des employés
         Route::apiResource('employes', EmployeController::class);
-        Route::get('employes-en-attente',           [EmployeController::class, 'enAttente']);
-        Route::post('employes/{employe}/activer',   [EmployeController::class, 'activerCompte']);
+        Route::get('employes-en-attente',         [EmployeController::class, 'enAttente']);
+        Route::post('employes/{employe}/activer', [EmployeController::class, 'activerCompte']);
 
         // Taux d'investissement
         Route::apiResource('investissements', InvestissementController::class);
 
-        // Statistiques analytiques (graphes temps réel)
+        // Statistiques
         Route::get('statistiques/biens',     [StatistiqueController::class, 'biens']);
         Route::get('statistiques/prospects', [StatistiqueController::class, 'prospects']);
         Route::get('statistiques/visites',   [StatistiqueController::class, 'visites']);
         Route::get('statistiques/canaux',    [StatistiqueController::class, 'canaux']);
 
-        // États des lieux
-        Route::apiResource('etat-lieux', EtatLieuController::class)->except(['index', 'show']);
+        // Uploads immeubles
+        Route::post('immeubles/{immeuble}/photos',             [ImmeubleController::class, 'uploadPhotos']);
+        Route::delete('immeubles/{immeuble}/photos/{photo}',   [ImmeubleController::class, 'deletePhoto']);
 
-        // Immeubles (index + show sont dans le groupe role:organisation,employe)
-        Route::apiResource('immeubles', ImmeubleController::class)->except(['index', 'show']);
-        Route::post('immeubles/{immeuble}/photos',               [ImmeubleController::class, 'uploadPhotos']);
-        Route::delete('immeubles/{immeuble}/photos/{photo}',     [ImmeubleController::class, 'deletePhoto']);
-
-        // Locations
-        Route::post('locations',                                                          [LocationController::class, 'store']);
-        Route::put('locations/{location}',                                                [LocationController::class, 'update']);
-        Route::patch('locations/{location}',                                              [LocationController::class, 'update']);
-        Route::delete('locations/{location}',                                             [LocationController::class, 'destroy']);
-        Route::post('locations/{location}/assurance',                                     [LocationController::class, 'uploadAssurance']);
-        Route::patch('locations/{location}/quittances/{quittance}/payer',                 [LocationController::class, 'payerQuittance']);
+        // Assurance + quittances locations
+        Route::post('locations/{location}/assurance',                         [LocationController::class, 'uploadAssurance']);
+        Route::patch('locations/{location}/quittances/{quittance}/payer',     [LocationController::class, 'payerQuittance']);
     });
 });

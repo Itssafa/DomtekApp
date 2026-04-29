@@ -77,12 +77,10 @@ export default function LocationsPage() {
           <h1 className="text-2xl font-bold text-gray-800">Locations</h1>
           <p className="text-gray-500 text-sm">Gestion des contrats de location et quittances</p>
         </div>
-        {!isEmploye && (
-          <Link href="/dashboard/locations/nouvelle"
-            className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
-            + Nouvelle location
-          </Link>
-        )}
+        <Link href="/dashboard/locations/nouvelle"
+          className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
+          + Nouvelle location
+        </Link>
       </div>
 
       {/* Filtre statut */}

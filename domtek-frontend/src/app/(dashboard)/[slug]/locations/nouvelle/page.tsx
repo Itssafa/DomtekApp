@@ -27,15 +27,23 @@ const PERIODICITES = [
   { value: 'annuel',      label: 'Annuel' },
 ];
 
-/** First payment date on or after dateDebut with jour_paiement as day-of-month */
-function computePremierEcheance(dateDebut: string, jourPaiement: number): string {
-  if (!dateDebut || !jourPaiement) return '';
+const PERIODICITE_MONTHS: Record<string, number> = {
+  mensuel:        1,
+  bimestriel:     2,
+  trimestriel:    3,
+  quadrimestriel: 4,
+  semestriel:     6,
+  annuel:         12,
+};
+
+/** First payment = date_debut + periodicite months, on jour_paiement day */
+function computePremierEcheance(dateDebut: string, jourPaiement: number, periodicite: string): string {
+  if (!dateDebut || !jourPaiement || !periodicite) return '';
+  const months = PERIODICITE_MONTHS[periodicite] ?? 1;
   const jour = Math.min(jourPaiement, 28);
   const d = new Date(dateDebut);
-  const candidate = new Date(d.getFullYear(), d.getMonth(), jour);
-  if (candidate >= d) return candidate.toISOString().slice(0, 10);
-  const next = new Date(d.getFullYear(), d.getMonth() + 1, jour);
-  return next.toISOString().slice(0, 10);
+  const echeance = new Date(d.getFullYear(), d.getMonth() + months, jour);
+  return echeance.toISOString().slice(0, 10);
 }
 
 /** Human-readable duration between two dates */
@@ -86,7 +94,7 @@ export default function NouvelleLocationPage() {
   });
 
   // Auto-calculated fields
-  const premiereEcheance = computePremierEcheance(form.date_debut, Number(form.jour_paiement));
+  const premiereEcheance = computePremierEcheance(form.date_debut, Number(form.jour_paiement), form.periodicite);
   const duree            = computeDuree(form.date_debut, form.date_fin);
   const ht      = parseFloat(form.montant_ht)     || 0;
   const tva     = parseFloat(form.tva)            || 0;

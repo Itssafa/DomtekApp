@@ -126,10 +126,12 @@ export default function HomePage() {
   const inputCls = 'w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-gray-900 transition-colors';
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen relative" style={{ backgroundImage: "url('/image%20arri%C3%A8re%20plan.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
+      {/* Overlay dégradé : transparent en haut → blanc vers les annonces */}
+      <div className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-transparent via-white/30 to-white/85" />
 
       {/* ── Header ── */}
-      <header className="sticky top-0 z-20 bg-white border-b border-gray-200">
+      <header className="sticky top-0 z-20 bg-white/50 backdrop-blur-sm border-b border-gray-200 relative">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 bg-gray-900 rounded-md flex items-center justify-center">
@@ -156,15 +158,17 @@ export default function HomePage() {
       </header>
 
       {/* ── Hero ── */}
-      <section className="border-b border-gray-100 bg-gray-50 py-16 px-6">
+      <section className="border-b border-gray-100 bg-transparent py-16 px-6 relative z-10">
         <div className="max-w-2xl mx-auto text-center">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-4">Immobilier en Tunisie</p>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4 leading-tight tracking-tight">
-            Votre réseau immobilier d'excellence
-          </h1>
-          <p className="text-gray-500 text-base mb-10">
-            Vente et location — appartements, maisons, villas, bureaux et terrains
-          </p>
+          <div className="inline-block bg-white/60 backdrop-blur-md rounded-2xl px-8 py-8 mb-6 shadow-sm">
+            <p className="text-xs font-semibold text-gray-600 uppercase tracking-widest mb-4">Immobilier en Tunisie</p>
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4 leading-tight tracking-tight">
+              Votre réseau immobilier d&apos;excellence
+            </h1>
+            <p className="text-gray-700 text-base">
+              Vente et location — appartements, maisons, villas, bureaux et terrains
+            </p>
+          </div>
 
           {/* Barre de recherche */}
           <form onSubmit={(e) => e.preventDefault()}
@@ -200,7 +204,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Annonces ── */}
-      <section className="max-w-6xl mx-auto px-6 py-10">
+      <section className="max-w-6xl mx-auto px-6 py-10 relative z-10">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-lg font-bold text-gray-900">Annonces</h2>
@@ -256,11 +260,11 @@ export default function HomePage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="border-t border-gray-100 py-14 px-6 bg-gray-50">
+      <section className="border-t border-gray-100 py-14 px-6 bg-white/40 relative z-10">
         <div className="max-w-xl mx-auto text-center">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">Pour les professionnels</p>
+          <p className="text-xs font-semibold text-gray-600 uppercase tracking-widest mb-3">Pour les professionnels</p>
           <h2 className="text-2xl font-bold text-gray-900 mb-3">Vous êtes une organisation immobilière ?</h2>
-          <p className="text-gray-500 text-sm mb-7">
+          <p className="text-gray-700 text-sm mb-7">
             Gérez vos biens, annonces, contrats et clients sur Domtek.
           </p>
           <Link href="/register/organisation"
@@ -271,7 +275,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-gray-200 py-8 px-6">
+      <footer className="border-t border-gray-200 py-8 px-6 bg-white/50 relative z-10">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-gray-900 rounded-md flex items-center justify-center">

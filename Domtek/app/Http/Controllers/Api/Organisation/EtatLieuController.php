@@ -41,7 +41,7 @@ class EtatLieuController extends Controller
     public function show(EtatLieu $etatLieu): EtatLieuResource
     {
         $this->authorize('view', $etatLieu);
-        $etatLieu->load(['contrat.bien', 'contrat.clients', 'location.bien', 'inventaires']);
+        $etatLieu->load(['location.bien', 'inventaires']);
         return new EtatLieuResource($etatLieu);
     }
 

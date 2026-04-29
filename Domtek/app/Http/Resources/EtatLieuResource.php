@@ -19,28 +19,16 @@ class EtatLieuResource extends JsonResource
             'releve_gaz'          => $this->releve_gaz,
             'remise_cles'         => $this->remise_cles,
             'commentaire'         => $this->commentaire,
-            'contrat'             => $this->whenLoaded('contrat', fn () => $this->contrat ? [
-                'id'          => $this->contrat->id,
-                'designation' => $this->contrat->designation,
-                'type'        => $this->contrat->type,
-                'date_debut'  => $this->contrat->date_debut?->toDateString(),
-                'bien'        => $this->contrat->relationLoaded('bien') ? [
-                    'id'          => $this->contrat->bien?->id,
-                    'designation' => $this->contrat->bien?->designation,
-                ] : null,
-                'clients'     => $this->contrat->relationLoaded('clients')
-                    ? $this->contrat->clients->map(fn ($c) => [
-                        'id'          => $c->id,
-                        'nom_complet' => $c->nom_complet,
-                    ])
-                    : null,
-            ] : null),
             'location'            => $this->whenLoaded('location', fn () => $this->location ? [
-                'id'            => $this->location->id,
-                'locataire_nom' => $this->location->locataire_nom,
-                'bien'          => $this->location->bien ? [
+                'id'             => $this->location->id,
+                'locataire_nom'  => $this->location->locataire_nom,
+                'locataire_type' => $this->location->locataire_type,
+                'type'           => $this->location->type,
+                'date_debut'     => $this->location->date_debut?->toDateString(),
+                'bien'           => $this->location->bien ? [
                     'id'          => $this->location->bien->id,
                     'designation' => $this->location->bien->designation,
+                    'ville'       => $this->location->bien->ville,
                 ] : null,
             ] : null),
             'inventaires'         => $this->whenLoaded('inventaires', fn () =>
