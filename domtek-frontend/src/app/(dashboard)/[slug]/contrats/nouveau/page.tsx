@@ -494,8 +494,8 @@ export default function NouveauContratPage() {
                         <span><span className="font-medium text-gray-700">Locataire :</span> {selectedLocation.locataire_nom}</span>
                         <span><span className="font-medium text-gray-700">Début :</span> {fmtDate(selectedLocation.date_debut)}</span>
                         <span><span className="font-medium text-gray-700">Fin :</span> {selectedLocation.date_fin ? fmtDate(selectedLocation.date_fin) : 'Ouvert'}</span>
-                        <span><span className="font-medium text-gray-700">Montant :</span> {Number(selectedLocation.montant_paiement).toFixed(2)} DH / {PERIODICITE_LABELS[selectedLocation.periodicite] ?? selectedLocation.periodicite}</span>
-                        <span><span className="font-medium text-gray-700">Dépôt :</span> {Number(selectedLocation.depot_garantie).toFixed(2)} DH</span>
+                        <span><span className="font-medium text-gray-700">Montant :</span> {Number(selectedLocation.montant_paiement).toFixed(3)} DT / {PERIODICITE_LABELS[selectedLocation.periodicite] ?? selectedLocation.periodicite}</span>
+                        <span><span className="font-medium text-gray-700">Dépôt :</span> {Number(selectedLocation.depot_garantie).toFixed(3)} DT</span>
                       </div>
                     </div>
                   )}
@@ -735,7 +735,7 @@ export default function NouveauContratPage() {
                   <h2 className="text-sm font-semibold text-gray-700">Conditions financières</h2>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <label className={lc}>Montant HT (DH) *</label>
+                      <label className={lc}>Montant HT (DT) *</label>
                       <input type="number" step="0.001" value={form.montant_ht} onChange={set('montant_ht')} placeholder="1500.000" className={ic} />
                       {errMsg('montant_ht')}
                     </div>
@@ -745,12 +745,12 @@ export default function NouveauContratPage() {
                     </div>
                     <div>
                       <label className={lc}>Montant TTC (calculé)</label>
-                      <input type="text" value={montantTtc ? `${Number(montantTtc).toLocaleString('fr-TN', {minimumFractionDigits:3})} DH` : ''} disabled className={dc} />
+                      <input type="text" value={montantTtc ? `${Number(montantTtc).toLocaleString('fr-TN', {minimumFractionDigits:3})} DT` : ''} disabled className={dc} />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className={lc}>Acompte (DH)</label>
+                      <label className={lc}>Acompte (DT)</label>
                       <input type="number" step="0.001" value={form.depot_garantie} onChange={set('depot_garantie')} placeholder="3000.000" className={ic} />
                     </div>
                   </div>

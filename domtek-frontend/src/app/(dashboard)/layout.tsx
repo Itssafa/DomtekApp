@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 import { NotificationsPopup } from '@/components/NotificationsPopup';
+import { FloatingCalendar } from '@/components/FloatingCalendar';
 
 // ─── Structure de navigation ──────────────────────────────────────────────────
 
@@ -90,28 +91,28 @@ function SidebarInner({
   return (
     <>
       {/* Logo / header */}
-      <div className={`border-b border-slate-800 flex items-center flex-shrink-0 h-16
+      <div className={`border-b border-gray-100 flex items-center flex-shrink-0 h-16
         ${collapsed ? 'justify-center px-0' : 'justify-between px-5'}`}>
         {!collapsed && (
           <div className="min-w-0 flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center flex-shrink-0 shadow-sm">
               <span className="text-xs font-bold text-white">D</span>
             </div>
             <div className="min-w-0">
-              <h1 className="text-sm font-bold text-white leading-tight">Domtek</h1>
-              <p className="text-xs text-slate-500 truncate">{orgNom ?? 'Organisation'}</p>
+              <h1 className="text-sm font-bold text-gray-800 leading-tight">Domtek</h1>
+              <p className="text-xs text-gray-400 truncate">{orgNom ?? 'Organisation'}</p>
             </div>
           </div>
         )}
         {collapsed && (
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center shadow-sm">
             <span className="text-xs font-bold text-white">D</span>
           </div>
         )}
         {showCloseBtn && (
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+            className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100"
             aria-label="Fermer"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,11 +127,11 @@ function SidebarInner({
         {navSections.map((section) => (
           <div key={section.label}>
             {!collapsed && (
-              <p className="px-4 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
+              <p className="px-4 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
                 {section.label}
               </p>
             )}
-            {collapsed && <div className="mx-3 mb-1.5 h-px bg-slate-800" />}
+            {collapsed && <div className="mx-3 mb-1.5 h-px bg-gray-100" />}
             <div className="space-y-0.5 px-2">
               {section.items.map((item) => {
                 const active = isActive(item.href);
@@ -143,11 +144,11 @@ function SidebarInner({
                     className={`flex items-center rounded-lg text-sm font-medium transition-all duration-150
                       ${collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'}
                       ${active
-                        ? 'bg-violet-500/10 text-violet-300'
-                        : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                        ? 'bg-teal-50 text-teal-700'
+                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800'
                       }`}
                   >
-                    <span className={`flex-shrink-0 ${active ? 'text-violet-400' : 'text-slate-500'}`}>
+                    <span className={`flex-shrink-0 ${active ? 'text-teal-600' : 'text-gray-400'}`}>
                       <NavIcon d={item.icon} />
                     </span>
                     {!collapsed && <span className="truncate">{item.label}</span>}
@@ -160,19 +161,19 @@ function SidebarInner({
       </nav>
 
       {/* User */}
-      <div className={`border-t border-slate-800 flex-shrink-0 py-4
+      <div className={`border-t border-gray-100 flex-shrink-0 py-4
         ${collapsed ? 'flex flex-col items-center gap-2 px-2' : 'px-4'}`}>
         {!collapsed && (
           <>
-            <p className="text-xs font-semibold text-slate-300 truncate">{userName}</p>
-            <p className="text-xs text-slate-600 truncate mb-3">{userEmail}</p>
+            <p className="text-xs font-semibold text-gray-700 truncate">{userName}</p>
+            <p className="text-xs text-gray-400 truncate mb-3">{userEmail}</p>
           </>
         )}
         <button
           onClick={onLogout}
           title={collapsed ? 'Déconnexion' : undefined}
-          className={`flex items-center gap-2 text-sm text-slate-500 hover:text-slate-200 transition-colors
-            ${collapsed ? 'justify-center p-2 rounded-lg hover:bg-slate-800 w-full' : ''}`}
+          className={`flex items-center gap-2 text-sm text-gray-400 hover:text-red-500 transition-colors
+            ${collapsed ? 'justify-center p-2 rounded-lg hover:bg-red-50 w-full' : ''}`}
         >
           <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -192,8 +193,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const { role, clearAuth, user, organisation } = useAuthStore();
 
-  const [collapsed,    setCollapsed]    = useState(false);   // desktop : réduit/étendu
-  const [mobileOpen,   setMobileOpen]   = useState(false);   // mobile  : drawer ouvert
+  const [collapsed,    setCollapsed]    = useState(false);
+  const [mobileOpen,   setMobileOpen]   = useState(false);
 
   const base = organisation?.slug ? `/${organisation.slug}` : '/dashboard';
 
@@ -216,11 +217,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="flex h-screen bg-slate-100">
+    <div className="flex h-screen bg-gray-50">
 
       {/* ── Sidebar desktop ────────────────────────────────────────────────── */}
       <aside
-        className={`hidden lg:flex flex-col flex-shrink-0 bg-[#0F172A] border-r border-slate-800
+        className={`hidden lg:flex flex-col flex-shrink-0 bg-white border-r border-gray-200
           transition-all duration-300 ease-in-out
           ${collapsed ? 'w-16' : 'w-64'}`}
       >
@@ -228,7 +229,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className={`absolute top-4 z-10 ${collapsed ? 'left-10' : 'left-52'} transition-all duration-300`}>
           <button
             onClick={() => setCollapsed(v => !v)}
-            className="hidden lg:flex items-center justify-center w-6 h-6 rounded-full bg-slate-800 border border-slate-700 shadow-sm text-slate-400 hover:text-slate-200 hover:shadow-md transition-all"
+            className="hidden lg:flex items-center justify-center w-6 h-6 rounded-full bg-white border border-gray-200 shadow-sm text-gray-400 hover:text-gray-700 hover:shadow-md transition-all"
             aria-label={collapsed ? 'Étendre le menu' : 'Réduire le menu'}
           >
             <svg className={`w-3 h-3 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`}
@@ -250,13 +251,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div
         aria-hidden="true"
         onClick={() => setMobileOpen(false)}
-        className={`fixed inset-0 z-40 bg-black/60 transition-opacity duration-300 lg:hidden
+        className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 lg:hidden
           ${mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       />
 
       {/* ── Drawer mobile ─────────────────────────────────────────────────── */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#0F172A] border-r border-slate-800
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200
           flex flex-col flex-shrink-0
           transform transition-transform duration-300 ease-in-out lg:hidden
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
@@ -273,19 +274,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
 
         {/* Top bar mobile */}
-        <header className="lg:hidden flex items-center gap-3 px-4 h-14 bg-[#0F172A] border-b border-slate-800 flex-shrink-0">
+        <header className="lg:hidden flex items-center gap-3 px-4 h-14 bg-white border-b border-gray-200 flex-shrink-0 shadow-sm">
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+            className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100"
             aria-label="Ouvrir le menu"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <span className="text-sm font-semibold text-slate-200 truncate">
-            {organisation?.nom ?? 'Domtek'}
-          </span>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center shadow-sm">
+              <span className="text-[10px] font-bold text-white">D</span>
+            </div>
+            <span className="text-sm font-semibold text-gray-700 truncate">
+              {organisation?.nom ?? 'Domtek'}
+            </span>
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto">
@@ -293,6 +299,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </main>
       </div>
 
+      <FloatingCalendar />
       <NotificationsPopup />
     </div>
   );

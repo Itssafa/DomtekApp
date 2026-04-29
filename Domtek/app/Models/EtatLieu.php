@@ -6,6 +6,7 @@ use App\Traits\HasAuditColumns;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EtatLieu extends Model
 {
@@ -16,6 +17,7 @@ class EtatLieu extends Model
     protected $fillable = [
         'organisation_id',
         'contrat_id',
+        'location_id',
         'designation',
         'type',
         'date',
@@ -47,5 +49,15 @@ class EtatLieu extends Model
     public function contrat(): BelongsTo
     {
         return $this->belongsTo(Contrat::class);
+    }
+
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(Location::class);
+    }
+
+    public function inventaires(): HasMany
+    {
+        return $this->hasMany(EtatLieuInventaire::class);
     }
 }

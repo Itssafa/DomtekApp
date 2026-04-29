@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\Organisation\EtatLieuController;
 use App\Http\Controllers\Api\Organisation\VisiteController;
 use App\Http\Controllers\Api\Organisation\ImmeubleController;
 use App\Http\Controllers\Api\Organisation\InvestissementController;
+use App\Http\Controllers\Api\Organisation\CalendrierController;
 use App\Http\Controllers\Api\Organisation\LocationController;
 use App\Http\Controllers\Api\Organisation\NotificationController;
 use App\Http\Controllers\Api\Organisation\StatistiqueController;
@@ -128,6 +129,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('notifications', [NotificationController::class, 'index']);
         Route::get('locations',              [LocationController::class, 'index']);
         Route::get('locations/{location}',   [LocationController::class, 'show']);
+        Route::get('calendrier',             [CalendrierController::class, 'index']);
     });
 
     Route::middleware('role:organisation')->prefix('org')->group(function () {

@@ -276,7 +276,7 @@ export default function NouvelleLocationPage() {
           <h2 className="text-sm font-semibold text-gray-700">Financier</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelCls}>Montant HT (DH) *</label>
+              <label className={labelCls}>Montant HT (DT) *</label>
               <input required type="number" step="0.01" min="0" value={form.montant_ht} onChange={set('montant_ht')} className={inputCls} />
             </div>
             <div>
@@ -288,7 +288,7 @@ export default function NouvelleLocationPage() {
               <input readOnly value={ttc.toFixed(2)} className={inputCls + ' bg-gray-100 text-gray-500 cursor-default'} />
             </div>
             <div>
-              <label className={labelCls}>Frais syndic (DH)</label>
+              <label className={labelCls}>Frais syndic (DT)</label>
               <input type="number" step="0.01" min="0" value={form.frais_syndic} onChange={set('frais_syndic')} className={inputCls} />
             </div>
             <div>
@@ -300,7 +300,7 @@ export default function NouvelleLocationPage() {
               <input readOnly value={paiement.toFixed(2)} className={inputReadCls} />
             </div>
             <div>
-              <label className={labelCls}>Dépôt de garantie (DH)</label>
+              <label className={labelCls}>Dépôt de garantie (DT)</label>
               <input type="number" step="0.01" min="0" value={form.depot_garantie} onChange={set('depot_garantie')} className={inputCls} />
             </div>
           </div>

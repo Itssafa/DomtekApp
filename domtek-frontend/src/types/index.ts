@@ -293,7 +293,7 @@ export interface EtatLieu {
 
 export interface Facture {
   id: number;
-  type: 'eau' | 'electricite' | 'gaz' | 'electricite_gaz' | 'loyer';
+  type: 'eau' | 'electricite' | 'gaz' | 'electricite_gaz';
   montant: number;
   statut: 'en_attente' | 'payee' | 'en_retard';
   reference: string | null;

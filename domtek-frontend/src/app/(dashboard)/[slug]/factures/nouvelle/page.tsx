@@ -10,15 +10,9 @@ import { Contrat } from '@/types';
 import { AxiosError } from 'axios';
 import { FacturePreview, printFacture, type FacturePreviewData } from '@/components/FacturePreview';
 
-const TYPES_LOCATION = [
-  'bail_habitation', 'bail_etudiant', 'bail_professionnel',
-  'bail_commercial', 'bail_saisonnier', 'loyer',
-];
-
 const TYPE_OPTIONS = [
   { value: 'eau',             label: 'Eau' },
   { value: 'electricite_gaz', label: 'Électricité et Gaz' },
-  { value: 'loyer',           label: 'Loyer' },
 ];
 
 export default function NouvelleFacturePage() {
@@ -58,12 +52,7 @@ export default function NouvelleFacturePage() {
   const setBien = (e: React.ChangeEvent<HTMLSelectElement>) =>
     setForm((prev) => ({ ...prev, bien_id: e.target.value, client_id: '' }));
 
-  // Pour les factures de loyer : seulement les biens avec un contrat de location actif
-  // Pour les autres types : tous les contrats actifs
-  const contratsFiltered = useMemo(() => {
-    if (form.type === 'loyer') return contrats.filter((c) => TYPES_LOCATION.includes(c.type));
-    return contrats;
-  }, [form.type, contrats]);
+  const contratsFiltered = useMemo(() => contrats, [contrats]);
 
   // Biens uniques issus des contrats filtrés
   const biens = useMemo(() => {
@@ -167,9 +156,7 @@ export default function NouvelleFacturePage() {
               ))}
             </select>
             {biens.length === 0 && (
-              <p className="text-amber-600 text-xs mt-1">
-                Aucun bien avec un contrat{form.type === 'loyer' ? ' de location' : ''} actif.
-              </p>
+              <p className="text-amber-600 text-xs mt-1">Aucun bien avec un contrat actif.</p>
             )}
           </div>
 

@@ -26,7 +26,7 @@ class EtatLieuController extends Controller
     {
         return EtatLieuResource::collection(
             $this->service->index($this->orgId(), $request->only([
-                'type', 'contrat_id', 'per_page',
+                'type', 'contrat_id', 'location_id', 'per_page',
             ]))
         );
     }
@@ -41,7 +41,7 @@ class EtatLieuController extends Controller
     public function show(EtatLieu $etatLieu): EtatLieuResource
     {
         $this->authorize('view', $etatLieu);
-        $etatLieu->load(['contrat.bien', 'contrat.clients']);
+        $etatLieu->load(['contrat.bien', 'contrat.clients', 'location.bien', 'inventaires']);
         return new EtatLieuResource($etatLieu);
     }
 

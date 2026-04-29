@@ -122,7 +122,7 @@ export default function LocationsPage() {
                   <td className="px-5 py-3 text-gray-600">{loc.bien?.designation ?? '—'}</td>
                   <td className="px-5 py-3 text-gray-500 text-xs">{typeLabel[loc.type] ?? loc.type}</td>
                   <td className="px-5 py-3 text-gray-800 font-medium">
-                    {Number(loc.montant_paiement).toLocaleString('fr-FR')} DH
+                    {Number(loc.montant_paiement).toLocaleString('fr-TN', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} DT
                     <span className="text-xs text-gray-400 ml-1">{periodiciteLabel[loc.periodicite]}</span>
                   </td>
                   <td className="px-5 py-3 text-gray-500 text-xs">
@@ -135,10 +135,14 @@ export default function LocationsPage() {
                     </span>
                   </td>
                   <td className="px-5 py-3">
-                    <div className="flex gap-3 items-center">
+                    <div className="flex gap-3 items-center flex-wrap">
                       <Link href={`/dashboard/locations/${loc.id}`}
                         className="text-xs text-violet-600 hover:underline font-medium">
                         Détail
+                      </Link>
+                      <Link href={`/dashboard/etat-lieux/nouveau?location_id=${loc.id}`}
+                        className="text-xs text-teal-600 hover:underline font-medium">
+                        État des lieux
                       </Link>
                       {!isEmploye && (
                         <>

@@ -16,7 +16,7 @@ class StoreFactureRequest extends FormRequest
         return [
             'client_id'     => ['required', 'exists:clients,id'],
             'contrat_id'    => ['nullable', 'exists:contrats,id'],
-            'type'          => ['required', 'in:eau,electricite,gaz,electricite_gaz,loyer'],
+            'type'          => ['required', 'in:eau,electricite,gaz,electricite_gaz'],
             'montant'       => ['required', 'numeric', 'min:0'],
             'date_emission' => ['required', 'date'],
             'date_echeance' => ['required', 'date', 'after_or_equal:date_emission'],

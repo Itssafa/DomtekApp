@@ -27,7 +27,10 @@ const STATUT_LABELS: Record<string, string> = {
   en_attente: 'En attente', payee: 'Payée', en_retard: 'En retard',
 };
 const TYPE_LABELS: Record<string, string> = {
-  eau: 'Eau', electricite: 'Électricité', gaz: 'Gaz',
+  eau:             'Eau',
+  electricite:     'Électricité',
+  gaz:             'Gaz',
+  electricite_gaz: 'Électricité et Gaz',
 };
 
 export default function EditFacturePage() {
@@ -190,8 +193,7 @@ export default function EditFacturePage() {
                 <select value={form.type} onChange={set('type')}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                   <option value="eau">Eau</option>
-                  <option value="electricite">Électricité</option>
-                  <option value="gaz">Gaz</option>
+                  <option value="electricite_gaz">Électricité et Gaz</option>
                 </select>
               </div>
               <div>

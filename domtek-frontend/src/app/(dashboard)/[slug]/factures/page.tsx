@@ -16,11 +16,10 @@ const STATUT_STYLES: Record<string, string> = {
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  eau: 'Eau',
-  electricite: 'Électricité',
-  gaz: 'Gaz',
+  eau:             'Eau',
+  electricite:     'Électricité',
+  gaz:             'Gaz',
   electricite_gaz: 'Électricité et Gaz',
-  loyer: 'Loyer',
 };
 
 const PRINT_ID = 'facture-list-print-area';
@@ -102,7 +101,7 @@ export default function FacturesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Factures</h1>
-          <p className="text-gray-500 text-sm">Eau, électricité et gaz, loyer</p>
+          <p className="text-gray-500 text-sm">Eau, électricité et gaz</p>
         </div>
         <Link href="/dashboard/factures/nouvelle"
           className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
@@ -116,7 +115,6 @@ export default function FacturesPage() {
           <option value="">Tous types</option>
           <option value="eau">Eau</option>
           <option value="electricite_gaz">Électricité et Gaz</option>
-          <option value="loyer">Loyer</option>
         </select>
         <select value={statut} onChange={(e) => { setStatut(e.target.value); setPage(1); }}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">

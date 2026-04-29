@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from '@/components/OrgLink';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
+import { QuittanceDoc, printQuittance, type QuittanceDocData } from '@/components/QuittancePdf';
 
 interface Quittance {
   id: number;
@@ -69,9 +70,11 @@ const periodiciteLabel: Record<string, string> = {
   mensuel: 'Mensuel', trimestriel: 'Trimestriel', semestriel: 'Semestriel', annuel: 'Annuel',
 };
 
+const PRINT_ID = 'quittance-print-area';
+
 export default function LocationDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { role } = useAuthStore();
+  const { role, organisation } = useAuthStore();
   const isEmploye = role === 'employe';
 
   const [location,  setLocation]  = useState<LocationDetail | null>(null);
@@ -80,6 +83,11 @@ export default function LocationDetailPage() {
   const [payAmount, setPayAmount] = useState('');
   const [payDate,   setPayDate]   = useState('');
   const [paying,    setPaying]    = useState(false);
+
+  /* PDF state */
+  const [printData,    setPrintData]    = useState<QuittanceDocData | null>(null);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const printPending = useRef(false);
 
   const fetch = useCallback(() => {
     setLoading(true);
@@ -90,6 +98,54 @@ export default function LocationDetailPage() {
   }, [id]);
 
   useEffect(() => { fetch(); }, [fetch]);
+
+  /* Trigger print once the hidden QuittanceDoc is rendered */
+  useEffect(() => {
+    if (!printData || !printPending.current) return;
+    const t = setTimeout(() => {
+      printPending.current = false;
+      printQuittance(PRINT_ID);
+      setDownloadingId(null);
+      setPrintData(null);
+    }, 80);
+    return () => clearTimeout(t);
+  }, [printData]);
+
+  const handleDownloadPdf = (q: Quittance) => {
+    if (!location) return;
+    setDownloadingId(q.id);
+    printPending.current = true;
+    setPrintData({
+      id:               q.id,
+      periode:          q.periode,
+      date_echeance:    q.date_echeance,
+      montant:          Number(q.montant),
+      montant_paye:     q.montant_paye != null ? Number(q.montant_paye) : null,
+      date_paiement:    q.date_paiement,
+      statut:           q.statut,
+      notes:            q.notes,
+      location_id:      location.id,
+      type_bail:        location.type,
+      date_debut:       location.date_debut,
+      date_fin:         location.date_fin,
+      periodicite:      location.periodicite,
+      jour_paiement:    location.jour_paiement,
+      montant_ht:       Number(location.montant_ht),
+      tva:              Number(location.tva),
+      montant_ttc:      Number(location.montant_ttc),
+      frais_syndic:     Number(location.frais_syndic),
+      retenue_source:   Number(location.retenue_source),
+      depot_garantie:   Number(location.depot_garantie),
+      locataire_nom:    location.locataire_nom,
+      bien_designation: location.bien?.designation ?? '—',
+      bien_ville:       location.bien?.ville ?? null,
+      org_nom:          organisation?.nom       ?? '',
+      org_adresse:      organisation?.adresse   ?? '',
+      org_ville:        organisation?.ville     ?? '',
+      org_telephone:    organisation?.telephone ?? '',
+      org_email:        organisation?.email     ?? '',
+    });
+  };
 
   const openPayModal = (q: Quittance) => {
     setPayAmount(String(q.montant));
@@ -112,7 +168,7 @@ export default function LocationDetailPage() {
   if (loading) return <div className="p-8 text-gray-400 text-sm">Chargement…</div>;
   if (!location) return <div className="p-8 text-red-500 text-sm">Location introuvable.</div>;
 
-  const fmt = (n: number) => Number(n).toLocaleString('fr-FR', { minimumFractionDigits: 2 });
+  const fmt = (n: number) => Number(n).toLocaleString('fr-TN', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
   const fmtDate = (d: string) => new Date(d).toLocaleDateString('fr-FR');
 
   const totalDu    = location.quittances.reduce((s, q) => s + Number(q.montant), 0);
@@ -148,15 +204,15 @@ export default function LocationDetailPage() {
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-3">Loyer</p>
-          <p className="text-xl font-bold text-gray-900">{fmt(location.montant_paiement)} <span className="text-sm font-normal text-gray-400">DH</span></p>
+          <p className="text-xl font-bold text-gray-900">{fmt(location.montant_paiement)} <span className="text-sm font-normal text-gray-400">DT</span></p>
           <p className="text-xs text-gray-400 mt-1">{periodiciteLabel[location.periodicite]} · Jour {location.jour_paiement}</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-3">Solde</p>
           <p className={`text-xl font-bold ${totalSolde > 0 ? 'text-red-600' : 'text-green-600'}`}>
-            {fmt(totalSolde)} <span className="text-sm font-normal text-gray-400">DH</span>
+            {fmt(totalSolde)} <span className="text-sm font-normal text-gray-400">DT</span>
           </p>
-          <p className="text-xs text-gray-400 mt-1">Payé : {fmt(totalPaye)} / {fmt(totalDu)} DH</p>
+          <p className="text-xs text-gray-400 mt-1">Payé : {fmt(totalPaye)} / {fmt(totalDu)} DT</p>
         </div>
       </div>
 
@@ -170,12 +226,12 @@ export default function LocationDetailPage() {
             ['Début', fmtDate(location.date_debut)],
             ['Fin', location.date_fin ? fmtDate(location.date_fin) : 'Ouvert'],
             ['1ère échéance', fmtDate(location.premiere_echeance)],
-            ['HT', `${fmt(location.montant_ht)} DH`],
+            ['HT', `${fmt(location.montant_ht)} DT`],
             ['TVA', `${location.tva}%`],
-            ['TTC', `${fmt(location.montant_ttc)} DH`],
-            ['Frais syndic', `${fmt(location.frais_syndic)} DH`],
+            ['TTC', `${fmt(location.montant_ttc)} DT`],
+            ['Frais syndic', `${fmt(location.frais_syndic)} DT`],
             ['Retenue source', `${location.retenue_source}%`],
-            ['Dépôt garantie', `${fmt(location.depot_garantie)} DH`],
+            ['Dépôt garantie', `${fmt(location.depot_garantie)} DT`],
             ['Renouvellement auto', location.renouvellement_auto ? 'Oui' : 'Non'],
             ...(location.utilisation ? [['Utilisation', location.utilisation]] : []),
           ].map(([lbl, val]) => (
@@ -243,12 +299,33 @@ export default function LocationDetailPage() {
                     </span>
                   </td>
                   <td className="px-5 py-3">
-                    {q.statut !== 'paye' && (
-                      <button onClick={() => openPayModal(q)}
-                        className="text-xs text-violet-600 hover:underline font-medium">
-                        Enregistrer paiement
+                    <div className="flex gap-3 items-center">
+                      {/* PDF download */}
+                      <button
+                        onClick={() => handleDownloadPdf(q)}
+                        disabled={downloadingId === q.id}
+                        className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2 py-1 hover:bg-gray-50 disabled:opacity-40 transition"
+                        title="Télécharger la quittance en PDF">
+                        {downloadingId === q.id ? (
+                          '…'
+                        ) : (
+                          <>
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            PDF
+                          </>
+                        )}
                       </button>
-                    )}
+                      {/* Enregistrer paiement */}
+                      {q.statut !== 'paye' && (
+                        <button onClick={() => openPayModal(q)}
+                          className="text-xs text-violet-600 hover:underline font-medium">
+                          Enregistrer paiement
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -256,6 +333,15 @@ export default function LocationDetailPage() {
           </table>
         )}
       </div>
+
+      {/* ── Zone d'impression hors-écran ── */}
+      {printData && (
+        <div style={{ position: 'fixed', left: '-9999px', top: 0, pointerEvents: 'none', opacity: 0 }}>
+          <div id={PRINT_ID}>
+            <QuittanceDoc d={printData} />
+          </div>
+        </div>
+      )}
 
       {/* ── Modal paiement ── */}
       {payModal && (
@@ -270,10 +356,10 @@ export default function LocationDetailPage() {
               </button>
             </div>
             <p className="text-sm text-gray-500">
-              Période : <strong className="text-gray-800">{payModal.periode}</strong> · Dû : <strong>{fmt(payModal.montant)} DH</strong>
+              Période : <strong className="text-gray-800">{payModal.periode}</strong> · Dû : <strong>{fmt(payModal.montant)} DT</strong>
             </p>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Montant payé (DH)</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Montant payé (DT)</label>
               <input type="number" step="0.01" min="0"
                 value={payAmount} onChange={e => setPayAmount(e.target.value)}
                 className="w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all" />
