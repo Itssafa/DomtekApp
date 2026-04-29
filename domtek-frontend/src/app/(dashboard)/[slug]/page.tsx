@@ -93,13 +93,13 @@ export default function DashboardPage() {
     <div className="p-8">
 
       {/* ── Bannière d'accueil ── */}
-      <div className="mb-8 bg-gradient-to-br from-slate-900 via-violet-950 to-indigo-950 rounded-2xl p-6 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-violet-500/10 rounded-full -translate-y-1/3 translate-x-1/4" />
-        <div className="absolute bottom-0 left-1/3 w-48 h-48 bg-indigo-500/10 rounded-full translate-y-1/2" />
-        <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-amber-400/5 rounded-full" />
+      <div className="mb-8 bg-gradient-to-br from-sky-50 via-white to-indigo-50 border border-slate-200 rounded-2xl p-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-sky-100/60 rounded-full -translate-y-1/3 translate-x-1/4" />
+        <div className="absolute bottom-0 left-1/3 w-48 h-48 bg-indigo-100/40 rounded-full translate-y-1/2" />
+        <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-amber-100/30 rounded-full" />
         <div className="relative z-10">
-          <p className="text-violet-300 text-sm font-medium mb-1">{greet()},</p>
-          <h1 className="text-2xl font-bold capitalize">{displayName}</h1>
+          <p className="text-sky-600 text-sm font-medium mb-1">{greet()},</p>
+          <h1 className="text-2xl font-bold capitalize text-slate-800">{displayName}</h1>
           <p className="text-slate-400 text-sm mt-1">L'immobilier, simplifié</p>
         </div>
       </div>
