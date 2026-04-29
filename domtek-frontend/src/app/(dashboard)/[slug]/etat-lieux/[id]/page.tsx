@@ -4,7 +4,14 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from '@/components/OrgLink';
 import api from '@/lib/api';
-import { Contrat, EtatLieu, EtatLieuInventaire } from '@/types';
+import { EtatLieu, EtatLieuInventaire } from '@/types';
+
+interface LocationSummary {
+  id: number;
+  locataire_nom: string;
+  locataire_type: string;
+  bien?: { id: number; designation: string; ville?: string | null } | null;
+}
 import { AxiosError } from 'axios';
 
 const categorieLabel: Record<string, string> = {
@@ -33,14 +40,14 @@ export default function EtatLieuDetailPage() {
   const [tab, setTab]             = useState<'etat' | 'inventaire'>('etat');
   const [editing, setEditing]     = useState(false);
   const [etatLieu, setEtatLieu]   = useState<EtatLieu | null>(null);
-  const [contrats, setContrats]   = useState<Contrat[]>([]);
+  const [locations, setLocations] = useState<LocationSummary[]>([]);
   const [loading, setLoading]     = useState(true);
   const [saving, setSaving]       = useState(false);
   const [errors, setErrors]       = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState('');
 
   const [form, setForm] = useState({
-    contrat_id:          '',
+    location_id:         '',
     designation:         '',
     type:                'entree',
     date:                '',
@@ -57,12 +64,12 @@ export default function EtatLieuDetailPage() {
     setLoading(true);
     Promise.all([
       api.get<{ data: EtatLieu }>(`/org/etat-lieux/${id}`),
-      api.get('/org/contrats?per_page=200'),
-    ]).then(([el, c]) => {
+      api.get('/org/locations?per_page=200&statut=actif'),
+    ]).then(([el, loc]) => {
       const e = el.data.data;
       setEtatLieu(e);
       setForm({
-        contrat_id:         String(e.contrat?.id ?? ''),
+        location_id:        String(e.location?.id ?? ''),
         designation:        e.designation ?? '',
         type:               e.type,
         date:               e.date,
@@ -82,7 +89,7 @@ export default function EtatLieuDetailPage() {
           date:        inv.date ?? '',
         }))
       );
-      setContrats(c.data.data ?? []);
+      setLocations(loc.data.data ?? []);
     }).catch(() => {})
     .finally(() => setLoading(false));
   };
@@ -93,7 +100,7 @@ export default function EtatLieuDetailPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => setForm(p => ({ ...p, [field]: e.target.value }));
 
-  const selectedContrat = contrats.find(c => c.id === Number(form.contrat_id)) ?? null;
+  const selectedLocation = locations.find(l => l.id === Number(form.location_id)) ?? null;
 
   /* ── Inventaire helpers ── */
   const addItem    = () => setInventaire(p => [...p, emptyItem()]);
@@ -108,7 +115,7 @@ export default function EtatLieuDetailPage() {
     setSaving(true);
     try {
       await api.put(`/org/etat-lieux/${id}`, {
-        contrat_id:         Number(form.contrat_id),
+        location_id:        Number(form.location_id),
         designation:        form.designation || undefined,
         type:               form.type,
         date:               form.date,
@@ -199,14 +206,36 @@ export default function EtatLieuDetailPage() {
             </div>
 
             <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
-              <h2 className="text-sm font-semibold text-gray-700">Contrat de location</h2>
-              {selectedContrat ? (
-                <div className="space-y-1 text-sm text-gray-700">
-                  <p><span className="text-gray-400 text-xs">Bien : </span>{selectedContrat.bien?.designation ?? '—'}</p>
-                  <p><span className="text-gray-400 text-xs">Client(s) : </span>{selectedContrat.clients?.map(c => c.nom_complet).join(', ') ?? '—'}</p>
-                  <p><span className="text-gray-400 text-xs">Début : </span>{fmtDate(selectedContrat.date_debut)}</p>
+              <h2 className="text-sm font-semibold text-gray-700">Location associée</h2>
+              {etatLieu?.location ? (
+                <div className="space-y-2 text-sm text-gray-700">
+                  <div className="bg-gray-50 rounded-lg p-3 space-y-1.5">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Bien</p>
+                    <p className="font-medium">{etatLieu.location.bien?.designation ?? '—'}</p>
+                    {etatLieu.location.bien?.ville && <p className="text-xs text-gray-400">{etatLieu.location.bien.ville}</p>}
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 space-y-1.5">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Locataire
+                      <span className="ml-2 px-1.5 py-0.5 bg-gray-200 text-gray-600 rounded text-[10px] normal-case font-normal capitalize">
+                        {etatLieu.location.locataire_type}
+                      </span>
+                    </p>
+                    <p className="font-medium">
+                      {etatLieu.location.locataire?.nom_complet ?? etatLieu.location.locataire_nom}
+                    </p>
+                    {etatLieu.location.locataire?.email && (
+                      <p className="text-xs text-gray-400">{etatLieu.location.locataire.email}</p>
+                    )}
+                    {etatLieu.location.locataire?.telephone && (
+                      <p className="text-xs text-gray-400">{etatLieu.location.locataire.telephone}</p>
+                    )}
+                  </div>
+                  {etatLieu.location.date_debut && (
+                    <p className="text-xs text-gray-400">Début de location : {fmtDate(etatLieu.location.date_debut)}</p>
+                  )}
                 </div>
-              ) : <p className="text-sm text-gray-400">Aucun contrat associé.</p>}
+              ) : <p className="text-sm text-gray-400">Aucune location associée.</p>}
             </div>
 
             <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
@@ -330,22 +359,22 @@ export default function EtatLieuDetailPage() {
             </div>
 
             <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
-              <h2 className="text-sm font-semibold text-gray-700">Contrat de location *</h2>
-              <select value={form.contrat_id} onChange={set('contrat_id')} className={ic}>
-                <option value="">— Sélectionner un contrat —</option>
-                {contrats.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {c.designation ?? `Contrat #${c.id}`}
-                    {c.bien ? ` — ${c.bien.designation}` : ''}
+              <h2 className="text-sm font-semibold text-gray-700">Location *</h2>
+              <select value={form.location_id} onChange={set('location_id')} className={ic}>
+                <option value="">— Sélectionner une location —</option>
+                {locations.map(l => (
+                  <option key={l.id} value={l.id}>
+                    {l.locataire_nom}
+                    {l.bien ? ` — ${l.bien.designation}` : ''}
                   </option>
                 ))}
               </select>
-              {errMsg('contrat_id')}
-              {selectedContrat && (
+              {errMsg('location_id')}
+              {selectedLocation && (
                 <div className="bg-blue-50 rounded-lg p-3 text-xs space-y-1 text-gray-600">
-                  <p><span className="font-medium">Bien :</span> {selectedContrat.bien?.designation ?? '—'}</p>
-                  <p><span className="font-medium">Client(s) :</span> {selectedContrat.clients?.map(c => c.nom_complet).join(', ') ?? '—'}</p>
-                  <p><span className="font-medium">Début :</span> {new Date(selectedContrat.date_debut).toLocaleDateString('fr-FR')}</p>
+                  <p><span className="font-medium">Bien :</span> {selectedLocation.bien?.designation ?? '—'}{selectedLocation.bien?.ville ? ` · ${selectedLocation.bien.ville}` : ''}</p>
+                  <p><span className="font-medium">Locataire :</span> {selectedLocation.locataire_nom}</p>
+                  <p><span className="font-medium">Type :</span> <span className="capitalize">{selectedLocation.locataire_type}</span></p>
                 </div>
               )}
             </div>

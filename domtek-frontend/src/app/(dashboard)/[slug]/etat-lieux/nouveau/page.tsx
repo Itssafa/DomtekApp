@@ -5,8 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from '@/components/OrgLink';
 import api from '@/lib/api';
 import { orgPath } from '@/lib/org-path';
-import { Contrat } from '@/types';
 import { AxiosError } from 'axios';
+
+interface LocationOption {
+  id: number;
+  locataire_nom: string;
+  locataire_type: string;
+  bien?: { id: number; designation: string; ville?: string | null } | null;
+}
 
 /* ── Types ── */
 
@@ -43,14 +49,14 @@ function NouvelEtatLieuInner() {
   const locationIdParam = searchParams.get('location_id');
 
   const [tab, setTab]             = useState<'etat' | 'inventaire'>('etat');
-  const [contrats, setContrats]   = useState<Contrat[]>([]);
-  const [location, setLocation]   = useState<LocationSummary | null>(null);
+  const [locations, setLocations] = useState<LocationOption[]>([]);
+  const [locationPreview, setLocationPreview] = useState<LocationSummary | null>(null);
   const [errors, setErrors]       = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState('');
   const [loading, setLoading]     = useState(false);
 
   const [form, setForm] = useState({
-    contrat_id:         '',
+    location_id:        '',
     designation:        '',
     type:               'entree',
     date:               new Date().toISOString().split('T')[0],
@@ -63,34 +69,30 @@ function NouvelEtatLieuInner() {
 
   const [inventaire, setInventaire] = useState<InventaireItem[]>([]);
 
-  /* Load location summary if location_id param present */
+  /* Load location preview if location_id param present */
   useEffect(() => {
     if (!locationIdParam) return;
     api.get(`/org/locations/${locationIdParam}`)
       .then(({ data }) => {
         const loc = data.data;
-        setLocation({
-          id:            loc.id,
-          locataire_nom: loc.locataire_nom,
-          bien:          loc.bien ?? null,
-        });
+        setLocationPreview({ id: loc.id, locataire_nom: loc.locataire_nom, bien: loc.bien ?? null });
+        setForm(p => ({ ...p, location_id: String(loc.id) }));
       })
       .catch(() => {});
   }, [locationIdParam]);
 
-  /* Load contrats de location (only when no location param) */
+  /* Load all active locations */
   useEffect(() => {
-    if (locationIdParam) return;
-    api.get('/org/contrats?per_page=200&statut=actif')
-      .then(r => setContrats((r.data.data ?? []).filter((c: Contrat) => c.type !== 'vente')))
+    api.get('/org/locations?per_page=200&statut=actif')
+      .then(r => setLocations(r.data.data ?? []))
       .catch(() => {});
-  }, [locationIdParam]);
+  }, []);
 
   const set = (field: string) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => setForm(p => ({ ...p, [field]: e.target.value }));
 
-  const selectedContrat = contrats.find(c => c.id === Number(form.contrat_id)) ?? null;
+  const selectedLocation = locations.find(l => l.id === Number(form.location_id)) ?? null;
 
   /* ── Inventaire helpers ── */
 
@@ -113,6 +115,7 @@ function NouvelEtatLieuInner() {
     setLoading(true);
 
     const payload: Record<string, unknown> = {
+      location_id:        form.location_id ? Number(form.location_id) : undefined,
       designation:        form.designation || undefined,
       type:               form.type,
       date:               form.date,
@@ -127,12 +130,6 @@ function NouvelEtatLieuInner() {
         date:        it.date || undefined,
       })) : undefined,
     };
-
-    if (locationIdParam) {
-      payload.location_id = Number(locationIdParam);
-    } else if (form.contrat_id) {
-      payload.contrat_id = Number(form.contrat_id);
-    }
 
     try {
       await api.post('/org/etat-lieux', payload);
@@ -159,7 +156,7 @@ function NouvelEtatLieuInner() {
   const ic = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
   const lc = 'block text-xs font-medium text-gray-500 mb-1';
 
-  const canSubmit = !loading && form.date && (locationIdParam || form.contrat_id);
+  const canSubmit = !loading && form.date && form.location_id;
 
   return (
     <div className="p-6 max-w-3xl">
@@ -216,40 +213,34 @@ function NouvelEtatLieuInner() {
               </div>
             </div>
 
-            {/* Référence : location (from URL param) ou contrat */}
+            {/* Location */}
             <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
-              <h2 className="text-sm font-semibold text-gray-700">
-                {locationIdParam ? 'Location associée' : 'Contrat de location *'}
-              </h2>
+              <h2 className="text-sm font-semibold text-gray-700">Location *</h2>
 
-              {locationIdParam ? (
-                location ? (
-                  <div className="bg-teal-50 rounded-lg p-3 text-sm space-y-1 text-gray-700">
-                    <p><span className="font-medium">Locataire :</span> {location.locataire_nom}</p>
-                    {location.bien && (
-                      <p><span className="font-medium">Bien :</span> {location.bien.designation}</p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-400">Chargement…</p>
-                )
+              {locationIdParam && locationPreview ? (
+                <div className="bg-teal-50 rounded-lg p-3 text-sm space-y-1 text-gray-700">
+                  <p><span className="font-medium">Locataire :</span> {locationPreview.locataire_nom}</p>
+                  {locationPreview.bien && (
+                    <p><span className="font-medium">Bien :</span> {locationPreview.bien.designation}</p>
+                  )}
+                </div>
               ) : (
                 <>
-                  <select value={form.contrat_id} onChange={set('contrat_id')} className={ic}>
-                    <option value="">— Sélectionner un contrat de location —</option>
-                    {contrats.map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.designation ?? `Contrat #${c.id}`}
-                        {c.bien ? ` — ${c.bien.designation}` : ''}
+                  <select value={form.location_id} onChange={set('location_id')} className={ic}>
+                    <option value="">— Sélectionner une location —</option>
+                    {locations.map(l => (
+                      <option key={l.id} value={l.id}>
+                        {l.locataire_nom}
+                        {l.bien ? ` — ${l.bien.designation}` : ''}
                       </option>
                     ))}
                   </select>
-                  {errMsg('contrat_id')}
-                  {selectedContrat && (
+                  {errMsg('location_id')}
+                  {selectedLocation && (
                     <div className="bg-blue-50 rounded-lg p-3 text-xs space-y-1 text-gray-600">
-                      <p><span className="font-medium">Bien :</span> {selectedContrat.bien?.designation ?? '—'}</p>
-                      <p><span className="font-medium">Client(s) :</span> {selectedContrat.clients?.map(c => c.nom_complet).join(', ') ?? '—'}</p>
-                      <p><span className="font-medium">Début :</span> {new Date(selectedContrat.date_debut).toLocaleDateString('fr-FR')}</p>
+                      <p><span className="font-medium">Bien :</span> {selectedLocation.bien?.designation ?? '—'}{selectedLocation.bien?.ville ? ` · ${selectedLocation.bien.ville}` : ''}</p>
+                      <p><span className="font-medium">Locataire :</span> {selectedLocation.locataire_nom}</p>
+                      <p><span className="font-medium">Type :</span> <span className="capitalize">{selectedLocation.locataire_type}</span></p>
                     </div>
                   )}
                 </>

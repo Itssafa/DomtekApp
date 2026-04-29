@@ -286,13 +286,15 @@ export interface EtatLieu {
   releve_gaz: number | null;
   remise_cles: boolean;
   commentaire: string | null;
-  contrat?: {
+  location?: {
     id: number;
-    designation: string | null;
+    locataire_nom: string;
+    locataire_type: string;
+    locataire_id: number | null;
+    locataire?: { id: number; nom_complet: string; email?: string | null; telephone?: string | null } | null;
     type: string;
-    date_debut: string;
-    bien?: { id: number; designation: string } | null;
-    clients?: { id: number; nom_complet: string }[] | null;
+    date_debut: string | null;
+    bien?: { id: number; designation: string; ville?: string | null } | null;
   };
   inventaires?: EtatLieuInventaire[];
   created_at: string;

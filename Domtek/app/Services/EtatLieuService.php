@@ -10,7 +10,7 @@ class EtatLieuService
     public function index(int $orgId, array $filters = []): LengthAwarePaginator
     {
         $query = EtatLieu::where('organisation_id', $orgId)
-            ->with(['contrat.bien', 'contrat.clients', 'location']);
+            ->with(['location.bien', 'location.client', 'location.prospect']);
 
         if (!empty($filters['type'])) {
             $query->where('type', $filters['type']);
@@ -36,7 +36,7 @@ class EtatLieuService
 
         $this->syncInventaires($etatLieu, $inventaires);
 
-        return $etatLieu->load(['contrat.bien', 'contrat.clients', 'location', 'inventaires']);
+        return $etatLieu->load(['location.bien', 'inventaires']);
     }
 
     public function update(EtatLieu $etatLieu, array $data): EtatLieu
@@ -50,7 +50,7 @@ class EtatLieuService
             $this->syncInventaires($etatLieu, $inventaires);
         }
 
-        return $etatLieu->load(['contrat.bien', 'contrat.clients', 'location', 'inventaires']);
+        return $etatLieu->load(['location.bien', 'inventaires']);
     }
 
     public function destroy(EtatLieu $etatLieu): void

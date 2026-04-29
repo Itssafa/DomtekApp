@@ -79,8 +79,8 @@ export default function EtatLieuxPage() {
               <tr>
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Désignation</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Type</th>
-                <th className="text-left px-5 py-3 font-medium text-gray-600">Contrat / Bien</th>
-                <th className="text-left px-5 py-3 font-medium text-gray-600">Client</th>
+                <th className="text-left px-5 py-3 font-medium text-gray-600">Bien</th>
+                <th className="text-left px-5 py-3 font-medium text-gray-600">Locataire</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Date</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Clés remises</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Actions</th>
@@ -98,11 +98,13 @@ export default function EtatLieuxPage() {
                     </span>
                   </td>
                   <td className="px-5 py-3">
-                    <div className="text-gray-700">{e.contrat?.designation ?? `Contrat #${e.contrat?.id}`}</div>
-                    <div className="text-xs text-gray-400">{e.contrat?.bien?.designation ?? '—'}</div>
+                    <div className="text-gray-700">{e.location?.bien?.designation ?? '—'}</div>
+                    {e.location?.bien?.ville && (
+                      <div className="text-xs text-gray-400">{e.location.bien.ville}</div>
+                    )}
                   </td>
                   <td className="px-5 py-3 text-gray-600 text-xs">
-                    {e.contrat?.clients?.map(c => c.nom_complet).join(', ') ?? '—'}
+                    {e.location?.locataire?.nom_complet ?? e.location?.locataire_nom ?? '—'}
                   </td>
                   <td className="px-5 py-3 text-gray-500">
                     {new Date(e.date).toLocaleDateString('fr-FR')}
