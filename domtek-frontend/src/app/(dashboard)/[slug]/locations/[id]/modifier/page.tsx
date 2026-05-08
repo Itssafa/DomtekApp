@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { orgPath } from '@/lib/org-path';
 import { useAuthStore } from '@/store/authStore';
+import StepForm, { FormStep } from '@/components/StepForm';
 
 interface SelectOption { id: number; label: string; }
 
@@ -187,22 +189,16 @@ export default function ModifierLocationPage() {
 
   if (!loaded) return <div className="p-8 text-gray-400 text-sm">Chargement…</div>;
 
-  return (
-    <div className="p-8 max-w-3xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Modifier la location</h1>
-        <p className="text-gray-500 text-sm mt-1">Les quittances manquantes seront générées automatiquement.</p>
-      </div>
-
-      {error && (
-        <p className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{error}</p>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-
-        {/* ── Locataire ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-          <h2 className="text-sm font-semibold text-gray-700">Locataire</h2>
+  const steps: FormStep[] = [
+    {
+      title: 'Locataire',
+      validate: () => {
+        if (locataireType !== 'nouveau' && !form.locataire_id) return 'Veuillez sélectionner un locataire.';
+        if (locataireType === 'nouveau' && !form.locataire_nom.trim()) return 'Le nom du locataire est obligatoire.';
+        return null;
+      },
+      content: (
+        <>
           <div className="flex gap-2">
             {(['client', 'prospect', 'nouveau'] as const).map(t => (
               <button key={t} type="button" onClick={() => setLocataireType(t)}
@@ -216,7 +212,7 @@ export default function ModifierLocationPage() {
           {locataireType === 'client' && (
             <div>
               <label className={labelCls}>Client *</label>
-              <select required value={form.locataire_id} onChange={set('locataire_id')} className={inputCls}>
+              <select value={form.locataire_id} onChange={set('locataire_id')} className={inputCls}>
                 <option value="">— Sélectionner —</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
               </select>
@@ -225,7 +221,7 @@ export default function ModifierLocationPage() {
           {locataireType === 'prospect' && (
             <div>
               <label className={labelCls}>Prospect *</label>
-              <select required value={form.locataire_id} onChange={set('locataire_id')} className={inputCls}>
+              <select value={form.locataire_id} onChange={set('locataire_id')} className={inputCls}>
                 <option value="">— Sélectionner —</option>
                 {prospects.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
               </select>
@@ -234,18 +230,24 @@ export default function ModifierLocationPage() {
           {locataireType === 'nouveau' && (
             <div>
               <label className={labelCls}>Nom complet *</label>
-              <input required type="text" value={form.locataire_nom} onChange={set('locataire_nom')} className={inputCls} />
+              <input type="text" value={form.locataire_nom} onChange={set('locataire_nom')} className={inputCls} />
             </div>
           )}
-        </div>
-
-        {/* ── Bien & Identification ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-          <h2 className="text-sm font-semibold text-gray-700">Bien & Identification</h2>
+        </>
+      ),
+    },
+    {
+      title: 'Bien & Identification',
+      validate: () => {
+        if (!form.bien_id) return 'Veuillez sélectionner un bien.';
+        return null;
+      },
+      content: (
+        <>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>Bien *</label>
-              <select required value={form.bien_id} onChange={set('bien_id')} className={inputCls}>
+              <select value={form.bien_id} onChange={set('bien_id')} className={inputCls}>
                 <option value="">— Sélectionner —</option>
                 {biens.map(b => <option key={b.id} value={b.id}>{b.label}</option>)}
               </select>
@@ -273,15 +275,21 @@ export default function ModifierLocationPage() {
               </select>
             </div>
           </div>
-        </div>
-
-        {/* ── Dates ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-          <h2 className="text-sm font-semibold text-gray-700">Dates du bail</h2>
+        </>
+      ),
+    },
+    {
+      title: 'Dates du bail',
+      validate: () => {
+        if (!form.date_debut) return 'La date de début est obligatoire.';
+        return null;
+      },
+      content: (
+        <>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>Date de début *</label>
-              <input required type="date" value={form.date_debut} onChange={set('date_debut')} className={inputCls} />
+              <input type="date" value={form.date_debut} onChange={set('date_debut')} className={inputCls} />
             </div>
             <div>
               <label className={labelCls}>Date de fin</label>
@@ -294,15 +302,21 @@ export default function ModifierLocationPage() {
               </div>
             )}
           </div>
-        </div>
-
-        {/* ── Financier ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-          <h2 className="text-sm font-semibold text-gray-700">Financier</h2>
+        </>
+      ),
+    },
+    {
+      title: 'Financier & Paiement',
+      validate: () => {
+        if (!form.montant_ht) return 'Le montant HT est obligatoire.';
+        return null;
+      },
+      content: (
+        <>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>Montant HT (DT) *</label>
-              <input required type="number" step="0.01" min="0" value={form.montant_ht} onChange={set('montant_ht')} className={inputCls} />
+              <input type="number" step="0.01" min="0" value={form.montant_ht} onChange={set('montant_ht')} className={inputCls} />
             </div>
             <div>
               <label className={labelCls}>TVA (%)</label>
@@ -329,11 +343,6 @@ export default function ModifierLocationPage() {
               <input type="number" step="0.01" min="0" value={form.depot_garantie} onChange={set('depot_garantie')} className={inputCls} />
             </div>
           </div>
-        </div>
-
-        {/* ── Paiement ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-          <h2 className="text-sm font-semibold text-gray-700">Paiement</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>Périodicité *</label>
@@ -343,7 +352,7 @@ export default function ModifierLocationPage() {
             </div>
             <div>
               <label className={labelCls}>Jour de paiement (1-28) *</label>
-              <input required type="number" min="1" max="28" value={form.jour_paiement} onChange={set('jour_paiement')} className={inputCls} />
+              <input type="number" min="1" max="28" value={form.jour_paiement} onChange={set('jour_paiement')} className={inputCls} />
             </div>
             <div className="col-span-2">
               <label className={labelCls}>Première échéance (calculée)</label>
@@ -356,11 +365,13 @@ export default function ModifierLocationPage() {
               <span className="text-sm text-gray-600">Renouvellement automatique</span>
             </div>
           </div>
-        </div>
-
-        {/* ── Assurance ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
-          <h2 className="text-sm font-semibold text-gray-700">Assurance</h2>
+        </>
+      ),
+    },
+    {
+      title: 'Assurance & Notes',
+      content: (
+        <>
           {assuranceUrl && !assuranceNom.startsWith('blob') && (
             <div className="flex items-center gap-2 text-sm text-violet-700 bg-violet-50 px-3 py-2 rounded-lg">
               <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -372,43 +383,51 @@ export default function ModifierLocationPage() {
               <span className="text-xs text-gray-400 ml-1">(remplacer ci-dessous)</span>
             </div>
           )}
-          <label className={labelCls}>
-            {assuranceUrl ? 'Remplacer le document (PDF, JPG, PNG — max 10 Mo)' : 'Document d\'assurance (PDF, JPG, PNG — max 10 Mo)'}
-          </label>
-          <div className="flex items-center gap-3">
-            <input ref={assuranceRef} type="file" accept=".pdf,.jpg,.jpeg,.png"
-              className="hidden" id="assurance-input"
-              onChange={e => setAssuranceNom(e.target.files?.[0]?.name ?? '')} />
-            <label htmlFor="assurance-input"
-              className="px-4 py-2.5 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-violet-400 hover:text-violet-600 cursor-pointer transition flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              Choisir un fichier
+          <div>
+            <label className={labelCls}>
+              {assuranceUrl ? 'Remplacer le document (PDF, JPG, PNG — max 10 Mo)' : "Document d'assurance (PDF, JPG, PNG — max 10 Mo)"}
             </label>
-            {assuranceNom && !assuranceUrl && (
-              <span className="text-xs text-gray-500 truncate max-w-xs">{assuranceNom}</span>
-            )}
+            <div className="flex items-center gap-3">
+              <input ref={assuranceRef} type="file" accept=".pdf,.jpg,.jpeg,.png"
+                className="hidden" id="assurance-input"
+                onChange={e => setAssuranceNom(e.target.files?.[0]?.name ?? '')} />
+              <label htmlFor="assurance-input"
+                className="px-4 py-2.5 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-violet-400 hover:text-violet-600 cursor-pointer transition flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Choisir un fichier
+              </label>
+              {assuranceNom && !assuranceUrl && (
+                <span className="text-xs text-gray-500 truncate max-w-xs">{assuranceNom}</span>
+              )}
+            </div>
           </div>
-        </div>
+          <div>
+            <label className={labelCls}>Notes</label>
+            <textarea rows={3} value={form.notes} onChange={set('notes')} className={inputCls + ' resize-none'} />
+          </div>
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{error}</p>
+          )}
+        </>
+      ),
+    },
+  ];
 
-        {/* ── Notes ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <label className={labelCls}>Notes</label>
-          <textarea rows={3} value={form.notes} onChange={set('notes')} className={inputCls + ' resize-none'} />
-        </div>
-
-        <div className="flex justify-end gap-3">
-          <button type="button" onClick={() => router.back()}
-            className="px-5 py-2.5 text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-xl transition">
-            Annuler
-          </button>
-          <button type="submit" disabled={saving}
-            className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition">
-            {saving ? 'Enregistrement…' : 'Enregistrer'}
-          </button>
-        </div>
-      </form>
+  return (
+    <div className="p-8 max-w-3xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Modifier la location</h1>
+        <p className="text-gray-500 text-sm mt-1">Les quittances manquantes seront générées automatiquement.</p>
+      </div>
+      <StepForm
+        steps={steps}
+        onSubmit={handleSubmit}
+        submitLabel="Enregistrer"
+        loading={saving}
+        cancelHref={orgPath(`/dashboard/locations/${id}`)}
+      />
     </div>
   );
 }

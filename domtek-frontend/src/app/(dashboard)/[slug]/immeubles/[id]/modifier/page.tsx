@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from '@/components/OrgLink';
 import api from '@/lib/api';
@@ -8,13 +8,7 @@ import { orgPath } from '@/lib/org-path';
 import { Immeuble } from '@/types';
 import { AxiosError } from 'axios';
 import { MapPreview } from '@/components/MapPreview';
-
-const Section = ({ title }: { title: string }) => (
-  <div className="flex items-center gap-3 pt-2">
-    <span className="text-xs font-semibold text-blue-600 uppercase tracking-wide whitespace-nowrap">{title}</span>
-    <div className="flex-1 h-px bg-gray-200" />
-  </div>
-);
+import StepForm, { FormStep } from '@/components/StepForm';
 
 const Toggle = ({
   label, value, onChange,
@@ -31,7 +25,6 @@ const Toggle = ({
 export default function ModifierImmeubelPage() {
   const { id }    = useParams<{ id: string }>();
   const router    = useRouter();
-  const photosRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     nom: '', type_usage: 'residentiel', type_propriete: 'auto_propriete',
@@ -82,7 +75,7 @@ export default function ModifierImmeubelPage() {
       <input type={type}
         value={(form as Record<string, string | boolean>)[key] as string}
         onChange={(e) => set(key, e.target.value)}
-        placeholder={placeholder} required={required}
+        placeholder={placeholder}
         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
       {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
     </div>
@@ -127,20 +120,18 @@ export default function ModifierImmeubelPage() {
 
   if (loading) return <div className="p-8 animate-pulse h-40 bg-gray-100 rounded-xl m-8" />;
 
-  return (
-    <div className="p-8 max-w-2xl">
-      <div className="mb-6">
-        <Link href={`/dashboard/immeubles/${id}`} className="text-sm text-gray-400 hover:text-gray-600">← Retour à la fiche</Link>
-        <h1 className="text-2xl font-bold text-gray-800 mt-2">Modifier l&apos;immeuble</h1>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-
-          <Section title="Identification" />
-          {inp('Nom de l\'immeuble', 'nom', 'text', 'Résidence Les Jasmins', true)}
+  const steps: FormStep[] = [
+    {
+      title: 'Identification',
+      validate: () => {
+        if (!form.nom.trim()) return "Le nom de l'immeuble est obligatoire.";
+        return null;
+      },
+      content: (
+        <>
+          {inp("Nom de l'immeuble", 'nom', 'text', 'Résidence Les Jasmins', true)}
           <div className="grid grid-cols-2 gap-4">
-            {sel('Type d\'usage', 'type_usage', [
+            {sel("Type d'usage", 'type_usage', [
               { value: 'residentiel',   label: 'Résidentiel' },
               { value: 'professionnel', label: 'Professionnel' },
               { value: 'mixte',         label: 'Mixte' },
@@ -150,10 +141,19 @@ export default function ModifierImmeubelPage() {
               { value: 'co_propriete',   label: 'Co-propriété' },
             ], true)}
           </div>
-
-          <Section title="Structure" />
+        </>
+      ),
+    },
+    {
+      title: 'Structure & Localisation',
+      validate: () => {
+        if (!form.nb_etages || form.nb_etages === '0') return "Le nombre d'étages est obligatoire.";
+        return null;
+      },
+      content: (
+        <>
           <div className="grid grid-cols-2 gap-4">
-            {inp('Nombre d\'étages', 'nb_etages', 'number', '5', true)}
+            {inp("Nombre d'étages", 'nb_etages', 'number', '5', true)}
             <div />
           </div>
           <div className="space-y-3">
@@ -164,8 +164,6 @@ export default function ModifierImmeubelPage() {
               </div>
             )}
           </div>
-
-          <Section title="Localisation" />
           {inp('Adresse', 'adresse', 'text', '12, Rue Habib Bourguiba')}
           <div className="grid grid-cols-2 gap-4">
             {inp('Ville', 'ville', 'text', 'Tunis')}
@@ -175,36 +173,43 @@ export default function ModifierImmeubelPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Lien Google Maps</label>
             <MapPreview value={form.maps_url} onChange={(v) => set('maps_url', v)} />
           </div>
-
-          <Section title="Équipements et caractéristiques" />
+        </>
+      ),
+    },
+    {
+      title: 'Équipements',
+      content: (
+        <>
           <div className="flex flex-wrap gap-3">
             <Toggle label="Sous-sol" value={form.sous_sol} onChange={(v) => set('sous_sol', v)} />
             <Toggle label="Caméras de surveillance" value={form.cameras_surveillance} onChange={(v) => set('cameras_surveillance', v)} />
           </div>
-
           {globalError && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
               {globalError}
             </div>
           )}
+        </>
+      ),
+    },
+  ];
 
-          <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={saving}
-              className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
-              {saving ? 'Enregistrement…' : 'Enregistrer'}
-            </button>
-            <Link href={`/dashboard/immeubles/${id}`}
-              className="px-6 py-2.5 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
-              Annuler
-            </Link>
-          </div>
-        </form>
-
-        {/* Note: photos are managed from the show page */}
-        <p className="text-xs text-gray-400 mt-4 pt-4 border-t border-gray-100">
-          Pour gérer les photos, utilisez la fiche de l&apos;immeuble.
-        </p>
+  return (
+    <div className="p-8 max-w-2xl">
+      <div className="mb-6">
+        <Link href={`/dashboard/immeubles/${id}`} className="text-sm text-gray-400 hover:text-gray-600">← Retour à la fiche</Link>
+        <h1 className="text-2xl font-bold text-gray-800 mt-2">Modifier l&apos;immeuble</h1>
       </div>
+      <StepForm
+        steps={steps}
+        onSubmit={handleSubmit}
+        submitLabel="Enregistrer"
+        loading={saving}
+        cancelHref={`/dashboard/immeubles/${id}`}
+      />
+      <p className="text-xs text-gray-400 mt-4">
+        Pour gérer les photos, utilisez la fiche de l&apos;immeuble.
+      </p>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { orgPath } from '@/lib/org-path';
 import { Bien, BienDocument, BienImage, Immeuble } from '@/types';
 import { AxiosError } from 'axios';
 import { MapPreview } from '@/components/MapPreview';
+import StepForm, { FormStep } from '@/components/StepForm';
 
 const TYPES_BIEN = [
   { value: 'appartement',      label: 'Appartement' },
@@ -40,15 +41,9 @@ const OPTIONS_BIEN = [
   { key: 'digicode',          label: 'Digicode' },
 ];
 
-const Section = ({ title }: { title: string }) => (
-  <div className="flex items-center gap-3 pt-1">
-    <span className="text-xs font-semibold text-blue-600 uppercase tracking-wide whitespace-nowrap">{title}</span>
-    <div className="flex-1 h-px bg-gray-200" />
-  </div>
-);
-
 const inputCls  = 'w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
 const selectCls = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
+const lc = 'block text-sm font-medium text-gray-700 mb-1';
 
 export default function ModifierBienPage() {
   const { id }     = useParams<{ id: string }>();
@@ -229,7 +224,7 @@ export default function ModifierBienPage() {
 
   const inp = (label: string, name: string, type = 'text', placeholder = '') => (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <label className={lc}>{label}</label>
       <input type={type} value={(form as Record<string, unknown>)[name] as string}
         onChange={set(name)} placeholder={placeholder} className={inputCls} />
       {errors[name] && <p className="text-red-500 text-xs mt-1">{errors[name][0]}</p>}
@@ -248,28 +243,26 @@ export default function ModifierBienPage() {
     </button>
   );
 
-  return (
-    <div className="p-8 max-w-3xl">
-      <div className="mb-6">
-        <Link href={`/dashboard/biens/${id}`} className="text-sm text-gray-400 hover:text-gray-600">← Retour à la fiche</Link>
-        <h1 className="text-2xl font-bold text-gray-800 mt-2">Modifier — {form.designation}</h1>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-        <form onSubmit={handleSave} className="space-y-5">
-
-          <Section title="Identification" />
+  const steps: FormStep[] = [
+    {
+      title: 'Identification',
+      validate: () => {
+        if (!form.designation.trim()) return 'La désignation est obligatoire.';
+        return null;
+      },
+      content: (
+        <>
           {inp('Désignation *', 'designation')}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Transaction *</label>
+              <label className={lc}>Transaction *</label>
               <select value={form.type_transaction} onChange={set('type_transaction')} className={selectCls}>
                 <option value="loyer">Location</option>
                 <option value="vente">Vente</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Type de bien *</label>
+              <label className={lc}>Type de bien *</label>
               <select value={form.type_bien} onChange={set('type_bien')} className={selectCls}>
                 {TYPES_BIEN.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
@@ -277,7 +270,7 @@ export default function ModifierBienPage() {
           </div>
           {form.type_transaction === 'loyer' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Type de location</label>
+              <label className={lc}>Type de location</label>
               <select value={form.type_location} onChange={set('type_location')} className={selectCls}>
                 <option value="">— Non précisé —</option>
                 <option value="meuble">Meublé</option>
@@ -285,8 +278,13 @@ export default function ModifierBienPage() {
               </select>
             </div>
           )}
-
-          <Section title="Bâtiment" />
+        </>
+      ),
+    },
+    {
+      title: 'Bâtiment',
+      content: (
+        <>
           <div className="flex gap-3">
             {(['independant', 'immeuble'] as const).map((v) => (
               <button key={v} type="button"
@@ -301,7 +299,7 @@ export default function ModifierBienPage() {
           {batiment === 'immeuble' && (
             <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Immeuble</label>
+                <label className={lc}>Immeuble</label>
                 <select value={immeubleId}
                   onChange={(e) => { setImmeubleId(e.target.value); setForm((p) => ({ ...p, bloc: '', etage: '', num: '' })); }}
                   className={selectCls}>
@@ -314,7 +312,7 @@ export default function ModifierBienPage() {
               {selectedImmeuble && (
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Étage</label>
+                    <label className={lc}>Étage</label>
                     <select value={form.etage} onChange={set('etage')} className={selectCls}>
                       <option value="">— Sélectionner —</option>
                       <option value="0">RDC (0)</option>
@@ -325,7 +323,7 @@ export default function ModifierBienPage() {
                   </div>
                   {selectedImmeuble.a_blocs && selectedImmeuble.nb_blocs && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Bloc</label>
+                      <label className={lc}>Bloc</label>
                       <select value={form.bloc} onChange={set('bloc')} className={selectCls}>
                         <option value="">— Sélectionner —</option>
                         {Array.from({ length: selectedImmeuble.nb_blocs }, (_, i) => i + 1).map((n) => (
@@ -339,8 +337,13 @@ export default function ModifierBienPage() {
               )}
             </div>
           )}
-
-          <Section title="Localisation" />
+        </>
+      ),
+    },
+    {
+      title: 'Localisation',
+      content: (
+        <>
           <div className="grid grid-cols-2 gap-4">
             {inp('Adresse', 'adresse')}
             {inp('Ville', 'ville')}
@@ -353,8 +356,13 @@ export default function ModifierBienPage() {
             <label className="block text-xs font-medium text-gray-500 mb-1">Lien Google Maps</label>
             <MapPreview value={form.maps_url} onChange={v => setForm(p => ({ ...p, maps_url: v }))} />
           </div>
-
-          <Section title="Caractéristiques" />
+        </>
+      ),
+    },
+    {
+      title: 'Caractéristiques',
+      content: (
+        <>
           <div className="grid grid-cols-2 gap-4">
             {inp('Superficie (m²)', 'superficie', 'number')}
             {inp('Superficie commune (m²)', 'superficie_commune', 'number')}
@@ -369,28 +377,33 @@ export default function ModifierBienPage() {
             {batiment === 'independant' && inp('Étage', 'etage', 'number')}
             {inp('Date de construction', 'date_construction', 'date')}
           </div>
-
-          <Section title="Finance & Juridique" />
+        </>
+      ),
+    },
+    {
+      title: 'Finance & Options',
+      validate: () => {
+        if (!form.prix) return 'Le prix est obligatoire.';
+        return null;
+      },
+      content: (
+        <>
           <div className="grid grid-cols-2 gap-4">
             {inp('Prix (TND) *', 'prix', 'number')}
             {inp('Taxe foncière (TND/an)', 'taxe_fonciere', 'number')}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Régime juridique</label>
+            <label className={lc}>Régime juridique</label>
             <select value={form.regime_juridique} onChange={set('regime_juridique')} className={selectCls}>
               <option value="">— Non précisé —</option>
               <option value="mono_propriete">Mono-propriété</option>
               <option value="co_propriete">Co-propriété</option>
             </select>
           </div>
-
-          <Section title="Conditions d'occupation" />
           <div className="flex gap-3">
             {toggle('Animaux acceptés', 'accepte_animaux')}
             {toggle('Fumeurs acceptés', 'accepte_fumeurs')}
           </div>
-
-          <Section title="Équipements & Options" />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {OPTIONS_BIEN.map((opt) => (
               <label key={opt.key} className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm transition ${
@@ -401,32 +414,36 @@ export default function ModifierBienPage() {
               </label>
             ))}
           </div>
-
-          <Section title="Description & Notes" />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className={lc}>Description</label>
             <textarea value={form.description} onChange={set('description')} rows={4} className={inputCls} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Notes internes</label>
+            <label className={lc}>Notes internes</label>
             <textarea value={form.notes} onChange={set('notes')} rows={2} className={inputCls} />
           </div>
+        </>
+      ),
+    },
+  ];
 
-          <div className="flex gap-3">
-            <button type="submit" disabled={saving}
-              className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition">
-              {saving ? 'Enregistrement…' : 'Enregistrer'}
-            </button>
-            <Link href={`/dashboard/biens/${id}`}
-              className="px-6 py-2.5 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
-              Annuler
-            </Link>
-          </div>
-        </form>
+  return (
+    <div className="p-8 max-w-3xl">
+      <div className="mb-6">
+        <Link href={`/dashboard/biens/${id}`} className="text-sm text-gray-400 hover:text-gray-600">← Retour à la fiche</Link>
+        <h1 className="text-2xl font-bold text-gray-800 mt-2">Modifier — {form.designation}</h1>
       </div>
 
+      <StepForm
+        steps={steps}
+        onSubmit={handleSave}
+        submitLabel="Enregistrer"
+        loading={saving}
+        cancelHref={`/dashboard/biens/${id}`}
+      />
+
       {/* ── Photos ── */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-6 mt-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-gray-700">Photos du bien</h2>
           <label className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg cursor-pointer transition">
