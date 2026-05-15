@@ -1,7 +1,7 @@
 # ─── Laravel (Domtek) ────────────────────────────────────────────────────────
-Domtek/vendor/
-Domtek/.env
-Domtek/.env.backup
+#Domtek/vendor/
+#Domtek/.env
+#Domtek/.env.backup
 Domtek/storage/app/private/
 Domtek/storage/logs/
 Domtek/storage/framework/cache/
