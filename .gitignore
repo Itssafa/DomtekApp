@@ -1,7 +1,7 @@
 # ─── Laravel (Domtek) ────────────────────────────────────────────────────────
-Domtek/vendor/
-Domtek/.env
-Domtek/.env.backup
+#Domtek/vendor/
+#Domtek/.env
+#Domtek/.env.backup
 Domtek/storage/app/private/
 Domtek/storage/logs/
 Domtek/storage/framework/cache/
@@ -12,6 +12,7 @@ Domtek/public/storage
 Domtek/public/hot
 Domtek/.phpunit.result.cache
 Domtek/node_modules/
+Domtek/vendor/
 
 # ─── Next.js (domtek-frontend) ───────────────────────────────────────────────
 domtek-frontend/node_modules/

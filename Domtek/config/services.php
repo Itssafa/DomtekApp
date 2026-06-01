@@ -58,4 +58,12 @@ return [
         'redirect'      => env('APP_URL', 'http://localhost:8000') . '/api/auth/google/callback',
     ],
 
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+    ],
+
+    'groq' => [
+        'key' => env('GROQ_API_KEY'),
+    ],
+
 ];

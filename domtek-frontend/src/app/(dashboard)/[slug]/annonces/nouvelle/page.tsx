@@ -20,10 +20,28 @@ export default function NouvelleAnnoncePage() {
   const [previews, setPreviews] = useState<string[]>([]);
   const [errors, setErrors]     = useState<Record<string, string[]>>({});
   const [loading, setLoading]   = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError]     = useState('');
 
   useEffect(() => {
     api.get('/org/biens?per_page=100').then(({ data }) => setBiens(data.data ?? [])).catch(() => {});
   }, []);
+
+  const generateDescription = async () => {
+    if (!form.bien_id || generating) return;
+    setGenerating(true);
+    setGenError('');
+    try {
+      const { data } = await api.post(`/org/biens/${form.bien_id}/generate-description`);
+      setForm((prev) => ({ ...prev, description: data.description ?? '' }));
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })
+        ?.response?.data?.message ?? 'Erreur de génération. Réessayez.';
+      setGenError(msg);
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const set = (field: string) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -80,8 +98,43 @@ export default function NouvelleAnnoncePage() {
             {errors.titre && <p className="text-red-500 text-xs mt-1">{errors.titre[0]}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea value={form.description} onChange={set('description')} rows={4} className={cls} />
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700">Description</label>
+              <button
+                type="button"
+                onClick={generateDescription}
+                disabled={!form.bien_id || generating}
+                className="flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-lg border transition
+                  disabled:opacity-40 disabled:cursor-not-allowed
+                  bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600
+                  text-white border-transparent shadow-sm"
+              >
+                {generating ? (
+                  <>
+                    <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                    </svg>
+                    Génération…
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Générer avec IA
+                  </>
+                )}
+              </button>
+            </div>
+            {genError && (
+              <p className="text-amber-600 text-xs mb-1 flex items-center gap-1">
+                <span>⚠</span> {genError}
+              </p>
+            )}
+            <textarea value={form.description} onChange={set('description')} rows={4} className={cls}
+              placeholder={!form.bien_id ? "Sélectionnez d'abord un bien pour activer la génération IA…" : 'Description de l\'annonce…'} />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Bien associé *</label>

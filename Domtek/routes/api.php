@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Organisation\LocationController;
 use App\Http\Controllers\Api\Organisation\NotificationController;
 use App\Http\Controllers\Api\Organisation\StatistiqueController;
 use App\Http\Controllers\Api\Organisation\TacheController;
+use App\Http\Controllers\Api\Organisation\GenerateDescriptionController;
 use App\Http\Controllers\Api\Public\AnnonceController as AnnoncePubliqueController;
 use App\Http\Controllers\Api\Public\OrganisationController as OrganisationPubliqueController;
 use App\Http\Controllers\Api\Public\PaiementController;
@@ -107,6 +108,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Routes accessibles par l'organisation ET les employés (lecture + création)
     Route::middleware('role:organisation,employe')->prefix('org')->group(function () {
         // Biens
+        Route::post('biens/{bien}/generate-description', GenerateDescriptionController::class);
         Route::get('biens',              [BienController::class, 'index']);
         Route::get('biens/{bien}',       [BienController::class, 'show']);
         Route::post('biens',             [BienController::class, 'store']);
