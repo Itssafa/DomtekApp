@@ -150,7 +150,7 @@ export default function AnnoncesPage() {
                   <p className="font-semibold text-gray-800 truncate">{a.titre}</p>
                   {a.bien && (
                     <p className="text-xs text-gray-400 mt-0.5 truncate">
-                      {a.bien.titre}{a.bien.ville ? ` · ${a.bien.ville}` : ''}
+                      {a.bien.designation}{a.bien.ville ? ` · ${a.bien.ville}` : ''}
                     </p>
                   )}
                   {a.date_publication && (

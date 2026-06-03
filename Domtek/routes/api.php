@@ -115,6 +115,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('biens/{bien}',       [BienController::class, 'update']);
         Route::patch('biens/{bien}',     [BienController::class, 'update']);
         Route::delete('biens/{bien}',    [BienController::class, 'destroy']);
+        Route::post('biens/{bien}/images',                 [BienController::class, 'uploadImages']);
+        Route::delete('biens/{bien}/images/{image}',       [BienController::class, 'deleteImage']);
+        Route::post('biens/{bien}/documents',              [BienController::class, 'uploadDocument']);
+        Route::delete('biens/{bien}/documents/{document}', [BienController::class, 'deleteDocument']);
 
         // Annonces
         Route::get('annonces',           [AnnonceController::class, 'index']);
@@ -123,6 +127,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('annonces/{annonce}',    [AnnonceController::class, 'update']);
         Route::patch('annonces/{annonce}',  [AnnonceController::class, 'update']);
         Route::delete('annonces/{annonce}', [AnnonceController::class, 'destroy']);
+        Route::post('annonces/{annonce}/photos',           [AnnonceController::class, 'uploadPhotos']);
+        Route::delete('annonces/{annonce}/photos/{photo}', [AnnonceController::class, 'deletePhoto']);
 
         // Contrats
         Route::get('contrats',           [ContratController::class, 'index']);
@@ -186,17 +192,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Routes réservées au gérant de l'organisation uniquement
     Route::middleware('role:organisation')->prefix('org')->group(function () {
 
-        // Uploads liés aux biens
-        Route::post('biens/{bien}/images',                 [BienController::class, 'uploadImages']);
-        Route::delete('biens/{bien}/images/{image}',       [BienController::class, 'deleteImage']);
-        Route::post('biens/{bien}/documents',              [BienController::class, 'uploadDocument']);
-        Route::delete('biens/{bien}/documents/{document}', [BienController::class, 'deleteDocument']);
-
-        // Actions de statut + uploads annonces
-        Route::patch('annonces/{annonce}/publier',          [AnnonceController::class, 'publier']);
-        Route::patch('annonces/{annonce}/archiver',         [AnnonceController::class, 'archiver']);
-        Route::post('annonces/{annonce}/photos',            [AnnonceController::class, 'uploadPhotos']);
-        Route::delete('annonces/{annonce}/photos/{photo}',  [AnnonceController::class, 'deletePhoto']);
+        // Actions de statut annonces
+        Route::patch('annonces/{annonce}/publier',  [AnnonceController::class, 'publier']);
+        Route::patch('annonces/{annonce}/archiver', [AnnonceController::class, 'archiver']);
 
         // Upload contrat
         Route::post('contrats/{contrat}/fichier', [ContratController::class, 'uploadFichier']);

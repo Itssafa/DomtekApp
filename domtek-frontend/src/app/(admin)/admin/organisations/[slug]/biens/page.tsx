@@ -58,7 +58,7 @@ export default function OrgBiensPage() {
             {data.data.map((b) => (
               <tr key={b.id} className="hover:bg-gray-50">
                 <td className="px-5 py-3">
-                  <p className="font-medium text-gray-800">{b.titre}</p>
+                  <p className="font-medium text-gray-800">{b.designation}</p>
                   <p className="text-xs text-gray-400 capitalize">{b.type_bien}</p>
                 </td>
                 <td className="px-5 py-3 text-gray-600">{TYPE_LABELS[b.type_transaction]}</td>

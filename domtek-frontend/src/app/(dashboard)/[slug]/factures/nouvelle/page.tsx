@@ -48,7 +48,7 @@ export default function NouvelleFacturePage() {
     contrats.forEach((c) => {
       if (c.bien?.id) map.set(c.bien.id, {
         id: c.bien.id,
-        designation: c.bien.designation ?? c.bien.titre ?? `Bien #${c.bien.id}`,
+        designation: c.bien.designation ?? c.bien.designation ?? `Bien #${c.bien.id}`,
       });
     });
     return Array.from(map.values());

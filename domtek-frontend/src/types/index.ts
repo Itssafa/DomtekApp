@@ -339,6 +339,7 @@ export interface Immeuble {
   adresse: string | null;
   ville: string | null;
   pays: string | null;
+  maps_url: string | null;
   sous_sol: boolean;
   cameras_surveillance: boolean;
   photos?: ImmeublePhoto[];
