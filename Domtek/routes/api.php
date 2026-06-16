@@ -21,7 +21,9 @@ use App\Http\Controllers\Api\Organisation\LocationController;
 use App\Http\Controllers\Api\Organisation\NotificationController;
 use App\Http\Controllers\Api\Organisation\StatistiqueController;
 use App\Http\Controllers\Api\Organisation\TacheController;
+use App\Http\Controllers\Api\Organisation\DashboardSuggestionsController;
 use App\Http\Controllers\Api\Organisation\GenerateDescriptionController;
+use App\Http\Controllers\Api\Organisation\ProspectSuggestionsController;
 use App\Http\Controllers\Api\Public\AnnonceController as AnnoncePubliqueController;
 use App\Http\Controllers\Api\Public\OrganisationController as OrganisationPubliqueController;
 use App\Http\Controllers\Api\Public\PaiementController;
@@ -147,7 +149,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('clients/{client}',    [ClientController::class, 'update']);
         Route::delete('clients/{client}',   [ClientController::class, 'destroy']);
 
+        // Dashboard IA
+        Route::get('dashboard/suggestions', DashboardSuggestionsController::class);
+
         // Prospects
+        Route::get('prospects/{prospect}/suggestions', ProspectSuggestionsController::class);
         Route::get('prospects',          [ProspectController::class, 'index']);
         Route::get('prospects/{prospect}', [ProspectController::class, 'show']);
         Route::post('prospects',           [ProspectController::class, 'store']);

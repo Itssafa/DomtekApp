@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from '@/components/OrgLink';
 import api from '@/lib/api'
-import { Bien, BesoinProspect, Prospect } from '@/types';
+import { Bien, BesoinProspect, BienSuggestion, Prospect } from '@/types';
 import { AxiosError } from 'axios';
 
 const Section = ({ title }: { title: string }) => (
@@ -76,6 +76,22 @@ function ScoreBadge({ score }: { score: number }) {
   );
 }
 
+function ScoreCircle({ score }: { score: number }) {
+  const color = score >= 75 ? '#16a34a' : score >= 50 ? '#2563eb' : score >= 30 ? '#ea580c' : '#9ca3af';
+  return (
+    <div className="flex flex-col items-center min-w-[48px]">
+      <span className="text-xl font-bold leading-none" style={{ color }}>{score}</span>
+      <span className="text-xs text-gray-400">/100</span>
+    </div>
+  );
+}
+
+const TYPE_LABELS: Record<string, string> = {
+  appartement: 'Appartement', maison: 'Maison', villa: 'Villa', bureau: 'Bureau',
+  terrain: 'Terrain', studio: 'Studio', duplex: 'Duplex',
+  local_commercial: 'Local commercial', entrepot: 'Entrepôt', ferme: 'Ferme', autre: 'Autre',
+};
+
 const Field = ({ label, value }: { label: string; value?: string | null }) => (
   <div>
     <p className="text-xs text-gray-400 mb-0.5">{label}</p>
@@ -112,6 +128,10 @@ export default function FicheProspectPage() {
   const [biensInteret, setBiensInteret]         = useState<number[]>([]);
   const [hierarchie, setHierarchie]             = useState<BesoinProspect[]>(DEFAULT_BESOINS);
   const [visitEffectuee, setVisitEffectuee]     = useState(false);
+
+  const [suggestions, setSuggestions]           = useState<BienSuggestion[]>([]);
+  const [loadingSuggestions, setLoadingSugg]    = useState(false);
+  const [suggestionsLoaded, setSuggestionsLoaded] = useState(false);
 
   const [errors, setErrors]         = useState<Record<string, string[]>>({});
   const [loading, setLoading]       = useState(true);
@@ -157,6 +177,17 @@ export default function FicheProspectPage() {
       }
       if (b.status === 'fulfilled') setBiens(b.value.data.data ?? []);
     }).finally(() => setLoading(false));
+  };
+
+  const fetchSuggestions = async () => {
+    if (loadingSuggestions) return;
+    setLoadingSugg(true);
+    try {
+      const { data } = await api.get(`/org/prospects/${id}/suggestions`);
+      setSuggestions(data.suggestions ?? []);
+      setSuggestionsLoaded(true);
+    } catch { /* noop */ }
+    finally { setLoadingSugg(false); }
   };
 
   useEffect(() => { fetchProspect(); }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -356,6 +387,82 @@ export default function FicheProspectPage() {
               <Section title="Note" />
               <p className="text-sm text-gray-700 whitespace-pre-line">{form.notes}</p>
             </>
+          )}
+        </div>
+
+        {/* ── Suggestions IA ── */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mt-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-800">Suggestions IA — Biens compatibles</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Biens disponibles correspondant au profil de ce prospect</p>
+            </div>
+            <button
+              onClick={fetchSuggestions}
+              disabled={loadingSuggestions}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg
+                bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600
+                text-white shadow-sm disabled:opacity-50 transition"
+            >
+              {loadingSuggestions ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                  Analyse en cours…
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  {suggestionsLoaded ? 'Relancer' : 'Analyser'}
+                </>
+              )}
+            </button>
+          </div>
+
+          {suggestions.length > 0 && (
+            <div className="space-y-2">
+              {suggestions.map((s) => (
+                <Link key={s.id} href={`/dashboard/biens/${s.id}`}
+                  className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200
+                    hover:border-violet-300 hover:bg-violet-50 transition group">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-gray-800 text-sm truncate group-hover:text-violet-700 transition">
+                      {s.designation}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {TYPE_LABELS[s.type_bien] ?? s.type_bien}
+                      {s.ville && <span> · {s.ville}</span>}
+                      {s.superficie && <span> · {s.superficie} m²</span>}
+                      {s.nb_pieces && <span> · {s.nb_pieces} pièces</span>}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4 shrink-0">
+                    {s.prix != null && (
+                      <span className="text-sm font-semibold text-gray-700">
+                        {Number(s.prix).toLocaleString('fr-FR')} DT
+                      </span>
+                    )}
+                    <ScoreCircle score={s.score} />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {suggestionsLoaded && suggestions.length === 0 && (
+            <p className="text-sm text-gray-400 text-center py-6">
+              Aucun bien disponible ne correspond au profil de ce prospect.
+            </p>
+          )}
+
+          {!suggestionsLoaded && !loadingSuggestions && (
+            <p className="text-xs text-gray-300 text-center py-4">
+              Cliquez sur &quot;Analyser&quot; pour lancer la recherche IA.
+            </p>
           )}
         </div>
       </div>

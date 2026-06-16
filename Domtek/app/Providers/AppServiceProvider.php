@@ -2,23 +2,19 @@
 
 namespace App\Providers;
 
+use App\Models\Bien;
+use App\Models\Prospect;
+use App\Observers\BienObserver;
+use App\Observers\ProspectObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
+    public function register(): void {}
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        //
+        Bien::observe(BienObserver::class);
+        Prospect::observe(ProspectObserver::class);
     }
 }

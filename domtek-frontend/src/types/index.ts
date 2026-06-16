@@ -198,6 +198,18 @@ export interface Prospect {
   updated_at: string;
 }
 
+export interface BienSuggestion {
+  id: number;
+  designation: string;
+  type_bien: string;
+  type_transaction: 'vente' | 'loyer';
+  prix: number | null;
+  ville: string | null;
+  superficie: number | null;
+  nb_pieces: number | null;
+  score: number;
+}
+
 // ─── Employe ─────────────────────────────────────────────────────────────────
 
 export interface Employe {
