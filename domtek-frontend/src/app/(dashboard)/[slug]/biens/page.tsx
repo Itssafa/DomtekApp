@@ -107,7 +107,7 @@ export default function BiensPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={b.image_principale?.url ?? PLACEHOLDER}
-                  alt={b.titre}
+                  alt={b.designation}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 {/* Badge transaction */}
@@ -122,7 +122,7 @@ export default function BiensPage() {
 
               {/* Infos — cliquables vers la fiche */}
               <Link href={`/dashboard/biens/${b.id}`} className="block p-4 hover:bg-gray-50 transition">
-                <p className="font-semibold text-gray-800 truncate">{b.titre}</p>
+                <p className="font-semibold text-gray-800 truncate">{b.designation}</p>
                 <p className="text-xs text-gray-400 capitalize mt-0.5">{b.type_bien}{b.ville ? ` · ${b.ville}` : ''}</p>
 
                 {/* Prix */}
@@ -145,7 +145,7 @@ export default function BiensPage() {
                   className="flex-1 text-center text-xs text-violet-600 hover:text-blue-700 font-medium py-1.5 rounded-lg hover:bg-blue-50 transition">
                   Modifier
                 </Link>
-                <button onClick={() => handleDelete(b.id, b.titre)} disabled={deleting === b.id}
+                <button onClick={() => handleDelete(b.id, b.designation)} disabled={deleting === b.id}
                   className="flex-1 text-center text-xs text-red-500 hover:text-red-600 font-medium py-1.5 rounded-lg hover:bg-red-50 transition disabled:opacity-40">
                   Supprimer
                 </button>

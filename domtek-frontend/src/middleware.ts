@@ -3,13 +3,12 @@ import type { NextRequest } from 'next/server';
 
 const TOKEN_KEY = 'domtek_token';
 
-// Segments de premier niveau qui sont des routes de l'application (pas des slugs)
 const NON_ORG_SEGMENTS = new Set([
   '', 'login', 'register', 'admin', 'en-attente',
   'annonces', 'organisations', 'paiement', 'api',
 ]);
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token        = request.cookies.get(TOKEN_KEY)?.value;
   const orgSlug      = request.cookies.get('org-slug')?.value;

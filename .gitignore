@@ -1,7 +1,7 @@
 # ─── Laravel (Domtek) ────────────────────────────────────────────────────────
 #Domtek/vendor/
-#Domtek/.env
-#Domtek/.env.backup
+Domtek/.env
+Domtek/.env.backup
 Domtek/storage/app/private/
 Domtek/storage/logs/
 Domtek/storage/framework/cache/
@@ -22,6 +22,7 @@ domtek-frontend/.env.local
 domtek-frontend/.env*.local
 
 # ─── Général ─────────────────────────────────────────────────────────────────
+.env
 .DS_Store
 Thumbs.db
 *.log
