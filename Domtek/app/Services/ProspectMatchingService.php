@@ -42,16 +42,12 @@ class ProspectMatchingService
         // Profil de référence
         [$refPrix, $refTypes, $refTransaction, $refVilles] = $this->extractProfile($prospect, $refIds);
 
-        if ($refTransaction) {
-            $biens = $biens->where('type_transaction', $refTransaction);
-        }
-
-        $hasProfile = $refPrix || $refTypes || $refVilles;
+        $hasProfile = $refPrix || $refTypes || $refVilles || $refTransaction;
 
         // Calculer les scores ; si le prospect n'a aucun critère connu,
         // on lui attribue un score de base 30 (disponibilité seule)
-        $rows = $biens->map(function (Bien $b) use ($orgId, $prospect, $refPrix, $refTypes, $refVilles, $hasProfile) {
-            $computed = $this->computeScore($b, $refPrix, $refTypes, $refVilles, $prospect);
+        $rows = $biens->map(function (Bien $b) use ($orgId, $prospect, $refPrix, $refTypes, $refTransaction, $refVilles, $hasProfile) {
+            $computed = $this->computeScore($b, $refPrix, $refTypes, $refTransaction, $refVilles, $prospect);
             $score    = $hasProfile ? $computed : max($computed, 30);
             return [
                 'organisation_id' => $orgId,
@@ -115,29 +111,34 @@ class ProspectMatchingService
         return [$refPrix, $refTypes, $refTransaction, $refVilles];
     }
 
-    private function computeScore(Bien $bien, ?float $refPrix, array $refTypes, array $refVilles, Prospect $prospect): int
+    private function computeScore(Bien $bien, ?float $refPrix, array $refTypes, ?string $refTransaction, array $refVilles, Prospect $prospect): int
     {
         $score = 0;
 
-        // Prix (40 pts)
+        // Type de transaction (15 pts) — bonus si correspond, pas d'élimination
+        if ($refTransaction && $bien->type_transaction === $refTransaction) {
+            $score += 15;
+        }
+
+        // Prix (35 pts)
         if ($refPrix && $bien->prix) {
             $ratio = abs((float) $bien->prix - $refPrix) / $refPrix;
-            if ($ratio <= 0.20)     $score += 40;
-            elseif ($ratio <= 0.30) $score += 25;
-            elseif ($ratio <= 0.40) $score += 12;
+            if ($ratio <= 0.20)     $score += 35;
+            elseif ($ratio <= 0.30) $score += 22;
+            elseif ($ratio <= 0.40) $score += 10;
         }
 
-        // Type de bien (25 pts)
+        // Type de bien (20 pts)
         if ($refTypes && in_array($bien->type_bien, $refTypes)) {
-            $score += 25;
+            $score += 20;
         }
 
-        // Ville exacte (25 pts)
+        // Ville exacte (22 pts)
         if ($refVilles && $bien->ville) {
             $bienVille = mb_strtolower(trim($bien->ville));
             foreach ($refVilles as $v) {
                 if (mb_strtolower(trim($v)) === $bienVille) {
-                    $score += 25;
+                    $score += 22;
                     break;
                 }
             }
@@ -148,11 +149,11 @@ class ProspectMatchingService
             $score += 5;
         }
 
-        // Options en commun (5 pts max)
-        $bienOptions     = (array) ($bien->options ?? []);
-        $hierarchie      = $prospect->hierarchie_besoins ?? [];
+        // Options en commun (3 pts)
+        $bienOptions = (array) ($bien->options ?? []);
+        $hierarchie  = $prospect->hierarchie_besoins ?? [];
         if (in_array('commodites', $hierarchie) && count($bienOptions) >= 3) {
-            $score += 5;
+            $score += 3;
         }
 
         return min(100, $score);

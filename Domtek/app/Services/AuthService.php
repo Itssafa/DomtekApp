@@ -6,6 +6,8 @@ use App\Models\Employe;
 use App\Models\Organisation;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -41,6 +43,8 @@ class AuthService
             'created_by'  => $user->id,
             'updated_by'  => $user->id,
         ]);
+
+        $this->sendVerificationEmail($user);
 
         return compact('user', 'organisation');
     }
@@ -95,6 +99,8 @@ class AuthService
             'updated_by'      => $user->id,
         ]);
 
+        $this->sendVerificationEmail($user);
+
         return compact('user', 'employe');
     }
 
@@ -125,6 +131,51 @@ class AuthService
     public function logout(\Laravel\Sanctum\PersonalAccessToken $token): void
     {
         $token->delete();
+    }
+
+    /**
+     * Envoyer l'email de vérification à l'utilisateur.
+     */
+    public function sendVerificationEmail(User $user): void
+    {
+        $frontendUrl = config('services.frontend.url', 'http://localhost');
+
+        $token = hash_hmac('sha256', $user->email . $user->created_at, config('app.key'));
+
+        $verifyUrl = $frontendUrl . '/verify-email?' . http_build_query([
+            'token' => $token,
+            'email' => $user->email,
+        ]);
+
+        try {
+            Mail::send('emails.verify_email', ['user' => $user, 'verifyUrl' => $verifyUrl], function ($m) use ($user) {
+                $m->to($user->email)
+                  ->subject('Vérifiez votre adresse e-mail — Domtek');
+            });
+        } catch (\Throwable $e) {
+            \Log::error('Verification email failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Vérifier le token et marquer l'email comme vérifié.
+     */
+    public function verifyEmail(string $email, string $token): bool
+    {
+        $user = User::where('email', $email)->first();
+
+        if (!$user) return false;
+
+        $expected = hash_hmac('sha256', $user->email . $user->created_at, config('app.key'));
+
+        if (!hash_equals($expected, $token)) return false;
+
+        if (!$user->email_verified_at) {
+            $user->email_verified_at = now();
+            $user->save();
+        }
+
+        return true;
     }
 
     /**

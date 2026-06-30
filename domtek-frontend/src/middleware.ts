@@ -15,16 +15,15 @@ export function middleware(request: NextRequest) {
   const firstSegment = pathname.split('/')[1] ?? '';
 
   // ── Routes publiques ───────────────────────────────────────────────────────
-  const PUBLIC_PREFIXES = ['/login', '/register', '/annonces', '/organisations', '/en-attente', '/paiement'];
+  const PUBLIC_PREFIXES = ['/login', '/register', '/annonces', '/organisations', '/en-attente', '/paiement', '/forgot-password', '/reset-password', '/auth/google', '/verify-email'];
   const isPublic = pathname === '/' || PUBLIC_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`)
   );
 
   if (isPublic) {
-    // Déjà connecté sur /login ou /register → espace org
-    if (token && (pathname === '/login' || pathname.startsWith('/register'))) {
-      const dest = orgSlug ? `/${orgSlug}` : '/';
-      return NextResponse.redirect(new URL(dest, request.url));
+    // Déjà connecté avec un org-slug connu → rediriger vers l'espace org
+    if (token && orgSlug && (pathname === '/login' || pathname.startsWith('/register'))) {
+      return NextResponse.redirect(new URL(`/${orgSlug}`, request.url));
     }
     return NextResponse.next();
   }

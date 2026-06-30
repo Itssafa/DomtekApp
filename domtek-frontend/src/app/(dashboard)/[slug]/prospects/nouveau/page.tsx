@@ -77,7 +77,7 @@ export default function NouveauProspectPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
     setLoading(true);
@@ -108,7 +108,9 @@ export default function NouveauProspectPage() {
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
       <input type={type} value={(form as Record<string, string>)[key]} onChange={set(key)} placeholder={placeholder}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+        className={errors[key]
+          ? 'w-full border border-red-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-red-50'
+          : 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500'} />
       {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
     </div>
   );
@@ -153,6 +155,12 @@ export default function NouveauProspectPage() {
     },
     {
       title: "Document d'identité",
+      validate: () => {
+        if (form.cin.trim() && (!form.cin_delivree_le || !form.cin_delivree_a.trim())) {
+          return 'Veuillez compléter la date et le lieu de délivrance de la pièce.';
+        }
+        return null;
+      },
       content: (
         <>
           <div className="grid grid-cols-2 gap-4">
@@ -164,9 +172,9 @@ export default function NouveauProspectPage() {
                 <option value="Passeport">Passeport</option>
               </select>
             </div>
-            {inp('N° de pièce (CIN)', 'cin', 'text', '12345678', true)}
-            {inp('Délivrée le', 'cin_delivree_le', 'date', '', true)}
-            {inp('Délivrée à (ville)', 'cin_delivree_a', 'text', 'Tunis', true)}
+            {inp('N° de pièce (CIN)', 'cin', 'text', '12345678')}
+            {inp('Délivrée le', 'cin_delivree_le', 'date')}
+            {inp('Délivrée à (ville)', 'cin_delivree_a', 'text', 'Tunis')}
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">

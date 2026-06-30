@@ -38,6 +38,7 @@ Route::prefix('auth')->group(function () {
     Route::post('register/organisation',        [AuthController::class, 'registerOrganisation']);
     Route::post('register/organisation-google', [AuthController::class, 'registerOrganisationGoogle']);
     Route::post('register/client',              [AuthController::class, 'registerClient']);
+    Route::post('register/client-google',       [AuthController::class, 'registerClientGoogle']);
     Route::post('register/employe',             [AuthController::class, 'registerEmploye']);
     Route::post('login',                 [AuthController::class, 'login']);
 
@@ -49,6 +50,9 @@ Route::prefix('auth')->group(function () {
     // Mot de passe oublié
     Route::post('forgot-password', [PasswordResetController::class, 'sendResetLink']);
     Route::post('reset-password',  [PasswordResetController::class, 'resetPassword']);
+
+    // Vérification e-mail
+    Route::post('verify-email',    [AuthController::class, 'verifyEmail']);
 });
 
 /*

@@ -58,49 +58,71 @@ class SocialAuthController extends Controller
             return redirect("{$frontendUrl}/register/organisation?" . http_build_query(['g' => $token]));
         }
 
+        // Chercher par google_id d'abord, puis par email
+        $existing = User::where('google_id', $googleUser->getId())->first()
+            ?? User::where('email', $googleUser->getEmail())->first();
+
+        // Nouvel utilisateur → rediriger vers la page de choix du type de compte
+        if (! $existing) {
+            $token = Crypt::encryptString(json_encode([
+                'name'      => $googleUser->getName(),
+                'email'     => $googleUser->getEmail(),
+                'google_id' => $googleUser->getId(),
+                'avatar'    => $googleUser->getAvatar(),
+                'expires'   => now()->addMinutes(30)->timestamp,
+            ]));
+
+            return redirect("{$frontendUrl}/register/choix?" . http_build_query(['g' => $token]));
+        }
+
         try {
-            $user = DB::transaction(function () use ($googleUser) {
-                // Chercher par google_id d'abord, puis par email
-                $existing = User::where('google_id', $googleUser->getId())->first()
-                    ?? User::where('email', $googleUser->getEmail())->first();
-
-                if ($existing) {
-                    $existing->update([
-                        'google_id' => $googleUser->getId(),
-                        'avatar'    => $googleUser->getAvatar(),
-                    ]);
-                    return $existing;
-                }
-
-                // Nouvel utilisateur → rôle client, mot de passe aléatoire (inutilisable)
-                return User::create([
-                    'name'      => $googleUser->getName(),
-                    'email'     => $googleUser->getEmail(),
+            $user = DB::transaction(function () use ($googleUser, $existing) {
+                $existing->update([
                     'google_id' => $googleUser->getId(),
                     'avatar'    => $googleUser->getAvatar(),
-                    'role'      => User::ROLE_CLIENT,
-                    'is_active' => true,
-                    'password'  => Str::random(32),
                 ]);
+                return $existing;
             });
         } catch (\Throwable $e) {
             \Log::error('Google OAuth error: ' . $e->getMessage());
             return redirect("{$frontendUrl}/login?error=google_failed");
         }
 
-        // Refuser les comptes inactifs
+        // Refuser les comptes inactifs (employés)
         if (! $user->is_active) {
             return redirect("{$frontendUrl}/login?error=account_disabled");
         }
 
+        // Refuser les organisations en attente ou inactives
+        if ($user->role === User::ROLE_ORGANISATION) {
+            $org = $user->organisation;
+            if (!$org) {
+                return redirect("{$frontendUrl}/login?error=google_failed");
+            }
+            if ($org->statut === \App\Models\Organisation::STATUT_EN_ATTENTE) {
+                return redirect("{$frontendUrl}/en-attente");
+            }
+            if ($org->statut === \App\Models\Organisation::STATUT_INACTIVE) {
+                return redirect("{$frontendUrl}/login?error=account_disabled");
+            }
+        }
+
         $token = $user->createToken('google-oauth')->plainTextToken;
 
-        $params = http_build_query([
-            'token' => $token,
-            'role'  => $user->role,
-            'name'  => $user->name,
-            'email' => $user->email,
-        ]);
+        $orgSlug = null;
+        if ($user->role === User::ROLE_ORGANISATION) {
+            $orgSlug = $user->organisation?->slug;
+        } elseif ($user->role === User::ROLE_EMPLOYE) {
+            $orgSlug = $user->employe?->organisation?->slug;
+        }
+
+        $params = http_build_query(array_filter([
+            'token'    => $token,
+            'role'     => $user->role,
+            'name'     => $user->name,
+            'email'    => $user->email,
+            'org_slug' => $orgSlug,
+        ]));
 
         return redirect("{$frontendUrl}/auth/google/callback?{$params}");
     }

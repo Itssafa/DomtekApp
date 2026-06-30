@@ -1,6 +1,17 @@
+'use client';
+
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { useAuthStore } from '@/store/authStore';
 
 export default function EnAttentePage() {
+  const { clearAuth } = useAuthStore();
+
+  // Vider le token : l'utilisateur n'a pas encore de session active
+  useEffect(() => {
+    clearAuth();
+  }, [clearAuth]);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-10 text-center">

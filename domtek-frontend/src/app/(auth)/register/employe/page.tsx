@@ -7,7 +7,8 @@ import { AxiosError } from 'axios';
 
 interface OrgOption { id: number; nom: string; }
 
-const inputCls = 'w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all';
+const inputCls    = 'w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all';
+const inputErrCls = 'w-full border border-red-400 bg-red-50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 transition-all';
 
 export default function RegisterEmployePage() {
   const [orgs, setOrgs] = useState<OrgOption[]>([]);
@@ -37,7 +38,7 @@ export default function RegisterEmployePage() {
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((p) => ({ ...p, [k]: e.target.value }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
     setMessage('');
@@ -140,12 +141,12 @@ export default function RegisterEmployePage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1.5">Nom <span className="text-red-500">*</span></label>
-                    <input type="text" required value={form.nom} onChange={set('nom')} className={inputCls} />
+                    <input type="text" required value={form.nom} onChange={set('nom')} className={errors.nom ? inputErrCls : inputCls} />
                     {errors.nom && <p className="text-red-500 text-xs mt-1">{errors.nom[0]}</p>}
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1.5">Prénom <span className="text-red-500">*</span></label>
-                    <input type="text" required value={form.prenom} onChange={set('prenom')} className={inputCls} />
+                    <input type="text" required value={form.prenom} onChange={set('prenom')} className={errors.prenom ? inputErrCls : inputCls} />
                     {errors.prenom && <p className="text-red-500 text-xs mt-1">{errors.prenom[0]}</p>}
                   </div>
                 </div>
@@ -153,7 +154,7 @@ export default function RegisterEmployePage() {
                 {/* Email */}
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1.5">Adresse e-mail <span className="text-red-500">*</span></label>
-                  <input type="email" required value={form.email} onChange={set('email')} className={inputCls} placeholder="votre@email.com" />
+                  <input type="email" required value={form.email} onChange={set('email')} className={errors.email ? inputErrCls : inputCls} placeholder="votre@email.com" />
                   {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email[0]}</p>}
                 </div>
 
@@ -168,17 +169,17 @@ export default function RegisterEmployePage() {
                 <div className="grid grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1.5">CIN</label>
-                    <input type="text" value={form.cin} onChange={set('cin')} className={inputCls} placeholder="12345678" />
+                    <input type="text" value={form.cin} onChange={set('cin')} className={errors.cin ? inputErrCls : inputCls} placeholder="12345678" />
                     {errors.cin && <p className="text-red-500 text-xs mt-1">{errors.cin[0]}</p>}
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1.5">Délivré le</label>
-                    <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={inputCls} />
+                    <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={errors.cin_delivree_le ? inputErrCls : inputCls} />
                     {errors.cin_delivree_le && <p className="text-red-500 text-xs mt-1">{errors.cin_delivree_le[0]}</p>}
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1.5">Délivré à</label>
-                    <input type="text" value={form.cin_delivree_a} onChange={set('cin_delivree_a')} className={inputCls} />
+                    <input type="text" value={form.cin_delivree_a} onChange={set('cin_delivree_a')} className={errors.cin_delivree_a ? inputErrCls : inputCls} />
                     {errors.cin_delivree_a && <p className="text-red-500 text-xs mt-1">{errors.cin_delivree_a[0]}</p>}
                   </div>
                 </div>
@@ -186,7 +187,7 @@ export default function RegisterEmployePage() {
                 {/* Organisation */}
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1.5">Organisation <span className="text-red-500">*</span></label>
-                  <select required value={form.organisation_id} onChange={set('organisation_id')} className={inputCls}>
+                  <select required value={form.organisation_id} onChange={set('organisation_id')} className={errors.organisation_id ? inputErrCls : inputCls}>
                     <option value="">— Sélectionnez votre organisation —</option>
                     {orgs.map((o) => (
                       <option key={o.id} value={o.id}>{o.nom}</option>
@@ -201,7 +202,7 @@ export default function RegisterEmployePage() {
                   <div className="relative">
                     <input type={showPwd ? 'text' : 'password'} required autoComplete="new-password"
                       value={form.password} onChange={set('password')} placeholder="8 caractères minimum"
-                      className={inputCls + ' pr-10'} />
+                      className={(errors.password ? inputErrCls : inputCls) + ' pr-10'} />
                     <button type="button" onClick={() => setShowPwd((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

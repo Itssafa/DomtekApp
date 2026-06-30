@@ -89,26 +89,123 @@ class AuthController extends Controller
             return response()->json(['message' => 'Le lien Google a expiré. Recommencez.'], 422);
         }
 
-        // Vérifier que l'email n'est pas déjà pris
-        if (User::where('email', $google['email'])->exists()) {
-            return response()->json(['message' => 'Un compte existe déjà avec cette adresse Google.'], 422);
+        // Chercher un utilisateur existant avec ce mail ou ce google_id
+        $existingUser = User::where('email', $google['email'])->first()
+            ?? ($google['google_id'] ? User::where('google_id', $google['google_id'])->first() : null);
+
+        if ($existingUser) {
+            // Bloquer si c'est déjà une organisation ou un employé
+            if ($existingUser->role !== User::ROLE_CLIENT) {
+                return response()->json(['message' => 'Un compte existe déjà avec cette adresse Google.'], 422);
+            }
+
+            // Compte CLIENT créé automatiquement → convertir en organisation
+            $existingUser->update([
+                'role'              => User::ROLE_ORGANISATION,
+                'google_id'         => $google['google_id'],
+                'avatar'            => $google['avatar'] ?? null,
+                'email_verified_at' => now(),
+            ]);
+
+            $organisation = Organisation::create([
+                'user_id'     => $existingUser->id,
+                'nom'         => $request->nom_organisation,
+                'slug'        => $this->service->generateUniqueSlug($request->nom_organisation),
+                'statut'      => Organisation::STATUT_EN_ATTENTE,
+                'ville'       => $request->ville ?? null,
+                'telephone'   => $request->telephone ?? null,
+                'email'       => $request->email_organisation ?? $existingUser->email,
+                'description' => $request->description ?? null,
+                'created_by'  => $existingUser->id,
+                'updated_by'  => $existingUser->id,
+            ]);
+
+            return response()->json([
+                'message'      => "Compte créé avec succès. En attente d'activation par un administrateur.",
+                'user'         => $existingUser->fresh(),
+                'organisation' => $organisation,
+            ], 201);
         }
 
+        // Nouveau compte → flux normal
         $result = $this->service->registerOrganisation(array_merge($request->only(
             'nom_organisation', 'ville', 'telephone', 'email_organisation', 'description'
         ), [
             'name'      => $google['name'],
             'email'     => $google['email'],
-            'password'  => Str::random(32),   // inutilisable — authentification via Google
+            'password'  => Str::random(32),
             'google_id' => $google['google_id'],
             'avatar'    => $google['avatar'] ?? null,
         ]));
+
+        // Email déjà vérifié par Google
+        $result['user']->update(['email_verified_at' => now()]);
 
         return response()->json([
             'message'      => "Compte créé avec succès. En attente d'activation par un administrateur.",
             'user'         => $result['user'],
             'organisation' => $result['organisation'],
         ], 201);
+    }
+
+    /**
+     * Inscription client via Google OAuth (depuis la page de choix).
+     */
+    public function registerClientGoogle(Request $request): JsonResponse
+    {
+        $request->validate(['google_token' => 'required|string']);
+
+        try {
+            $google = json_decode(Crypt::decryptString($request->google_token), true);
+        } catch (\Throwable) {
+            return response()->json(['message' => 'Token Google invalide ou expiré.'], 422);
+        }
+
+        if (($google['expires'] ?? 0) < now()->timestamp) {
+            return response()->json(['message' => 'Le lien Google a expiré. Recommencez.'], 422);
+        }
+
+        if (User::where('email', $google['email'])->exists()) {
+            return response()->json(['message' => 'Un compte existe déjà avec cette adresse Google.'], 422);
+        }
+
+        $user = User::create([
+            'name'              => $google['name'],
+            'email'             => $google['email'],
+            'password'          => Str::random(32),
+            'google_id'         => $google['google_id'],
+            'avatar'            => $google['avatar'] ?? null,
+            'role'              => User::ROLE_CLIENT,
+            'is_active'         => true,
+            'email_verified_at' => now(),
+        ]);
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'user'  => $user,
+            'role'  => $user->role,
+        ], 201);
+    }
+
+    /**
+     * Vérifier l'adresse e-mail via le lien reçu par mail.
+     */
+    public function verifyEmail(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+            'token' => ['required', 'string'],
+        ]);
+
+        $verified = $this->service->verifyEmail($request->email, $request->token);
+
+        if (!$verified) {
+            return response()->json(['message' => 'Lien de vérification invalide ou expiré.'], 422);
+        }
+
+        return response()->json(['message' => 'Adresse e-mail vérifiée avec succès.']);
     }
 
     /**
@@ -196,9 +293,6 @@ class AuthController extends Controller
             $data['organisation'] = $user->organisation;
         }
 
-        if ($user->isClient()) {
-            $data['profil_client'] = $user->clientProfile;
-        }
 
         if ($user->isEmploye()) {
             $employe = $user->employe;

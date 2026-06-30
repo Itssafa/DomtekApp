@@ -241,13 +241,13 @@
         <span class="value">{{ number_format((float)$contrat->montant_paiement, 3, ',', ' ') }} TND</span>
       </div>
       @endif
-      @if($contrat->periodicite_paiement)
       @php
         $periodiciteLabels = ['mensuel'=>'Mensuel','bimestriel'=>'Bimestriel','trimestriel'=>'Trimestriel','quadrimestriel'=>'Quadrimestriel','semestriel'=>'Semestriel','annuel'=>'Annuel'];
       @endphp
+      @if($contrat->periodicite_paiement)
       <div class="row">
         <span class="label">Périodicité :</span>
-        <span class="value">{{ $periodiciteLabels[$contrat->periodicite_paiement] ?? $contrat->periodicite_paiement }}@if($contrat->jour_paiement) — le {{ $contrat->jour_paiement }} de chaque mois@endif</span>
+        <span class="value">{{ $periodiciteLabels[$contrat->periodicite_paiement] ?? $contrat->periodicite_paiement }}{{ $contrat->jour_paiement ? ' — le ' . $contrat->jour_paiement . ' de chaque mois' : '' }}</span>
       </div>
       @endif
       @if($contrat->premiere_echeance)

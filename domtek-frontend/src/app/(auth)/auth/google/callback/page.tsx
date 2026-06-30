@@ -30,14 +30,21 @@ export default function GoogleCallbackPage() {
       return;
     }
 
+    const orgSlug = params.get('org_slug') ?? '';
+
     // Stocker l'auth (cookie + zustand)
     setAuth(token, { name, role, email } as never, role as never);
+    if (orgSlug) {
+      // le cookie org-slug est posé par setAuth uniquement si organisation est passée
+      // on le pose manuellement ici car le backend ne renvoie pas l'objet complet
+      document.cookie = `org-slug=${orgSlug};path=/;max-age=${7 * 86400};SameSite=Lax`;
+    }
 
     // Rechargement complet pour que le cookie soit bien lu dès la prochaine page
     if (role === 'admin') {
       window.location.replace('/admin');
-    } else if (role === 'organisation') {
-      window.location.replace('/');
+    } else if (orgSlug) {
+      window.location.replace(`/${orgSlug}`);
     } else {
       window.location.replace('/');
     }

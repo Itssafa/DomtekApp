@@ -47,7 +47,9 @@ export default function NouvelEmployePage() {
         value={(form as Record<string, string>)[field]}
         onChange={set(field)}
         placeholder={placeholder}
-        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+        className={errors[field]
+          ? 'w-full border border-red-400 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-red-50'
+          : 'w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500'}
       />
       {errors[field] && <p className="text-red-500 text-xs mt-1">{errors[field][0]}</p>}
     </div>
