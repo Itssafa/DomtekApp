@@ -193,11 +193,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Suggestions IA — Associations Prospects / Biens ── */}
+      {/* ── Suggestions  — Associations Prospects / Biens ── */}
       <div className="mt-10">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Suggestions IA</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Suggestions </p>
             <p className="text-sm text-slate-700 font-medium mt-0.5">Associations Prospects → Biens disponibles</p>
           </div>
           <div className="flex items-center gap-3">
