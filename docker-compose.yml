@@ -16,6 +16,7 @@ services:
       retries: 10
     networks: [domtek]
 
+
   backend:
     build:
       context: ./Domtek
