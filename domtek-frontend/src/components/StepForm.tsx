@@ -12,7 +12,7 @@ export interface FormStep {
 
 interface Props {
   steps: FormStep[];
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void | Promise<void>;
   submitLabel?: string;
   loading?: boolean;
   cancelHref: string;

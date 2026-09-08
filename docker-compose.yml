@@ -5,9 +5,8 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: domtekdb
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: domtek_user
+      MYSQL_PASSWORD: domtek_user???
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -16,6 +15,7 @@ services:
       timeout: 5s
       retries: 10
     networks: [domtek]
+
 
   backend:
     build:
