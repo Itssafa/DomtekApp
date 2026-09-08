@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { AxiosError } from 'axios';
+import { isValidEmail, isValidPhone } from '@/lib/validation';
 
 const Section = ({ title, subtitle }: { title: string; subtitle?: string }) => (
   <div className="mb-5">
@@ -53,6 +54,10 @@ export default function ComptePage() {
   const handleEmailSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setEmailFeedback(null);
+    if (!isValidEmail(email)) {
+      setEmailFeedback({ type: 'error', message: 'Adresse e-mail invalide.' });
+      return;
+    }
     setSavingEmail(true);
     try {
       const { data } = await api.put('/auth/me', { email });
@@ -92,6 +97,14 @@ export default function ComptePage() {
   const handleOrgSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setOrgFeedback(null);
+    if (orgForm.email && !isValidEmail(orgForm.email)) {
+      setOrgFeedback({ type: 'error', message: 'Adresse e-mail de l\'organisation invalide.' });
+      return;
+    }
+    if (orgForm.telephone && !isValidPhone(orgForm.telephone)) {
+      setOrgFeedback({ type: 'error', message: 'Numéro de téléphone de l\'organisation invalide.' });
+      return;
+    }
     setSavingOrg(true);
     try {
       const fd = new FormData();

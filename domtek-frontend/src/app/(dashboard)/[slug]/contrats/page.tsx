@@ -8,6 +8,7 @@ import { orgPath } from '@/lib/org-path';
 import { useAuthStore } from '@/store/authStore';
 import { Contrat, PaginatedResponse } from '@/types';
 import { TemplateFR, TemplateAR, printContrat, type ContratPreviewData } from '@/components/ContratPreview';
+import { isPositiveAmount } from '@/lib/validation';
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -57,6 +58,8 @@ function ModalRevision({ contrat, onClose, onDone }: {
 
   const handleSave = async () => {
     if (!montantHt) { setError('Le montant HT est requis.'); return; }
+    if (!isPositiveAmount(montantHt)) { setError('Le montant HT doit être un nombre positif.'); return; }
+    if (tva !== '' && (Number(tva) < 0 || Number(tva) > 100)) { setError('La TVA doit être comprise entre 0 et 100.'); return; }
     setSaving(true);
     setError('');
     try {
@@ -100,12 +103,12 @@ function ModalRevision({ contrat, onClose, onDone }: {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Nouveau montant HT (TND) *</label>
-              <input type="number" step="0.001" value={montantHt} onChange={e => setMontantHt(e.target.value)}
+              <input type="number" step="0.001" min="0" value={montantHt} onChange={e => setMontantHt(e.target.value)}
                 className={ic} autoFocus />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">TVA (%)</label>
-              <input type="number" step="0.1" value={tva} onChange={e => setTva(e.target.value)}
+              <input type="number" step="0.1" min="0" max="100" value={tva} onChange={e => setTva(e.target.value)}
                 className={ic} />
             </div>
           </div>

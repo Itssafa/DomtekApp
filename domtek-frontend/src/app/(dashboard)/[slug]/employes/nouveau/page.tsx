@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { orgPath } from '@/lib/org-path';
 import { AxiosError } from 'axios';
 import StepForm, { FormStep } from '@/components/StepForm';
+import { isValidEmail, isValidPhone, isValidCin, isValidCityOrPlace } from '@/lib/validation';
 
 export default function NouvelEmployePage() {
   const router = useRouter();
@@ -21,6 +22,14 @@ export default function NouvelEmployePage() {
   const set = (field: string) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
+
+  const setDigitsOnly = (field: string, maxLength?: number) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => setForm((prev) => {
+    let digits = e.target.value.replace(/\D/g, '');
+    if (maxLength) digits = digits.slice(0, maxLength);
+    return { ...prev, [field]: digits };
+  });
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -37,7 +46,7 @@ export default function NouvelEmployePage() {
     }
   };
 
-  const inp = (label: string, field: string, type = 'text', placeholder = '', required = false) => (
+  const inp = (label: string, field: string, type = 'text', placeholder = '', required = false, onChange = set(field)) => (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
@@ -45,7 +54,7 @@ export default function NouvelEmployePage() {
       <input
         type={type}
         value={(form as Record<string, string>)[field]}
-        onChange={set(field)}
+        onChange={onChange}
         placeholder={placeholder}
         className={errors[field]
           ? 'w-full border border-red-400 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-red-50'
@@ -62,6 +71,8 @@ export default function NouvelEmployePage() {
         if (!form.nom.trim())       return 'Le nom est obligatoire.';
         if (!form.prenom.trim())    return 'Le prénom est obligatoire.';
         if (!form.telephone.trim()) return 'Le téléphone est obligatoire.';
+        if (!isValidPhone(form.telephone)) return 'Le numéro de téléphone est invalide.';
+        if (form.email.trim() && !isValidEmail(form.email)) return "L'adresse e-mail est invalide.";
         return null;
       },
       content: (
@@ -81,13 +92,15 @@ export default function NouvelEmployePage() {
       title: "Document d'identité",
       validate: () => {
         if (!form.cin.trim())            return 'Le numéro CIN est obligatoire.';
+        if (!isValidCin(form.cin)) return 'Le numéro CIN doit contenir exactement 8 chiffres.';
         if (!form.cin_delivree_le)       return 'La date de délivrance est obligatoire.';
         if (!form.cin_delivree_a.trim()) return 'La ville de délivrance est obligatoire.';
+        if (!isValidCityOrPlace(form.cin_delivree_a)) return 'La ville de délivrance est invalide.';
         return null;
       },
       content: (
         <>
-          {inp('N° CIN', 'cin', 'text', '12345678', true)}
+          {inp('N° CIN', 'cin', 'text', '12345678', true, setDigitsOnly('cin', 8))}
           <div className="grid grid-cols-2 gap-4">
             {inp('Délivrée le', 'cin_delivree_le', 'date', '', true)}
             {inp('Délivrée à (ville)', 'cin_delivree_a', 'text', 'Tunis', true)}

@@ -10,6 +10,7 @@ import { Bien, Client, Prospect } from '@/types';
 import { AxiosError } from 'axios';
 import { ContratPreview, type ContratPreviewData } from '@/components/ContratPreview';
 import StepForm, { FormStep } from '@/components/StepForm';
+import { isValidEmail, isValidPhone, isPositiveAmount, isValidCin, isValidCityOrPlace } from '@/lib/validation';
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -220,6 +221,14 @@ export default function NouveauContratPage() {
   const setNc = (field: string) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => setNcForm(p => ({ ...p, [field]: e.target.value }));
+
+  const setNcDigitsOnly = (field: string, maxLength?: number) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => setNcForm(p => {
+    let digits = e.target.value.replace(/\D/g, '');
+    if (maxLength) digits = digits.slice(0, maxLength);
+    return { ...p, [field]: digits };
+  });
 
   // ── Dérivations ──────────────────────────────────────────────────────────
   const selectedBien    = biens.find(b => b.id === Number(form.bien_id)) ?? null;
@@ -637,6 +646,12 @@ export default function NouveauContratPage() {
       title: 'Partie B — Client',
       validate: () => {
         if (!partieB_valide) return 'Veuillez renseigner les informations du client.';
+        if (modePB === 'nouveau_client') {
+          if (ncForm.email && !isValidEmail(ncForm.email)) return "L'email du client est invalide.";
+          if (ncForm.telephone && !isValidPhone(ncForm.telephone)) return 'Le téléphone du client est invalide (format tunisien attendu).';
+          if (ncForm.cin && !isValidCin(ncForm.cin)) return 'Le CIN du client doit contenir exactement 8 chiffres.';
+          if (ncForm.ville && !isValidCityOrPlace(ncForm.ville)) return 'La ville du client est invalide.';
+        }
         return null;
       },
       content: (
@@ -747,8 +762,8 @@ export default function NouveauContratPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className={lc}>Email</label><input type="email" value={ncForm.email} onChange={setNc('email')} className={ic} /></div>
-                <div><label className={lc}>Téléphone</label><input type="text" value={ncForm.telephone} onChange={setNc('telephone')} className={ic} /></div>
-                <div><label className={lc}>CIN</label><input type="text" value={ncForm.cin} onChange={setNc('cin')} className={ic} /></div>
+                <div><label className={lc}>Téléphone</label><input type="tel" value={ncForm.telephone} onChange={setNc('telephone')} className={ic} /></div>
+                <div><label className={lc}>CIN</label><input type="text" value={ncForm.cin} onChange={setNcDigitsOnly('cin', 8)} className={ic} /></div>
                 <div><label className={lc}>Date de naissance</label><input type="date" value={ncForm.date_naissance} onChange={setNc('date_naissance')} className={ic} /></div>
                 <div><label className={lc}>Adresse</label><input type="text" value={ncForm.adresse} onChange={setNc('adresse')} className={ic} /></div>
                 <div><label className={lc}>Ville</label><input type="text" value={ncForm.ville} onChange={setNc('ville')} className={ic} /></div>
@@ -764,6 +779,9 @@ export default function NouveauContratPage() {
       validate: () => {
         if (!form.date_debut) return "La date de prise d'effet est obligatoire.";
         if (!form.montant_ht) return 'Le montant HT est obligatoire.';
+        if (!isPositiveAmount(form.montant_ht)) return 'Le montant HT doit être un nombre positif.';
+        if (form.tva !== '' && (Number(form.tva) < 0 || Number(form.tva) > 100)) return 'La TVA doit être comprise entre 0 et 100.';
+        if (form.depot_garantie !== '' && Number(form.depot_garantie) < 0) return "L'acompte / dépôt de garantie ne peut pas être négatif.";
         return null;
       },
       content: (
@@ -781,13 +799,13 @@ export default function NouveauContratPage() {
           </div>
           <div>
             <label className={lc}>Montant HT (DT) *</label>
-            <input type="number" step="0.001" value={form.montant_ht} onChange={set('montant_ht')} placeholder="1500.000" className={ic} />
+            <input type="number" step="0.001" min="0" value={form.montant_ht} onChange={set('montant_ht')} placeholder="1500.000" className={ic} />
             {errMsg('montant_ht')}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={lc}>TVA (%)</label>
-              <input type="number" step="0.1" value={form.tva} onChange={set('tva')} placeholder="19" className={ic} />
+              <input type="number" step="0.1" min="0" max="100" value={form.tva} onChange={set('tva')} placeholder="19" className={ic} />
             </div>
             <div>
               <label className={lc}>Montant TTC (calculé)</label>
@@ -796,7 +814,7 @@ export default function NouveauContratPage() {
           </div>
           <div>
             <label className={lc}>Acompte (DT)</label>
-            <input type="number" step="0.001" value={form.depot_garantie} onChange={set('depot_garantie')} placeholder="3000.000" className={ic} />
+            <input type="number" step="0.001" min="0" value={form.depot_garantie} onChange={set('depot_garantie')} placeholder="3000.000" className={ic} />
           </div>
         </>
       ),

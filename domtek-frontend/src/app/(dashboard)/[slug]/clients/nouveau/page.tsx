@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { orgPath } from '@/lib/org-path';
 import { AxiosError } from 'axios';
 import StepForm, { FormStep } from '@/components/StepForm';
+import { isValidEmail, isValidPhone, isValidCin, isValidCinOrPasseport, isValidCityOrPlace } from '@/lib/validation';
 
 export default function NouveauClientPage() {
   const router  = useRouter();
@@ -28,12 +29,20 @@ export default function NouveauClientPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  const inp = (label: string, key: string, type: React.HTMLInputTypeAttribute = 'text', placeholder = '', required = false) => (
+  const setDigitsOnly = (field: string, maxLength?: number) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => setForm((prev) => {
+    let digits = e.target.value.replace(/\D/g, '');
+    if (maxLength) digits = digits.slice(0, maxLength);
+    return { ...prev, [field]: digits };
+  });
+
+  const inp = (label: string, key: string, type: React.HTMLInputTypeAttribute = 'text', placeholder = '', required = false, onChange = set(key)) => (
     <div>
       <label className="block text-xs font-medium text-gray-600 mb-1">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
-      <input type={type} value={(form as Record<string, string>)[key]} onChange={set(key)}
+      <input type={type} value={(form as Record<string, string>)[key]} onChange={onChange}
         placeholder={placeholder}
         className={errors[key]
           ? 'w-full border border-red-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-red-50'
@@ -42,7 +51,7 @@ export default function NouveauClientPage() {
     </div>
   );
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
     setLoading(true);
@@ -67,6 +76,9 @@ export default function NouveauClientPage() {
         if (!form.nom.trim())       return 'Le nom est obligatoire.';
         if (!form.prenom.trim())    return 'Le prénom est obligatoire.';
         if (!form.telephone.trim()) return 'Le téléphone est obligatoire.';
+        if (!isValidPhone(form.telephone)) return 'Le numéro de téléphone est invalide.';
+        if (form.email.trim() && !isValidEmail(form.email)) return "L'adresse e-mail est invalide.";
+        if (form.lieu_naissance.trim() && !isValidCityOrPlace(form.lieu_naissance)) return 'Le lieu de naissance est invalide.';
         return null;
       },
       content: (
@@ -101,6 +113,9 @@ export default function NouveauClientPage() {
       title: "Document d'identité",
       validate: () => {
         if (!form.cin.trim()) return 'Le numéro de pièce est obligatoire.';
+        if (form.type_piece === 'CIN' && !isValidCin(form.cin)) return 'Le numéro CIN doit contenir exactement 8 chiffres.';
+        if (form.type_piece !== 'CIN' && !isValidCinOrPasseport(form.cin)) return 'Le numéro de pièce ne doit contenir que des chiffres.';
+        if (form.cin_delivree_a.trim() && !isValidCityOrPlace(form.cin_delivree_a)) return 'La ville de délivrance est invalide.';
         return null;
       },
       content: (
@@ -115,7 +130,7 @@ export default function NouveauClientPage() {
                 <option value="Passeport">Passeport</option>
               </select>
             </div>
-            {inp('N° de pièce (CIN)', 'cin', 'text', '12345678', true)}
+            {inp('N° de pièce (CIN)', 'cin', 'text', '12345678', true, setDigitsOnly('cin', form.type_piece === 'CIN' ? 8 : undefined))}
             {inp('Délivrée le', 'cin_delivree_le', 'date', '', true)}
             {inp('Délivrée à (ville)', 'cin_delivree_a', 'text', 'Tunis', true)}
           </div>
@@ -139,6 +154,12 @@ export default function NouveauClientPage() {
     },
     {
       title: "Contact d'urgence & Notes",
+      validate: () => {
+        if (form.urgence_telephone.trim() && !isValidPhone(form.urgence_telephone)) {
+          return "Le numéro de téléphone d'urgence est invalide.";
+        }
+        return null;
+      },
       content: (
         <>
           <div className="grid grid-cols-3 gap-4">

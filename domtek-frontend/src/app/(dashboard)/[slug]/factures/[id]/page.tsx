@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Facture, Client, Contrat } from '@/types';
 import { AxiosError } from 'axios';
 import { FacturePreview, printFacture, type FacturePreviewData } from '@/components/FacturePreview';
+import { isPositiveAmount } from '@/lib/validation';
 
 const Field = ({ label, value }: { label: string; value?: string | null }) => (
   <div>
@@ -78,6 +79,10 @@ export default function EditFacturePage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    if (!isPositiveAmount(form.montant)) {
+      setErrors({ montant: ['Le montant doit être supérieur à 0.'] });
+      return;
+    }
     setSaving(true);
     try {
       await api.put(`/org/factures/${id}`, {
@@ -217,8 +222,9 @@ export default function EditFacturePage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Montant (TND)</label>
-              <input type="number" step="0.01" value={form.montant} onChange={set('montant')}
+              <input type="number" step="0.01" min="0" value={form.montant} onChange={set('montant')}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+              {errors.montant && <p className="text-red-500 text-xs mt-1">{errors.montant[0]}</p>}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>

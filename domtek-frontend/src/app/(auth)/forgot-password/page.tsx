@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { AxiosError } from 'axios';
+import { isValidEmail } from '@/lib/validation';
 
 export default function ForgotPasswordPage() {
   const [email,   setEmail]   = useState('');
@@ -14,6 +15,10 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!isValidEmail(email)) {
+      setError("Adresse e-mail invalide.");
+      return;
+    }
     setLoading(true);
     try {
       await api.post('/auth/forgot-password', { email });

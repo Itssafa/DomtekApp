@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import { AuthResponse } from '@/types';
 import { AxiosError } from 'axios';
 import { GoogleAuthButton } from '@/components/GoogleAuthButton';
+import { isValidEmail } from '@/lib/validation';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,6 +22,10 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!isValidEmail(form.email)) {
+      setError("Adresse e-mail invalide.");
+      return;
+    }
     setLoading(true);
     try {
       const { data } = await api.post<AuthResponse>('/auth/login', form);

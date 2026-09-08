@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { AxiosError } from 'axios';
+import { isValidEmail, validatePassword, isValidCin, isValidCityOrPlace } from '@/lib/validation';
 
 interface OrgOption { id: number; nom: string; }
 
@@ -38,10 +39,40 @@ export default function RegisterEmployePage() {
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((p) => ({ ...p, [k]: e.target.value }));
 
+  const setDigitsOnly = (k: string, maxLength?: number) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setForm((p) => {
+      let digits = e.target.value.replace(/\D/g, '');
+      if (maxLength) digits = digits.slice(0, maxLength);
+      return { ...p, [k]: digits };
+    });
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
     setMessage('');
+
+    if (!isValidEmail(form.email)) {
+      setErrors({ email: ["Adresse e-mail invalide."] });
+      return;
+    }
+    const passwordError = validatePassword(form.password);
+    if (passwordError) {
+      setErrors({ password: [passwordError] });
+      return;
+    }
+    if (form.password !== form.password_confirmation) {
+      setErrors({ password_confirmation: ["Les mots de passe ne correspondent pas."] });
+      return;
+    }
+    if (form.cin.trim() && !isValidCin(form.cin)) {
+      setErrors({ cin: ["Le numéro CIN doit contenir exactement 8 chiffres."] });
+      return;
+    }
+    if (form.cin_delivree_a.trim() && !isValidCityOrPlace(form.cin_delivree_a)) {
+      setErrors({ cin_delivree_a: ["La ville de délivrance est invalide."] });
+      return;
+    }
+
     setLoading(true);
     try {
       await api.post('/auth/register/employe', {
@@ -169,7 +200,7 @@ export default function RegisterEmployePage() {
                 <div className="grid grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1.5">CIN</label>
-                    <input type="text" value={form.cin} onChange={set('cin')} className={errors.cin ? inputErrCls : inputCls} placeholder="12345678" />
+                    <input type="text" value={form.cin} onChange={setDigitsOnly('cin', 8)} className={errors.cin ? inputErrCls : inputCls} placeholder="12345678" />
                     {errors.cin && <p className="text-red-500 text-xs mt-1">{errors.cin[0]}</p>}
                   </div>
                   <div>

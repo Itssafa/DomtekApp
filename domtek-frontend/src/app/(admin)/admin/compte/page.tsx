@@ -4,6 +4,7 @@ import { useState } from 'react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { AxiosError } from 'axios';
+import { isValidEmail } from '@/lib/validation';
 
 const inputCls = 'w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all';
 
@@ -51,6 +52,10 @@ export default function AdminComptePage() {
   const handleEmailSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setEmailFeedback(null);
+    if (!isValidEmail(email)) {
+      setEmailFeedback({ type: 'error', message: 'Adresse e-mail invalide.' });
+      return;
+    }
     setSavingEmail(true);
     try {
       const { data } = await api.put('/auth/me', { email });

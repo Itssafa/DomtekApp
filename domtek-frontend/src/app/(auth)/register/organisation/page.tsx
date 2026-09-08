@@ -6,6 +6,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { AxiosError } from 'axios';
 import { GoogleAuthButton } from '@/components/GoogleAuthButton';
+import { isValidEmail, isValidPhone, validatePassword, isValidCityOrPlace } from '@/lib/validation';
 
 interface FormState {
   name:                 string;
@@ -64,6 +65,32 @@ export default function RegisterOrganisationPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
+
+    const newErrors: Record<string, string[]> = {};
+    if (!isValidEmail(form.email)) {
+      newErrors.email = ["Adresse e-mail invalide."];
+    }
+    if (form.email_organisation && !isValidEmail(form.email_organisation)) {
+      newErrors.email_organisation = ["Adresse e-mail invalide."];
+    }
+    if (form.telephone && !isValidPhone(form.telephone)) {
+      newErrors.telephone = ["Numéro de téléphone invalide."];
+    }
+    if (form.ville && !isValidCityOrPlace(form.ville)) {
+      newErrors.ville = ["Ville invalide."];
+    }
+    if (!fromGoogle) {
+      const passwordError = validatePassword(form.password);
+      if (passwordError) newErrors.password = [passwordError];
+      if (form.password !== form.password_confirmation) {
+        newErrors.password_confirmation = ["Les mots de passe ne correspondent pas."];
+      }
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     setLoading(true);
 
     try {

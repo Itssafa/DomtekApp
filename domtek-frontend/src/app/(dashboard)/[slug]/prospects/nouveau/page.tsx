@@ -8,6 +8,7 @@ import { orgPath } from '@/lib/org-path';
 import { Bien, BesoinProspect } from '@/types';
 import { AxiosError } from 'axios';
 import StepForm, { FormStep } from '@/components/StepForm';
+import { isValidEmail, isValidPhone, isValidCinOrPasseport, isValidCityOrPlace } from '@/lib/validation';
 
 const BESOINS_LABELS: Record<BesoinProspect, string> = {
   prix: '💰 Prix', emplacement: '📍 Emplacement', superficie: '📐 Superficie',
@@ -77,7 +78,15 @@ export default function NouveauProspectPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const setDigitsOnly = (field: string, maxLength?: number) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => setForm((prev) => {
+    let digits = e.target.value.replace(/\D/g, '');
+    if (maxLength) digits = digits.slice(0, maxLength);
+    return { ...prev, [field]: digits };
+  });
+
+  const handleSubmit = async (e: React.FormEvent<Element>) => {
     e.preventDefault();
     setErrors({});
     setLoading(true);
@@ -102,12 +111,12 @@ export default function NouveauProspectPage() {
     }
   };
 
-  const inp = (label: string, key: string, type: React.HTMLInputTypeAttribute = 'text', placeholder = '', required = false) => (
+  const inp = (label: string, key: string, type: React.HTMLInputTypeAttribute = 'text', placeholder = '', required = false, onChange = set(key)) => (
     <div>
       <label className="block text-xs font-medium text-gray-600 mb-1">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
-      <input type={type} value={(form as Record<string, string>)[key]} onChange={set(key)} placeholder={placeholder}
+      <input type={type} value={(form as Record<string, string>)[key]} onChange={onChange} placeholder={placeholder}
         className={errors[key]
           ? 'w-full border border-red-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-red-50'
           : 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500'} />
@@ -124,6 +133,9 @@ export default function NouveauProspectPage() {
         if (!form.nom.trim())       return 'Le nom est obligatoire.';
         if (!form.prenom.trim())    return 'Le prénom est obligatoire.';
         if (!form.telephone.trim()) return 'Le téléphone est obligatoire.';
+        if (!isValidPhone(form.telephone)) return 'Le numéro de téléphone est invalide.';
+        if (form.email.trim() && !isValidEmail(form.email)) return "L'adresse e-mail est invalide.";
+        if (form.lieu_naissance.trim() && !isValidCityOrPlace(form.lieu_naissance)) return 'Le lieu de naissance est invalide.';
         return null;
       },
       content: (
@@ -156,8 +168,25 @@ export default function NouveauProspectPage() {
     {
       title: "Document d'identité",
       validate: () => {
+        // 1. Si une CIN est saisie, on vérifie qu'elle contient exactement 8 chiffres
+        if (form.type_piece === 'CIN' && form.cin.trim()) {
+          const cinRegex = /^\d{8}$/;
+          if (!cinRegex.test(form.cin.trim())) {
+            return 'Le numéro de CIN doit être composé de 8 chiffres.';
+          }
+        }
+
+        // 1bis. Si passeport et un numéro est saisi, on vérifie qu'il ne contient que des chiffres
+        if (form.type_piece === 'Passeport' && form.cin.trim() && !isValidCinOrPasseport(form.cin)) {
+          return 'Le numéro de passeport ne doit contenir que des chiffres.';
+        }
+
+        // 2. Vérification des informations de délivrance si la pièce est renseignée
         if (form.cin.trim() && (!form.cin_delivree_le || !form.cin_delivree_a.trim())) {
           return 'Veuillez compléter la date et le lieu de délivrance de la pièce.';
+        }
+        if (form.cin_delivree_a.trim() && !isValidCityOrPlace(form.cin_delivree_a)) {
+          return 'La ville de délivrance est invalide.';
         }
         return null;
       },
@@ -172,7 +201,7 @@ export default function NouveauProspectPage() {
                 <option value="Passeport">Passeport</option>
               </select>
             </div>
-            {inp('N° de pièce (CIN)', 'cin', 'text', '12345678')}
+            {inp('N° de pièce (CIN)', 'cin', 'text', '12345678', false, setDigitsOnly('cin', form.type_piece === 'CIN' ? 8 : undefined))}
             {inp('Délivrée le', 'cin_delivree_le', 'date')}
             {inp('Délivrée à (ville)', 'cin_delivree_a', 'text', 'Tunis')}
           </div>

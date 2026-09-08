@@ -6,6 +6,7 @@ import Link from '@/components/OrgLink';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { QuittanceDoc, printQuittance, type QuittanceDocData } from '@/components/QuittancePdf';
+import { isPositiveAmount } from '@/lib/validation';
 
 interface Quittance {
   id: number;
@@ -83,6 +84,7 @@ export default function LocationDetailPage() {
   const [payAmount, setPayAmount] = useState('');
   const [payDate,   setPayDate]   = useState('');
   const [paying,    setPaying]    = useState(false);
+  const [payError,  setPayError]  = useState<string | null>(null);
 
   /* PDF state */
   const [printData,    setPrintData]    = useState<QuittanceDocData | null>(null);
@@ -150,11 +152,21 @@ export default function LocationDetailPage() {
   const openPayModal = (q: Quittance) => {
     setPayAmount(String(q.montant));
     setPayDate(new Date().toISOString().slice(0, 10));
+    setPayError(null);
     setPayModal(q);
   };
 
   const handlePayer = async () => {
     if (!payModal) return;
+    if (!isPositiveAmount(payAmount)) {
+      setPayError('Le montant payé doit être supérieur à 0.');
+      return;
+    }
+    if (Number(payAmount) > Number(payModal.montant)) {
+      setPayError('Le montant payé ne peut pas dépasser le montant dû.');
+      return;
+    }
+    setPayError(null);
     setPaying(true);
     await api.patch(`/org/locations/${id}/quittances/${payModal.id}/payer`, {
       montant_paye:  parseFloat(payAmount),
@@ -360,9 +372,10 @@ export default function LocationDetailPage() {
             </p>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1.5">Montant payé (DT)</label>
-              <input type="number" step="0.01" min="0"
+              <input type="number" step="0.01" min="0" max={payModal.montant}
                 value={payAmount} onChange={e => setPayAmount(e.target.value)}
                 className="w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all" />
+              {payError && <p className="text-red-500 text-xs mt-1">{payError}</p>}
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1.5">Date de paiement</label>

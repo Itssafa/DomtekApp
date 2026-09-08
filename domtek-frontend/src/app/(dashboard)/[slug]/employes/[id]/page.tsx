@@ -6,6 +6,7 @@ import Link from '@/components/OrgLink';
 import api from '@/lib/api'
 import { Employe } from '@/types';
 import { AxiosError } from 'axios';
+import { isValidEmail, isValidPhone, isValidCin, isValidCityOrPlace } from '@/lib/validation';
 
 const Section = ({ title }: { title: string }) => (
   <div className="flex items-center gap-3 pt-2">
@@ -63,9 +64,34 @@ export default function EditEmployePage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
+  const setDigitsOnly = (field: string, maxLength?: number) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => setForm((prev) => {
+    let digits = e.target.value.replace(/\D/g, '');
+    if (maxLength) digits = digits.slice(0, maxLength);
+    return { ...prev, [field]: digits };
+  });
+
   const handleSave = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setErrors({});
+    const newErrors: Record<string, string[]> = {};
+    if (form.telephone.trim() && !isValidPhone(form.telephone)) {
+      newErrors.telephone = ['Le numéro de téléphone est invalide.'];
+    }
+    if (form.email.trim() && !isValidEmail(form.email)) {
+      newErrors.email = ["L'adresse e-mail est invalide."];
+    }
+    if (form.cin.trim() && !isValidCin(form.cin)) {
+      newErrors.cin = ['Le numéro CIN doit contenir exactement 8 chiffres.'];
+    }
+    if (form.cin_delivree_a.trim() && !isValidCityOrPlace(form.cin_delivree_a)) {
+      newErrors.cin_delivree_a = ['La ville de délivrance est invalide.'];
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
     setSaving(true);
     try {
       await api.put(`/org/employes/${id}`, form);
@@ -81,7 +107,7 @@ export default function EditEmployePage() {
 
   const inp = (
     label: string, field: string,
-    type = 'text', placeholder = '', required = false
+    type = 'text', placeholder = '', required = false, onChange = set(field)
   ) => (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -90,7 +116,7 @@ export default function EditEmployePage() {
       <input
         type={type}
         value={(form as Record<string, string>)[field]}
-        onChange={set(field)}
+        onChange={onChange}
         placeholder={placeholder}
         required={required}
         className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
@@ -172,7 +198,7 @@ export default function EditEmployePage() {
 
           <Section title="Document d'identité" />
           <div className="grid grid-cols-1 gap-4">
-            {inp('N° CIN', 'cin', 'text', '', true)}
+            {inp('N° CIN', 'cin', 'text', '', true, setDigitsOnly('cin', 8))}
           </div>
           <div className="grid grid-cols-2 gap-4">
             {inp('Délivrée le', 'cin_delivree_le', 'date', '', true)}

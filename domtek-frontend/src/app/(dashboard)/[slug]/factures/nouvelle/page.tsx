@@ -10,6 +10,7 @@ import { Contrat } from '@/types';
 import { AxiosError } from 'axios';
 import { FacturePreview, printFacture, type FacturePreviewData } from '@/components/FacturePreview';
 import StepForm, { FormStep } from '@/components/StepForm';
+import { isPositiveAmount } from '@/lib/validation';
 
 const TYPE_OPTIONS = [
   { value: 'eau',             label: 'Eau' },
@@ -162,6 +163,7 @@ export default function NouvelleFacturePage() {
       title: 'Montant & Dates',
       validate: () => {
         if (!form.montant)       return 'Le montant est obligatoire.';
+        if (!isPositiveAmount(form.montant)) return 'Le montant doit être supérieur à 0.';
         if (!form.date_emission) return "La date d'émission est obligatoire.";
         if (!form.date_echeance) return "La date d'échéance est obligatoire.";
         return null;
@@ -170,7 +172,7 @@ export default function NouvelleFacturePage() {
         <>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Montant (TND) *</label>
-            <input type="number" step="0.01" value={form.montant} onChange={set('montant')} placeholder="120.50" className={ic} />
+            <input type="number" step="0.01" min="0" value={form.montant} onChange={set('montant')} placeholder="120.50" className={ic} />
             {err('montant')}
           </div>
           <div className="grid grid-cols-2 gap-4">

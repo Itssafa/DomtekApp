@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { AxiosError } from 'axios';
+import { validatePassword } from '@/lib/validation';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -27,6 +28,11 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
     if (password !== confirm) {
       setError('Les mots de passe ne correspondent pas.');
       return;

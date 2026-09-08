@@ -6,6 +6,7 @@ import Link from '@/components/OrgLink';
 import api from '@/lib/api'
 import { Bien, BesoinProspect, BienSuggestion, Prospect } from '@/types';
 import { AxiosError } from 'axios';
+import { isValidEmail, isValidPhone, isValidCin, isValidCinOrPasseport, isValidCityOrPlace } from '@/lib/validation';
 
 const Section = ({ title }: { title: string }) => (
   <div className="flex items-center gap-3 pt-2">
@@ -196,6 +197,14 @@ export default function FicheProspectPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => setForm(prev => ({ ...prev, [field]: e.target.value }));
 
+  const setDigitsOnly = (field: string, maxLength?: number) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => setForm(prev => {
+    let digits = e.target.value.replace(/\D/g, '');
+    if (maxLength) digits = digits.slice(0, maxLength);
+    return { ...prev, [field]: digits };
+  });
+
   const toggleFoyer = (v: string) =>
     setCompositionFoyer(p => p.includes(v) ? p.filter(x => x !== v) : [...p, v]);
 
@@ -205,6 +214,29 @@ export default function FicheProspectPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    const newErrors: Record<string, string[]> = {};
+    if (form.telephone.trim() && !isValidPhone(form.telephone)) {
+      newErrors.telephone = ['Le numéro de téléphone est invalide.'];
+    }
+    if (form.email.trim() && !isValidEmail(form.email)) {
+      newErrors.email = ["L'adresse e-mail est invalide."];
+    }
+    if (form.lieu_naissance.trim() && !isValidCityOrPlace(form.lieu_naissance)) {
+      newErrors.lieu_naissance = ['Le lieu de naissance est invalide.'];
+    }
+    if (form.cin.trim() && form.type_piece === 'CIN' && !isValidCin(form.cin)) {
+      newErrors.cin = ['Le numéro CIN doit contenir exactement 8 chiffres.'];
+    }
+    if (form.cin.trim() && form.type_piece !== 'CIN' && !isValidCinOrPasseport(form.cin)) {
+      newErrors.cin = ['Le numéro de pièce ne doit contenir que des chiffres.'];
+    }
+    if (form.cin_delivree_a.trim() && !isValidCityOrPlace(form.cin_delivree_a)) {
+      newErrors.cin_delivree_a = ['La ville de délivrance est invalide.'];
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
     setSaving(true);
     try {
       const professionFinale = form.profession === 'autre' ? (form.profession_detail || '') : form.profession;
@@ -242,12 +274,12 @@ export default function FicheProspectPage() {
     finally { setUploading(false); }
   };
 
-  const inp = (label: string, key: string, type: React.HTMLInputTypeAttribute = 'text', placeholder = '', required = false) => (
+  const inp = (label: string, key: string, type: React.HTMLInputTypeAttribute = 'text', placeholder = '', required = false, onChange = set(key)) => (
     <div>
       <label className="block text-xs font-medium text-gray-600 mb-1">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
-      <input type={type} value={(form as Record<string, string>)[key]} onChange={set(key)}
+      <input type={type} value={(form as Record<string, string>)[key]} onChange={onChange}
         placeholder={placeholder} required={required}
         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
       {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
@@ -533,7 +565,7 @@ export default function FicheProspectPage() {
                 <option value="Passeport">Passeport</option>
               </select>
             </div>
-            {inp('N° de pièce (CIN)', 'cin', 'text', '', true)}
+            {inp('N° de pièce (CIN)', 'cin', 'text', '', true, setDigitsOnly('cin', form.type_piece === 'CIN' ? 8 : undefined))}
             {inp('Délivrée le', 'cin_delivree_le', 'date', '', true)}
             {inp('Délivrée à (ville)', 'cin_delivree_a', 'text', '', true)}
           </div>

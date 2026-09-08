@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import { AuthResponse } from '@/types';
 import { AxiosError } from 'axios';
 import { GoogleAuthButton } from '@/components/GoogleAuthButton';
+import { isValidEmail, validatePassword } from '@/lib/validation';
 
 export default function RegisterClientPage() {
   const router = useRouter();
@@ -25,6 +26,21 @@ export default function RegisterClientPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+
+    const newErrors: Record<string, string[]> = {};
+    if (!isValidEmail(form.email)) {
+      newErrors.email = ["Adresse e-mail invalide."];
+    }
+    const passwordError = validatePassword(form.password);
+    if (passwordError) newErrors.password = [passwordError];
+    if (form.password !== form.password_confirmation) {
+      newErrors.password_confirmation = ["Les mots de passe ne correspondent pas."];
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     setLoading(true);
     try {
       const { data } = await api.post<AuthResponse>('/auth/register/client', form);

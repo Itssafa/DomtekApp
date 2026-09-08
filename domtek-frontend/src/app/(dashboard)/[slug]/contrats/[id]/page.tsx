@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Bien, Client, Contrat } from '@/types';
 import { AxiosError } from 'axios';
 import { ContratPreview, printContrat, type ContratPreviewData } from '@/components/ContratPreview';
+import { isPositiveAmount } from '@/lib/validation';
 
 // ─── Constantes (identiques à nouveau/page.tsx) ───────────────────────────────
 
@@ -184,6 +185,18 @@ export default function EditContratPage() {
     e.preventDefault();
     setErrors({});
     setGlobalError('');
+    if (!isPositiveAmount(form.montant_ht)) {
+      setGlobalError('Le montant HT doit être un nombre positif.');
+      return;
+    }
+    if (form.tva !== '' && (Number(form.tva) < 0 || Number(form.tva) > 100)) {
+      setGlobalError('La TVA doit être comprise entre 0 et 100.');
+      return;
+    }
+    if (form.retenue_source !== '' && (Number(form.retenue_source) < 0 || Number(form.retenue_source) > 100)) {
+      setGlobalError('La retenue à la source doit être comprise entre 0 et 100.');
+      return;
+    }
     setSaving(true);
     try {
       await api.put(`/org/contrats/${id}`, {
@@ -545,13 +558,13 @@ export default function EditContratPage() {
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className={lc}>Montant HT (TND) *</label>
-              <input type="number" step="0.001" value={form.montant_ht} onChange={set('montant_ht')}
+              <input type="number" step="0.001" min="0" value={form.montant_ht} onChange={set('montant_ht')}
                 placeholder="1500.000" className={ic} />
               {errMsg('montant_ht')}
             </div>
             <div>
               <label className={lc}>TVA (%)</label>
-              <input type="number" step="0.1" value={form.tva} onChange={set('tva')}
+              <input type="number" step="0.1" min="0" max="100" value={form.tva} onChange={set('tva')}
                 placeholder="19" className={ic} />
             </div>
             <div>
@@ -564,12 +577,12 @@ export default function EditContratPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={lc}>Frais de syndic (TND)</label>
-              <input type="number" step="0.001" value={form.frais_syndic} onChange={set('frais_syndic')}
+              <input type="number" step="0.001" min="0" value={form.frais_syndic} onChange={set('frais_syndic')}
                 placeholder="50.000" className={ic} />
             </div>
             <div>
               <label className={lc}>Retenue à la source (%)</label>
-              <input type="number" step="0.1" value={form.retenue_source} onChange={set('retenue_source')}
+              <input type="number" step="0.1" min="0" max="100" value={form.retenue_source} onChange={set('retenue_source')}
                 placeholder="5" className={ic} />
             </div>
           </div>
@@ -590,7 +603,7 @@ export default function EditContratPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={lc}>Dépôt de garantie (TND)</label>
-              <input type="number" step="0.001" value={form.depot_garantie} onChange={set('depot_garantie')}
+              <input type="number" step="0.001" min="0" value={form.depot_garantie} onChange={set('depot_garantie')}
                 placeholder="3000.000" className={ic} />
             </div>
             <div>

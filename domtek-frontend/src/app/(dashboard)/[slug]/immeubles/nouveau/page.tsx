@@ -80,7 +80,7 @@ export default function NouvelImmeublePage() {
     setPreviews((p) => p.filter((_, i) => i !== idx));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
     setGlobalError('');

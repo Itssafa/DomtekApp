@@ -9,6 +9,7 @@ import { Bien, BienDocument, BienImage, Immeuble } from '@/types';
 import { AxiosError } from 'axios';
 import { MapPreview } from '@/components/MapPreview';
 import StepForm, { FormStep } from '@/components/StepForm';
+import { isPositiveAmount } from '@/lib/validation';
 
 const TYPES_BIEN = [
   { value: 'appartement',      label: 'Appartement' },
@@ -384,6 +385,7 @@ export default function ModifierBienPage() {
       title: 'Finance & Options',
       validate: () => {
         if (!form.prix) return 'Le prix est obligatoire.';
+        if (!isPositiveAmount(form.prix)) return 'Le prix doit être supérieur à 0.';
         return null;
       },
       content: (
