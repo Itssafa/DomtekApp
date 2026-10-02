@@ -14,7 +14,8 @@ class ClientService
      */
     public function index(int $orgId, array $filters = []): LengthAwarePaginator
     {
-        $query = Client::where('organisation_id', $orgId);
+        // `user` est chargé pour l'état d'accès exposé par ClientResource.
+        $query = Client::with('user')->where('organisation_id', $orgId);
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];

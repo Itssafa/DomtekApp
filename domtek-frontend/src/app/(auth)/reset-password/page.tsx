@@ -19,11 +19,18 @@ export default function ResetPasswordPage() {
   const [error,    setError]    = useState('');
   const [showPwd,  setShowPwd]  = useState(false);
 
+  // Mode activation : le client ouvre son espace pour la première fois, sur
+  // invitation de son agence. Même formulaire, mais token à durée de vie
+  // longue (broker « clients ») et formulation adaptée — il ne « réinitialise »
+  // rien, il choisit son premier mot de passe.
+  const [activation, setActivation] = useState(false);
+
   // Lire token + email depuis l'URL côté client
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setToken(params.get('token') ?? '');
     setEmail(params.get('email') ?? '');
+    setActivation(params.get('activation') === '1');
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,7 +47,7 @@ export default function ResetPasswordPage() {
     setError('');
     setLoading(true);
     try {
-      await api.post('/auth/reset-password', {
+      await api.post(activation ? '/auth/activate-client' : '/auth/reset-password', {
         token,
         email,
         password,
@@ -61,11 +68,17 @@ export default function ResetPasswordPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full text-center">
           <p className="text-red-500 font-medium mb-2">Lien invalide</p>
-          <p className="text-gray-500 text-sm mb-5">Ce lien de réinitialisation est invalide ou incomplet.</p>
-          <Link href="/forgot-password"
-            className="inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition">
-            Demander un nouveau lien
-          </Link>
+          <p className="text-gray-500 text-sm mb-5">
+            {activation
+              ? "Ce lien d'activation est invalide ou incomplet. Demandez à votre agence de vous le renvoyer."
+              : 'Ce lien de réinitialisation est invalide ou incomplet.'}
+          </p>
+          {!activation && (
+            <Link href="/forgot-password"
+              className="inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition">
+              Demander un nouveau lien
+            </Link>
+          )}
         </div>
       </div>
     );
@@ -80,10 +93,13 @@ export default function ResetPasswordPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Mot de passe mis à jour</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">
+            {activation ? 'Espace client activé' : 'Mot de passe mis à jour'}
+          </h2>
           <p className="text-gray-500 text-sm">
-            Votre mot de passe a été réinitialisé avec succès.
-            Vous allez être redirigé vers la connexion…
+            {activation
+              ? 'Votre mot de passe est enregistré. Vous allez être redirigé vers la connexion…'
+              : 'Votre mot de passe a été réinitialisé avec succès. Vous allez être redirigé vers la connexion…'}
           </p>
         </div>
       </div>
@@ -100,8 +116,14 @@ export default function ResetPasswordPage() {
                 d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-gray-800">Nouveau mot de passe</h1>
-          <p className="text-gray-500 text-sm mt-1">Choisissez un mot de passe d&apos;au moins 8 caractères.</p>
+          <h1 className="text-xl font-bold text-gray-800">
+            {activation ? 'Activez votre espace client' : 'Nouveau mot de passe'}
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            {activation
+              ? "Choisissez votre mot de passe. Vous seul le connaîtrez : ni votre agence, ni Domtek n'y ont accès."
+              : "Choisissez un mot de passe d'au moins 8 caractères."}
+          </p>
         </div>
 
         {error && (
@@ -120,7 +142,9 @@ export default function ResetPasswordPage() {
 
           {/* Nouveau mot de passe */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {activation ? 'Mot de passe' : 'Nouveau mot de passe'}
+            </label>
             <div className="relative">
               <input
                 type={showPwd ? 'text' : 'password'}
@@ -161,7 +185,9 @@ export default function ResetPasswordPage() {
 
           <button type="submit" disabled={loading || (!!confirm && confirm !== password)}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium py-2.5 rounded-lg text-sm transition">
-            {loading ? 'Mise à jour…' : 'Mettre à jour le mot de passe'}
+            {loading
+              ? (activation ? 'Activation…' : 'Mise à jour…')
+              : (activation ? 'Activer mon espace client' : 'Mettre à jour le mot de passe')}
           </button>
         </form>
       </div>

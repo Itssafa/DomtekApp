@@ -31,6 +31,18 @@ class ClientResource extends JsonResource
             'urgence_telephone' => $this->urgence_telephone,
             'urgence_relation'  => $this->urgence_relation,
             'notes'             => $this->notes,
+
+            // État de l'accès à l'espace client. Le mot de passe n'est jamais
+            // exposé : l'agence sait seulement si le client a activé, ou non.
+            //   aucun    → pas de compte (fiche sans e-mail)
+            //   invite   → compte créé, invitation envoyée, pas encore activée
+            //   actif    → le client a choisi son mot de passe
+            'acces_statut'      => match (true) {
+                $this->user_id === null                      => 'aucun',
+                $this->user?->email_verified_at === null     => 'invite',
+                default                                      => 'actif',
+            },
+
             'contrats'          => ContratResource::collection($this->whenLoaded('contrats')),
             'factures'          => FactureResource::collection($this->whenLoaded('factures')),
             'created_at'        => $this->created_at->format('Y-m-d H:i:s'),

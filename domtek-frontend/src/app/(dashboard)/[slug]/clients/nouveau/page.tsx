@@ -77,7 +77,10 @@ export default function NouveauClientPage() {
         if (!form.prenom.trim())    return 'Le prénom est obligatoire.';
         if (!form.telephone.trim()) return 'Le téléphone est obligatoire.';
         if (!isValidPhone(form.telephone)) return 'Le numéro de téléphone est invalide.';
-        if (form.email.trim() && !isValidEmail(form.email)) return "L'adresse e-mail est invalide.";
+        // Obligatoire : sert d'identifiant de connexion au client et reçoit
+        // son lien d'activation.
+        if (!form.email.trim()) return "L'adresse e-mail est obligatoire : elle sert d'identifiant à l'espace client.";
+        if (!isValidEmail(form.email)) return "L'adresse e-mail est invalide.";
         if (form.lieu_naissance.trim() && !isValidCityOrPlace(form.lieu_naissance)) return 'Le lieu de naissance est invalide.';
         return null;
       },
@@ -99,7 +102,7 @@ export default function NouveauClientPage() {
           </div>
           <div className="grid grid-cols-3 gap-4">
             {inp('N° Téléphone', 'telephone', 'tel', '+216 22 000 000', true)}
-            {inp('Email', 'email', 'email', 'ahmed@email.com')}
+            {inp('Email', 'email', 'email', 'ahmed@email.com', true)}
             {inp('Ville', 'ville', 'text', 'Tunis')}
           </div>
           <div className="grid grid-cols-2 gap-4">

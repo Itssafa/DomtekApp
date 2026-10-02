@@ -2,19 +2,23 @@
 
 namespace App\Models;
 
+use App\Observers\ClientObserver;
 use App\Traits\HasAuditColumns;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ObservedBy(ClientObserver::class)]
 class Client extends Model
 {
     use HasFactory, HasAuditColumns;
 
     protected $fillable = [
         'organisation_id',
+        'user_id',
         'civilite',
         'nom',
         'prenom',
@@ -55,6 +59,14 @@ class Client extends Model
     public function organisation(): BelongsTo
     {
         return $this->belongsTo(Organisation::class);
+    }
+
+    /**
+     * Compte de connexion du client (null tant qu'aucun accès n'a été provisionné).
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function contrats(): BelongsToMany

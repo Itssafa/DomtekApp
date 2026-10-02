@@ -97,6 +97,17 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+
+        // Broker dédié à l'activation du compte client créé par l'agence.
+        // Le client ne demande pas ce lien : il le découvre en consultant sa
+        // boîte mail, parfois plusieurs jours après. D'où une fenêtre longue,
+        // sans throttle (l'agence doit pouvoir relancer l'invitation).
+        'clients' => [
+            'provider' => 'users',
+            'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 10080, // 7 jours
+            'throttle' => 0,
+        ],
     ],
 
     /*
