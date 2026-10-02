@@ -48,6 +48,10 @@ export default function FicheClientPage() {
   const [uploading, setUploading]   = useState(false);
   const [uploadDone, setUploadDone] = useState(false);
 
+  // Renvoi du lien d'activation (e-mail perdu, tombé dans les spams, expiré)
+  const [resending, setResending]   = useState(false);
+  const [resendMsg, setResendMsg]   = useState<{ ok: boolean; text: string } | null>(null);
+
   const fetchClient = () => {
     setLoading(true);
     Promise.all([
@@ -117,7 +121,10 @@ export default function FicheClientPage() {
     if (form.urgence_telephone.trim() && !isValidPhone(form.urgence_telephone)) {
       newErrors.urgence_telephone = ["Le numéro de téléphone d'urgence est invalide."];
     }
-    if (form.email.trim() && !isValidEmail(form.email)) {
+    // Obligatoire : identifiant de connexion du client à son espace.
+    if (!form.email.trim()) {
+      newErrors.email = ["L'adresse e-mail est obligatoire : elle sert d'identifiant à l'espace client."];
+    } else if (!isValidEmail(form.email)) {
       newErrors.email = ["L'adresse e-mail est invalide."];
     }
     if (form.lieu_naissance.trim() && !isValidCityOrPlace(form.lieu_naissance)) {
@@ -163,6 +170,69 @@ export default function FicheClientPage() {
     } catch { /* noop */ }
     finally { setUploading(false); }
   };
+
+  const handleRenvoyerAcces = async () => {
+    setResending(true);
+    setResendMsg(null);
+    try {
+      const { data } = await api.post(`/org/clients/${id}/renvoyer-acces`);
+      setResendMsg({ ok: true, text: data.message });
+      fetchClient();
+    } catch (err) {
+      const ax = err as AxiosError<{ message?: string }>;
+      setResendMsg({ ok: false, text: ax.response?.data?.message ?? "L'envoi a échoué." });
+    } finally {
+      setResending(false);
+    }
+  };
+
+  /* ── Accès du client à son espace ──
+     L'agence ne voit jamais le mot de passe : seulement l'état de l'accès,
+     et de quoi relancer l'invitation. */
+  const accesSection = (() => {
+    const statut = client?.acces_statut ?? 'aucun';
+
+    const badge = {
+      actif:  { texte: 'Compte activé',           classes: 'bg-green-50 text-green-700 border-green-200' },
+      invite: { texte: "En attente d'activation", classes: 'bg-amber-50 text-amber-700 border-amber-200' },
+      aucun:  { texte: 'Aucun accès',             classes: 'bg-gray-100 text-gray-500 border-gray-200' },
+    }[statut];
+
+    const description = {
+      actif:  'Le client a choisi son mot de passe et peut se connecter. Ni vous ni Domtek ne le connaissez.',
+      invite: "L'invitation a été envoyée. Le client n'a pas encore choisi son mot de passe.",
+      aucun:  "Aucun compte n'est rattaché à cette fiche. Renseignez une adresse e-mail pour lui ouvrir un accès.",
+    }[statut];
+
+    return (
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-1.5">
+              <h2 className="text-sm font-semibold text-gray-700">Espace client</h2>
+              <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${badge.classes}`}>
+                {badge.texte}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 leading-relaxed">{description}</p>
+          </div>
+
+          {statut !== 'aucun' && (
+            <button onClick={handleRenvoyerAcces} disabled={resending}
+              className="shrink-0 px-3.5 py-2 border border-gray-300 hover:bg-gray-50 disabled:opacity-60 text-gray-700 text-xs font-medium rounded-lg transition">
+              {resending ? 'Envoi…' : statut === 'actif' ? 'Renvoyer un lien' : "Renvoyer l'invitation"}
+            </button>
+          )}
+        </div>
+
+        {resendMsg && (
+          <p className={`mt-3 text-xs ${resendMsg.ok ? 'text-green-600' : 'text-red-600'}`}>
+            {resendMsg.text}
+          </p>
+        )}
+      </div>
+    );
+  })();
 
   /* ── Sections contrats & factures (réutilisées en mode fiche et édition) ── */
   const contratsSection = (
@@ -271,6 +341,7 @@ export default function FicheClientPage() {
           )}
         </div>
 
+        {accesSection}
         {contratsSection}
         {facturesSection}
       </div>
@@ -307,7 +378,7 @@ export default function FicheClientPage() {
           <Section title="Contact" />
           <div className="grid grid-cols-3 gap-4">
             {inp('N° Téléphone', 'telephone', 'tel', '', true)}
-            {inp('Email', 'email', 'email')}
+            {inp('Email', 'email', 'email', '', true)}
             {inp('Ville', 'ville')}
           </div>
 

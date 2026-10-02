@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Org;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreClientRequest extends FormRequest
 {
@@ -17,7 +18,17 @@ class StoreClientRequest extends FormRequest
             'civilite'          => ['nullable', 'in:M.,Mme,Mlle'],
             'nom'               => ['required', 'string', 'max:100'],
             'prenom'            => ['required', 'string', 'max:100'],
-            'email'             => ['nullable', 'email', 'max:255'],
+            // Obligatoire : c'est l'identifiant de connexion du client et le
+            // canal d'envoi de son lien d'activation.
+            // Unicité par agence, pas globale : une même personne peut être
+            // cliente de plusieurs organisations.
+            'email'             => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('clients', 'email')
+                    ->where('organisation_id', $this->user()->resolveOrgId()),
+            ],
             'telephone'         => ['required', 'string', 'max:20'],
             'adresse'           => ['nullable', 'string', 'max:255'],
             'ville'             => ['nullable', 'string', 'max:100'],

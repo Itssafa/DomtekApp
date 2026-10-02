@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Org;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateClientRequest extends FormRequest
 {
@@ -17,7 +18,18 @@ class UpdateClientRequest extends FormRequest
             'civilite'          => ['nullable', 'in:M.,Mme,Mlle'],
             'nom'               => ['sometimes', 'string', 'max:100'],
             'prenom'            => ['sometimes', 'string', 'max:100'],
-            'email'             => ['nullable', 'email', 'max:255'],
+            // cf. StoreClientRequest : identifiant de connexion, unique par agence.
+            // On ignore la fiche courante pour permettre un enregistrement sans
+            // modification de l'e-mail.
+            'email'             => [
+                'sometimes',
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('clients', 'email')
+                    ->where('organisation_id', $this->user()->resolveOrgId())
+                    ->ignore($this->route('client')),
+            ],
             'telephone'         => ['sometimes', 'required', 'string', 'max:20'],
             'adresse'           => ['nullable', 'string', 'max:255'],
             'ville'             => ['nullable', 'string', 'max:100'],

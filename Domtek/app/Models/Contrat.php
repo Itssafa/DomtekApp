@@ -90,6 +90,11 @@ class Contrat extends Model
         return $this->belongsToMany(Client::class, 'client_contrat');
     }
 
+    public function etatsLieux(): HasMany
+    {
+        return $this->hasMany(EtatLieu::class)->orderBy('date');
+    }
+
     public function factures(): HasMany
     {
         return $this->hasMany(Facture::class);

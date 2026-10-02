@@ -150,6 +150,13 @@ export interface Client {
   urgence_telephone: string | null;
   urgence_relation: string | null;
   notes: string | null;
+  /**
+   * État de l'accès du client à son espace.
+   *   aucun  — pas de compte (fiche sans e-mail)
+   *   invite — invitation envoyée, mot de passe pas encore choisi
+   *   actif  — le client a activé son compte
+   */
+  acces_statut: 'aucun' | 'invite' | 'actif';
   contrats?: Contrat[];
   factures?: Facture[];
   created_at: string;
@@ -395,4 +402,111 @@ export interface PaginatedResponse<T> {
 export interface ApiError {
   message: string;
   errors?: Record<string, string[]>;
+}
+
+// ─── Espace client ────────────────────────────────────────────────────────────
+// Formes renvoyées par /api/client/*. Volontairement plus étroites que celles
+// du back-office : le client ne voit ni les champs internes de l'agence, ni les
+// colonnes d'audit.
+
+export interface EspaceResume {
+  contrats_actifs: number;
+  factures_impayees: number;
+  montant_du: number;
+  agences: number;
+}
+
+export interface EspaceAgence {
+  client_id: number;
+  nom_complet: string;
+  agence: {
+    nom: string;
+    slug: string;
+    telephone: string | null;
+    email: string | null;
+  } | null;
+}
+
+export interface EspaceFacture {
+  id: number;
+  reference: string | null;
+  type: string;
+  montant: number;
+  statut: 'en_attente' | 'payee' | 'en_retard';
+  date_emission: string | null;
+  date_echeance: string | null;
+  periode_debut: string | null;
+  periode_fin: string | null;
+  /** Lien de règlement en ligne, présent uniquement si la facture est due. */
+  payment_url: string | null;
+  organisation?: { nom: string; telephone: string | null; email: string | null };
+  contrat?: {
+    id: number;
+    designation: string | null;
+    bien: { designation: string; adresse: string | null; ville: string | null } | null;
+  };
+}
+
+export interface EspaceEtatLieu {
+  id: number;
+  designation: string | null;
+  type: 'entree' | 'sortie';
+  date: string | null;
+  releve_eau: number | null;
+  releve_electricite: number | null;
+  releve_gaz: number | null;
+  remise_cles: boolean;
+  commentaire: string | null;
+}
+
+export interface EspaceQuittance {
+  id: number;
+  periode: string;
+  date_echeance: string | null;
+  date_paiement: string | null;
+  montant: number;
+  montant_paye: number;
+  reste_a_payer: number;
+  statut: string;
+  location?: {
+    id: number;
+    designation: string | null;
+    agence: string | null;
+    bien: { designation: string; adresse: string | null; ville: string | null } | null;
+  };
+}
+
+export interface EspaceContrat {
+  id: number;
+  designation: string | null;
+  type: string;
+  statut: 'actif' | 'termine' | 'resilie';
+  utilisation: string | null;
+  date_debut: string | null;
+  date_fin: string | null;
+  montant_ht: number | null;
+  tva: number | null;
+  montant_ttc: number | null;
+  depot_garantie: number | null;
+  periodicite_paiement: string | null;
+  jour_paiement: number | null;
+  bien?: {
+    id: number;
+    designation: string;
+    type_bien: string;
+    adresse: string | null;
+    ville: string | null;
+    superficie: number | null;
+    nb_pieces: number | null;
+    image: string | null;
+  };
+  organisation?: {
+    nom: string;
+    telephone: string | null;
+    email: string | null;
+    adresse: string | null;
+    ville: string | null;
+  };
+  factures?: EspaceFacture[];
+  etats_lieux?: EspaceEtatLieu[];
 }

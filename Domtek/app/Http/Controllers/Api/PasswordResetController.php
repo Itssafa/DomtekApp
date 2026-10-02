@@ -51,6 +51,46 @@ class PasswordResetController extends Controller
     }
 
     /**
+     * Active le compte d'un client créé par son agence.
+     *
+     * Même mécanique que la réinitialisation, mais sur le broker « clients »
+     * (fenêtre de 7 jours au lieu de 60 minutes) : le client n'a pas demandé
+     * ce lien, il le découvre en consultant sa boîte mail.
+     */
+    public function activateClient(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token'    => 'required|string',
+            'email'    => 'required|email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $status = Password::broker('clients')->reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password'          => Hash::make($password),
+                    // L'accès au lien prouve la possession de la boîte mail.
+                    'email_verified_at' => $user->email_verified_at ?? now(),
+                ])->save();
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return response()->json(['message' => 'Votre espace client est activé. Vous pouvez vous connecter.']);
+        }
+
+        $errors = [
+            Password::INVALID_TOKEN => "Ce lien d'activation est invalide ou a expiré. Demandez à votre agence de vous le renvoyer.",
+            Password::INVALID_USER  => 'Aucun compte trouvé avec cette adresse e-mail.',
+        ];
+
+        return response()->json([
+            'message' => $errors[$status] ?? "Erreur lors de l'activation.",
+        ], 422);
+    }
+
+    /**
      * Réinitialise le mot de passe avec le token reçu par e-mail.
      */
     public function resetPassword(Request $request): JsonResponse

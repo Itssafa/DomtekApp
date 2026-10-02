@@ -3,7 +3,10 @@
 namespace App\Http\Requests\Org;
 
 use App\Models\Contrat;
+use App\Models\Prospect;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreContratRequest extends FormRequest
 {
@@ -38,7 +41,15 @@ class StoreContratRequest extends FormRequest
             $clientRules['nouveau_client.nom']    = ['required', 'string', 'max:100'];
             $clientRules['nouveau_client.prenom'] = ['required', 'string', 'max:100'];
             $clientRules['nouveau_client.civilite'] = ['nullable', 'in:M.,Mme,Mlle'];
-            $clientRules['nouveau_client.email']    = ['nullable', 'email', 'max:255'];
+            // Obligatoire : identifiant de connexion du futur espace client,
+            // et canal d'envoi du lien d'activation. Unique par agence.
+            $clientRules['nouveau_client.email']    = [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('clients', 'email')
+                    ->where('organisation_id', $this->user()->resolveOrgId()),
+            ];
             $clientRules['nouveau_client.telephone'] = ['nullable', 'string', 'max:20'];
             $clientRules['nouveau_client.adresse']   = ['nullable', 'string', 'max:255'];
             $clientRules['nouveau_client.ville']     = ['nullable', 'string', 'max:100'];
@@ -75,5 +86,30 @@ class StoreContratRequest extends FormRequest
             'ville_signature'      => ['nullable', 'string', 'max:100'],
             'cin_delivree_le'      => ['nullable', 'date'],
         ]);
+    }
+
+    /**
+     * Cas 2 — conversion d'un prospect : la fiche client héritera de l'e-mail
+     * du prospect, lequel reste facultatif côté prospect. Sans e-mail, le
+     * client n'aurait aucun accès à son espace, sans que rien ne le signale.
+     * On l'exige donc au moment de la signature, où il devient nécessaire.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $v) {
+            if (! $this->filled('prospect_id')) {
+                return;
+            }
+
+            $prospect = Prospect::find($this->input('prospect_id'));
+
+            if ($prospect && blank($prospect->email)) {
+                $v->errors()->add(
+                    'prospect_id',
+                    "Ce prospect n'a pas d'adresse e-mail. Renseignez-la sur sa fiche "
+                    . "avant de le convertir : elle servira d'identifiant à son espace client."
+                );
+            }
+        });
     }
 }

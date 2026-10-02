@@ -33,6 +33,7 @@ export default function LoginPage() {
       if (data.role === 'admin') router.push('/admin');
       else if (data.role === 'organisation') router.push(`/${data.organisation?.slug ?? 'dashboard'}`);
       else if (data.role === 'employe') router.push(`/${data.organisation?.slug ?? 'dashboard'}`);
+      else if (data.role === 'client') router.push('/espace');
       else router.push('/');
     } catch (err) {
       const axiosError = err as AxiosError<{ message: string; statut?: string }>;

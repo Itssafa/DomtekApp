@@ -283,7 +283,7 @@ export default function NouveauContratPage() {
     if (nature === 'location') return !!selectedLocation;
     if (modePB === 'client_existant') return !!clientId;
     if (modePB === 'prospect')        return !!prospectId;
-    if (modePB === 'nouveau_client')  return !!(ncForm.nom && ncForm.prenom);
+    if (modePB === 'nouveau_client')  return !!(ncForm.nom && ncForm.prenom && ncForm.email);
     return false;
   }, [nature, selectedLocation, modePB, clientId, prospectId, ncForm]);
 
@@ -647,7 +647,10 @@ export default function NouveauContratPage() {
       validate: () => {
         if (!partieB_valide) return 'Veuillez renseigner les informations du client.';
         if (modePB === 'nouveau_client') {
-          if (ncForm.email && !isValidEmail(ncForm.email)) return "L'email du client est invalide.";
+          // Obligatoire : identifiant de connexion du client et destinataire
+          // de son invitation à activer son espace.
+          if (!ncForm.email.trim()) return "L'email du client est obligatoire : il sert d'identifiant à son espace client.";
+          if (!isValidEmail(ncForm.email)) return "L'email du client est invalide.";
           if (ncForm.telephone && !isValidPhone(ncForm.telephone)) return 'Le téléphone du client est invalide (format tunisien attendu).';
           if (ncForm.cin && !isValidCin(ncForm.cin)) return 'Le CIN du client doit contenir exactement 8 chiffres.';
           if (ncForm.ville && !isValidCityOrPlace(ncForm.ville)) return 'La ville du client est invalide.';
@@ -746,7 +749,10 @@ export default function NouveauContratPage() {
 
           {modePB === 'nouveau_client' && (
             <div className="space-y-3">
-              <p className="text-xs text-blue-700 bg-blue-50 rounded-lg px-3 py-2">Ce client sera créé et directement lié au contrat.</p>
+              <p className="text-xs text-blue-700 bg-blue-50 rounded-lg px-3 py-2">
+                Ce client sera créé et directement lié au contrat. Il recevra par e-mail
+                une invitation à activer son espace client.
+              </p>
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className={lc}>Civilité</label>
@@ -761,7 +767,7 @@ export default function NouveauContratPage() {
                 <div><label className={lc}>Prénom *</label><input type="text" value={ncForm.prenom} onChange={setNc('prenom')} className={ic} />{errMsg('nouveau_client.prenom')}</div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className={lc}>Email</label><input type="email" value={ncForm.email} onChange={setNc('email')} className={ic} /></div>
+                <div><label className={lc}>Email *</label><input type="email" value={ncForm.email} onChange={setNc('email')} className={ic} />{errMsg('nouveau_client.email')}</div>
                 <div><label className={lc}>Téléphone</label><input type="tel" value={ncForm.telephone} onChange={setNc('telephone')} className={ic} /></div>
                 <div><label className={lc}>CIN</label><input type="text" value={ncForm.cin} onChange={setNcDigitsOnly('cin', 8)} className={ic} /></div>
                 <div><label className={lc}>Date de naissance</label><input type="date" value={ncForm.date_naissance} onChange={setNc('date_naissance')} className={ic} /></div>
