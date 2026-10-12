@@ -1,7 +1,13 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+# Sur une connexion instable, npm peut s'interrompre en fin d'installation
+# (« Exit handler never called ») tout en rendant un code de sortie nul : les
+# paquets sont là, mais pas les liens de node_modules/.bin. Docker mettait
+# alors en cache cette couche incomplète, et chaque build suivant échouait plus
+# loin sur « next: not found ». La vérification fait échouer l'étape à la place.
+RUN npm ci --no-audit --no-fund \
+    && test -x node_modules/.bin/next
 
 FROM node:20-alpine AS builder
 WORKDIR /app
