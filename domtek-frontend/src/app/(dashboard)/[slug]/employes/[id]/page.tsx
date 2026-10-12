@@ -6,7 +6,7 @@ import Link from '@/components/OrgLink';
 import api from '@/lib/api'
 import { Employe } from '@/types';
 import { AxiosError } from 'axios';
-import { isValidEmail, isValidPhone, isValidCin, isValidCityOrPlace } from '@/lib/validation';
+import { isValidEmail, isValidPhone, isValidCin, isValidCityOrPlace, filtreTelephone, borneDate } from '@/lib/validation';
 
 const Section = ({ title }: { title: string }) => (
   <div className="flex items-center gap-3 pt-2">
@@ -105,6 +105,11 @@ export default function EditEmployePage() {
     }
   };
 
+  /** Setter appliquant un filtre de frappe avant d'enregistrer la valeur. */
+  const setFiltre = (champ: string, filtre: (v: string) => string) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => setForm((prev) => ({ ...prev, [champ]: filtre(e.target.value) }));
+
   const inp = (
     label: string, field: string,
     type = 'text', placeholder = '', required = false, onChange = set(field)
@@ -116,7 +121,8 @@ export default function EditEmployePage() {
       <input
         type={type}
         value={(form as Record<string, string>)[field]}
-        onChange={onChange}
+        onChange={type === 'tel' ? setFiltre(field, filtreTelephone) : onChange}
+        {...borneDate(field)}
         placeholder={placeholder}
         required={required}
         className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"

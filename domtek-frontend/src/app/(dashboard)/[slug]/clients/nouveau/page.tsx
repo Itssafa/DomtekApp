@@ -7,7 +7,7 @@ import api from '@/lib/api';
 import { orgPath } from '@/lib/org-path';
 import { AxiosError } from 'axios';
 import StepForm, { FormStep } from '@/components/StepForm';
-import { isValidEmail, isValidPhone, isValidCin, isValidCinOrPasseport, isValidCityOrPlace } from '@/lib/validation';
+import { isValidEmail, isValidPhone, isValidCin, isValidCinOrPasseport, isValidCityOrPlace, filtreTelephone, borneDate } from '@/lib/validation';
 
 export default function NouveauClientPage() {
   const router  = useRouter();
@@ -37,12 +37,21 @@ export default function NouveauClientPage() {
     return { ...prev, [field]: digits };
   });
 
+  /** Setter appliquant un filtre de frappe avant d'enregistrer la valeur. */
+  const setFiltre = (field: string, filtre: (v: string) => string) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => setForm((prev) => ({ ...prev, [field]: filtre(e.target.value) }));
+
+  // Les champs `tel` filtrent les lettres à la frappe et les champs `date`
+  // reçoivent leurs bornes, pour tous les appels de ce helper.
   const inp = (label: string, key: string, type: React.HTMLInputTypeAttribute = 'text', placeholder = '', required = false, onChange = set(key)) => (
     <div>
       <label className="block text-xs font-medium text-gray-600 mb-1">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
-      <input type={type} value={(form as Record<string, string>)[key]} onChange={onChange}
+      <input type={type} value={(form as Record<string, string>)[key]}
+        onChange={type === 'tel' ? setFiltre(key, filtreTelephone) : onChange}
+        {...borneDate(key)}
         placeholder={placeholder}
         className={errors[key]
           ? 'w-full border border-red-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-red-50'

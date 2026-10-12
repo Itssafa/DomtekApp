@@ -1032,6 +1032,16 @@ La section `custom` existe pour un cas précis : le marqueur `:date` restitue le
 | `isValidCin` | 8 chiffres |
 | `isValidCinOrPasseport` | chiffres uniquement |
 | `isValidCityOrPlace` | lettres/accents/espaces/apostrophes/tirets |
+| `filtreTelephone` | **filtre de frappe** : ne retient que les chiffres, les espaces et un `+` en tête |
+| `borneDate` | bornes `min`/`max` d'un sélecteur de date, déduites du nom du champ |
+
+**Deux niveaux distincts.** Les fonctions `isValid*` vérifient *à la soumission* et affichent un message ; `filtreTelephone` agit *à la frappe* et rend la saisie fautive impossible. Le téléphone n'avait que le premier niveau : on pouvait taper des lettres et ne l'apprendre qu'en cliquant sur Enregistrer. Le CIN, lui, avait déjà son filtre (`setDigitsOnly`).
+
+`filtreTelephone` est volontairement plus permissif qu'`isValidPhone` : il n'empêche pas de taper un numéro incomplet en cours de saisie, seulement d'y mettre des caractères qui n'ont rien à y faire.
+
+**Le helper `inp()` est dupliqué dans 11 formulaires**, sous quatre formes légèrement différentes. Le filtre et les bornes y sont branchés une fois par fichier, au niveau du helper et non de ses appels : tout champ `type="tel"` qu'il rend est donc filtré, et tout champ `type="date"` reçoit ses bornes, sans avoir à reprendre les appels un par un. C'est aussi ce qui a permis à `cin_delivree_le` d'être borné sans intervention supplémentaire.
+
+Les quatre champs `date_naissance` passant par ce helper avaient échappé à une première passe qui ne ciblait que les `<input type="date">` écrits en clair — d'où l'intérêt d'agir dans le helper.
 
 `validatePassword` s'applique également au formulaire d'activation de l'espace client (`/reset-password?activation=1`) : c'est le client qui choisit son mot de passe, il est donc soumis à la même exigence que tout autre utilisateur. Le secret aléatoire généré au provisionnement échappe à cette règle — il n'est jamais saisi, et sert uniquement à bloquer la connexion avant activation.
 

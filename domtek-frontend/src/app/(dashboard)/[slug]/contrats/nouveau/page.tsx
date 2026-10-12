@@ -10,7 +10,7 @@ import { Bien, Client, Prospect } from '@/types';
 import { AxiosError } from 'axios';
 import { ContratPreview, type ContratPreviewData } from '@/components/ContratPreview';
 import StepForm, { FormStep } from '@/components/StepForm';
-import { isValidEmail, isValidPhone, isPositiveAmount, isValidCin, isValidCityOrPlace } from '@/lib/validation';
+import { isValidEmail, isValidPhone, isPositiveAmount, isValidCin, isValidCityOrPlace, filtreTelephone } from '@/lib/validation';
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -231,6 +231,11 @@ export default function NouveauContratPage() {
     if (maxLength) digits = digits.slice(0, maxLength);
     return { ...p, [field]: digits };
   });
+
+  /** Filtre de frappe du téléphone : chiffres, espaces et « + » en tête. */
+  const setNcTelephone = (field: string) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => setNcForm(p => ({ ...p, [field]: filtreTelephone(e.target.value) }));
 
   // ── Dérivations ──────────────────────────────────────────────────────────
   const selectedBien    = biens.find(b => b.id === Number(form.bien_id)) ?? null;
@@ -770,7 +775,7 @@ export default function NouveauContratPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className={lc}>Email *</label><input type="email" value={ncForm.email} onChange={setNc('email')} className={ic} />{errMsg('nouveau_client.email')}</div>
-                <div><label className={lc}>Téléphone</label><input type="tel" value={ncForm.telephone} onChange={setNc('telephone')} className={ic} /></div>
+                <div><label className={lc}>Téléphone</label><input type="tel" value={ncForm.telephone} onChange={setNcTelephone('telephone')} className={ic} /></div>
                 <div><label className={lc}>CIN</label><input type="text" value={ncForm.cin} onChange={setNcDigitsOnly('cin', 8)} className={ic} /></div>
                 <div><label className={lc}>Date de naissance</label><input type="date" value={ncForm.date_naissance} onChange={setNc('date_naissance')} className={ic} max={AUJOURD_HUI} /></div>
                 <div><label className={lc}>Adresse</label><input type="text" value={ncForm.adresse} onChange={setNc('adresse')} className={ic} /></div>
