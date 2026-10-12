@@ -111,10 +111,9 @@ export default function ComptePage() {
       Object.entries(orgForm).forEach(([k, v]) => { if (v !== '') fd.append(k, v); });
       if (logoFile) fd.append('logo', logoFile);
       const { data } = await api.post('/org/profil', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-      if (user) {
-        const token = useAuthStore.getState().token ?? '';
-        setAuth(token, user, user.role as never, data.organisation);
-      }
+      // Seule l'organisation change ici : la remplacer suffit, sans repasser par
+      // setAuth et son jeton (non persisté, donc vide après un rechargement).
+      if (data.organisation) useAuthStore.getState().updateOrganisation(data.organisation);
       setOrgFeedback({ type: 'success', message: 'Organisation mise à jour.' });
       setLogoFile(null);
       setLogoPreview(null);

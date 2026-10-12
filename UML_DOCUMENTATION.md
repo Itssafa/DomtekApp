@@ -586,6 +586,26 @@ Acteurs : Utilisateur, Frontend, Backend (Laravel), Google OAuth, Admin
 23. Organisation peut maintenant se connecter
 ```
 
+**Connexion Google d'un compte existant :**
+
+```
+1. API → Frontend : Redirect /auth/google/callback?token=…&role=…&org_slug=…
+2. Frontend : setAuth(token) — pose le cookie de session
+3. Frontend → API : GET /api/auth/me
+4. API → Frontend : { user, role, organisation }
+5. Frontend : setAuth(token, user, role, organisation)
+6. Frontend : Redirige → /{slug}
+```
+
+> L'étape 3 est indispensable. L'URL de retour ne transporte que le slug, pas
+> l'organisation elle-même. Sans `/auth/me`, l'organisation n'était jamais
+> enregistrée dans le store : le menu du tableau de bord, qui construit tous
+> ses liens sur `organisation.slug`, retombait sur `/dashboard` et affichait
+> « Organisation » au lieu du nom. Seuls les comptes connectés par Google
+> étaient touchés, donc en pratique les organisations et jamais les employés.
+> Le layout du tableau de bord complète aussi lui-même une organisation
+> manquante, ce qui répare les sessions ouvertes avant la correction.
+
 ---
 
 ### 4.3 Séquence : Création et publication d'une annonce

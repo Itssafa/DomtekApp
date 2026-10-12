@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
+import api from '@/lib/api';
+import { AuthResponse } from '@/types';
 import { NotificationsPopup } from '@/components/NotificationsPopup';
 import { FloatingCalendar } from '@/components/FloatingCalendar';
 
@@ -191,7 +193,7 @@ function SidebarInner({
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router   = useRouter();
   const pathname = usePathname();
-  const { role, clearAuth, user, organisation } = useAuthStore();
+  const { role, clearAuth, user, organisation, updateOrganisation } = useAuthStore();
 
   const [collapsed,    setCollapsed]    = useState(false);
   const [mobileOpen,   setMobileOpen]   = useState(false);
@@ -203,6 +205,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (role && role !== 'organisation' && role !== 'employe') router.replace('/admin');
   }, [role, router]);
+
+  // Tout le menu se construit sur `organisation.slug`. Une session ouverte
+  // avant la correction de la connexion Google en est dépourvue, et l'est
+  // restée puisque le store est persisté : on la complète depuis le profil
+  // plutôt que d'obliger à se reconnecter.
+  useEffect(() => {
+    if (organisation || (role !== 'organisation' && role !== 'employe')) return;
+    api.get<AuthResponse>('/auth/me')
+      .then(({ data }) => { if (data.organisation) updateOrganisation(data.organisation); })
+      .catch(() => { /* le menu reste fonctionnel sur /dashboard */ });
+  }, [organisation, role, updateOrganisation]);
 
   const handleLogout = () => { clearAuth(); router.push('/login'); };
 
