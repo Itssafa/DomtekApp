@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { AxiosError } from 'axios';
-import { isValidEmail, isValidPhone } from '@/lib/validation';
+import { isValidEmail, isValidPhone, filtreTelephone } from '@/lib/validation';
 
 const Section = ({ title, subtitle }: { title: string; subtitle?: string }) => (
   <div className="mb-5">
@@ -199,7 +199,7 @@ export default function ComptePage() {
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Téléphone</label>
                 <input type="tel" value={orgForm.telephone}
-                  onChange={(e) => setOrgForm((p) => ({ ...p, telephone: e.target.value }))} className={inputCls} />
+                  onChange={(e) => setOrgForm((p) => ({ ...p, telephone: filtreTelephone(e.target.value) }))} className={inputCls} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Ville</label>

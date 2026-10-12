@@ -6,7 +6,7 @@ import Link from '@/components/OrgLink';
 import api from '@/lib/api'
 import { Client, Contrat, Facture } from '@/types';
 import { AxiosError } from 'axios';
-import { isValidEmail, isValidPhone, isValidCin, isValidCinOrPasseport, isValidCityOrPlace } from '@/lib/validation';
+import { isValidEmail, isValidPhone, isValidCin, isValidCinOrPasseport, isValidCityOrPlace, filtreTelephone, borneDate } from '@/lib/validation';
 
 const Section = ({ title }: { title: string }) => (
   <div className="flex items-center gap-3 pt-2">
@@ -99,12 +99,18 @@ export default function FicheClientPage() {
     return { ...prev, [field]: digits };
   });
 
+  /** Setter appliquant un filtre de frappe avant d'enregistrer la valeur. */
+  const setFiltre = (champ: string, filtre: (v: string) => string) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => setForm((prev) => ({ ...prev, [champ]: filtre(e.target.value) }));
+
   const inp = (label: string, key: string, type: React.HTMLInputTypeAttribute = 'text', placeholder = '', required = false, onChange = set(key)) => (
     <div>
       <label className="block text-xs font-medium text-gray-600 mb-1">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
-      <input type={type} value={(form as Record<string, string>)[key]} onChange={onChange}
+      <input type={type} value={(form as Record<string, string>)[key]} onChange={type === 'tel' ? setFiltre(key, filtreTelephone) : onChange}
+        {...borneDate(key)}
         placeholder={placeholder} required={required}
         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
       {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
