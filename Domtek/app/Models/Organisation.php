@@ -86,9 +86,4 @@ class Organisation extends Model
     {
         return $this->hasMany(Employe::class);
     }
-
-    public function tauxInvestissement(): HasMany
-    {
-        return $this->hasMany(TauxInvestissement::class);
-    }
 }

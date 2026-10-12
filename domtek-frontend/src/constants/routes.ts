@@ -25,7 +25,6 @@ export const ROUTES = {
     organisation: (slug: string) => `/admin/organisations/${slug}`,
     organisationBiens: (slug: string) => `/admin/organisations/${slug}/biens`,
     organisationAnnonces: (slug: string) => `/admin/organisations/${slug}/annonces`,
-    organisationInvestissement: (slug: string) => `/admin/organisations/${slug}/investissement`,
     organisationComptes: (slug: string) => `/admin/organisations/${slug}/comptes`,
   },
 
@@ -57,8 +56,6 @@ export const ROUTES = {
     employe: (id: number) => `/dashboard/employes/${id}`,
     nouvelEmploye: '/dashboard/employes/nouveau',
 
-    investissements: '/dashboard/investissements',
-    investissement: (id: number) => `/dashboard/investissements/${id}`,
-    nouvelInvestissement: '/dashboard/investissements/nouveau',
+    statistiques: '/dashboard/statistiques',
   },
 } as const;

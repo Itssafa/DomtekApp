@@ -81,14 +81,6 @@ class OrganisationController extends Controller
         );
     }
 
-    /** Taux d'investissement d'une organisation (vue admin). */
-    public function investissements(Organisation $organisation): JsonResponse
-    {
-        $taux = $organisation->tauxInvestissement()->latest()->get();
-
-        return response()->json(['data' => $taux]);
-    }
-
     /** Comptes utilisateurs liés à une organisation (vue admin). */
     public function comptes(Organisation $organisation): JsonResponse
     {

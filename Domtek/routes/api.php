@@ -15,7 +15,6 @@ use App\Http\Controllers\Api\Organisation\FactureController;
 use App\Http\Controllers\Api\Organisation\EtatLieuController;
 use App\Http\Controllers\Api\Organisation\VisiteController;
 use App\Http\Controllers\Api\Organisation\ImmeubleController;
-use App\Http\Controllers\Api\Organisation\InvestissementController;
 use App\Http\Controllers\Api\Organisation\CalendrierController;
 use App\Http\Controllers\Api\Organisation\LocationController;
 use App\Http\Controllers\Api\Organisation\NotificationController;
@@ -104,7 +103,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // Vue admin des données d'une organisation
         Route::get('organisations/{organisation}/biens',          [AdminOrganisationController::class, 'biens']);
         Route::get('organisations/{organisation}/annonces',       [AdminOrganisationController::class, 'annonces']);
-        Route::get('organisations/{organisation}/investissements', [AdminOrganisationController::class, 'investissements']);
         Route::get('organisations/{organisation}/comptes',         [AdminOrganisationController::class, 'comptes']);
     });
 
@@ -242,9 +240,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('employes', EmployeController::class);
         Route::get('employes-en-attente',         [EmployeController::class, 'enAttente']);
         Route::post('employes/{employe}/activer', [EmployeController::class, 'activerCompte']);
-
-        // Taux d'investissement
-        Route::apiResource('investissements', InvestissementController::class);
 
         // Statistiques
         Route::get('statistiques/biens',     [StatistiqueController::class, 'biens']);
