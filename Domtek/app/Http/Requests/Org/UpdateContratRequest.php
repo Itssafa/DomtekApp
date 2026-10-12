@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Org;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class UpdateContratRequest extends FormRequest
 {
@@ -37,5 +38,48 @@ class UpdateContratRequest extends FormRequest
             'ville_signature'      => ['nullable', 'string', 'max:100'],
             'cin_delivree_le'      => ['nullable', 'date'],
         ];
+    }
+
+    /**
+     * Cohérence des dates et des montants à la modification.
+     *
+     * `date_debut` n'est pas modifiable et n'apparaît donc pas dans le payload :
+     * la comparaison porte sur la valeur enregistrée, là où
+     * `StoreContratRequest` peut se contenter de `after:date_debut`. Sans cela,
+     * un bail créé correctement pouvait être modifié pour se terminer avant
+     * d'avoir commencé.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $v) {
+            $contrat = $this->route('contrat');
+            $debut   = $contrat?->date_debut?->timestamp;
+
+            if ($debut && $this->filled('date_fin')
+                && strtotime($this->input('date_fin')) <= $debut) {
+                $v->errors()->add(
+                    'date_fin',
+                    'La date de fin doit suivre le début du contrat ('
+                    . $contrat->date_debut->format('d/m/Y') . ').'
+                );
+            }
+
+            if ($debut && $this->filled('premiere_echeance')
+                && strtotime($this->input('premiere_echeance')) < $debut) {
+                $v->errors()->add(
+                    'premiere_echeance',
+                    'La première échéance ne peut pas précéder le début du contrat.'
+                );
+            }
+
+            // Un TTC inférieur au HT produirait une TVA négative. Les deux
+            // champs sont saisis librement, rien ne les reliait.
+            $ht  = $this->filled('montant_ht')  ? (float) $this->input('montant_ht')  : (float) ($contrat->montant_ht ?? 0);
+            $ttc = $this->filled('montant_ttc') ? (float) $this->input('montant_ttc') : null;
+
+            if ($ttc !== null && $ht > 0 && $ttc < $ht) {
+                $v->errors()->add('montant_ttc', 'Le montant TTC ne peut pas être inférieur au montant HT.');
+            }
+        });
     }
 }

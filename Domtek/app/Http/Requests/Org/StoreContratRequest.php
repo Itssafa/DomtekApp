@@ -111,5 +111,26 @@ class StoreContratRequest extends FormRequest
                 );
             }
         });
+
+        // Un TTC inférieur au HT produirait une TVA négative. Les deux champs
+        // sont saisis librement, avec pour seule contrainte `min:0`.
+        $validator->after(function (Validator $v) {
+            if ($this->filled('montant_ht') && $this->filled('montant_ttc')
+                && (float) $this->input('montant_ttc') < (float) $this->input('montant_ht')) {
+                $v->errors()->add('montant_ttc', 'Le montant TTC ne peut pas être inférieur au montant HT.');
+            }
+        });
+
+        // Une première échéance antérieure au début du bail serait exigible
+        // avant que le locataire n'ait les clés.
+        $validator->after(function (Validator $v) {
+            if ($this->filled('date_debut') && $this->filled('premiere_echeance')
+                && strtotime($this->input('premiere_echeance')) < strtotime($this->input('date_debut'))) {
+                $v->errors()->add(
+                    'premiere_echeance',
+                    'La première échéance ne peut pas précéder le début du contrat.'
+                );
+            }
+        });
     }
 }
