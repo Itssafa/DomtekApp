@@ -16,7 +16,7 @@ class StoreImmeubleRequest extends FormRequest
             'type_propriete'       => ['required', 'in:auto_propriete,co_propriete'],
             'a_blocs'              => ['required', 'boolean'],
             'nb_blocs'             => ['nullable', 'integer', 'min:1', 'required_if:a_blocs,true'],
-            'nb_etages'            => ['required', 'integer', 'min:0'],
+            'nb_etages'            => ['required', 'integer', 'min:0', 'max:200'],
             'adresse'              => ['nullable', 'string', 'max:255'],
             'ville'                => ['nullable', 'string', 'max:100'],
             'maps_url'             => ['nullable', 'string', 'max:2048'],

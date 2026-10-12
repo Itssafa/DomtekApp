@@ -2,11 +2,15 @@
 
 namespace App\Http\Requests\Org;
 
+use App\Http\Requests\Concerns\VerifieStructureImmeuble;
 use App\Rules\CodePostalTunisien;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class UpdateBienRequest extends FormRequest
 {
+    use VerifieStructureImmeuble;
+
     public function authorize(): bool
     {
         return true;
@@ -40,13 +44,18 @@ class UpdateBienRequest extends FormRequest
             'nb_chambres'       => ['nullable', 'integer', 'min:0'],
             'nb_salles_bain'    => ['nullable', 'integer', 'min:0'],
             'nb_cuisine'        => ['nullable', 'integer', 'min:0'],
-            'etage'             => ['nullable', 'integer'],
-            'date_construction' => ['nullable', 'date'],
+            'etage'             => ['nullable', 'integer', 'min:-5', 'max:200'],
+            'date_construction' => ['nullable', 'date', 'before_or_equal:today'],
             'accepte_animaux'   => ['boolean'],
             'accepte_fumeurs'   => ['boolean'],
             'options'           => ['nullable', 'array'],
             'options.*'         => ['string'],
             'statut'            => ['sometimes', 'in:disponible,vendu,loue,indisponible'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(fn (Validator $v) => $this->verifierStructure($v, $this->route('bien')));
     }
 }

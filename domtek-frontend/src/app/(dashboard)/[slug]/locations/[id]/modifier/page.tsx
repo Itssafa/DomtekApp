@@ -293,7 +293,7 @@ export default function ModifierLocationPage() {
             </div>
             <div>
               <label className={labelCls}>Date de fin</label>
-              <input type="date" value={form.date_fin} onChange={set('date_fin')} className={inputCls} />
+              <input type="date" value={form.date_fin} onChange={set('date_fin')} className={inputCls} min={form.date_debut || undefined} />
             </div>
             {duree && (
               <div className="col-span-2">

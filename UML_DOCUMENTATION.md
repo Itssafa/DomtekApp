@@ -985,6 +985,30 @@ Les contraintes croisées présentes à la création disparaissaient à la modif
 
 Ces contrôles vivent dans un hook `withValidator()` plutôt que dans le tableau de règles, parce qu'ils comparent à l'état en base et non à un autre champ soumis.
 
+### Bornes sur les dates et les quantités
+
+`'date'` vérifie qu'une chaîne est une date, jamais qu'elle est plausible : ces champs acceptaient l'an 2300.
+
+| Champ | Borne | Portée |
+|---|---|---|
+| `cin_delivree_le` | `before_or_equal:today` | 9 requests |
+| `date_naissance` | `before:today` *(déjà présent)* + `after:1900-01-01` | 5 requests |
+| `date_embauche` | `before_or_equal:today` | 2 requests |
+| `date_construction` | `before_or_equal:today` | 2 requests |
+| `date_visite` | `after_or_equal:today` | **Création seule.** `VisiteController::update` valide en ligne, ce qui laisse enregistrer une visite passée après coup |
+| `etage` | `min:-5`, `max:200` | 2 requests |
+| `nb_etages` | `max:200` | 2 requests |
+
+### Structure d'un immeuble
+
+Un bien rattaché à un immeuble ne peut pas occuper un étage ou un bloc inexistant. Les formulaires construisent déjà leurs listes déroulantes depuis `nb_etages` et `nb_blocs`, mais rien ne le vérifiait côté serveur : un appel direct plaçait un bien au 40ᵉ étage d'un immeuble de trois. Le trait `VerifieStructureImmeuble`, partagé par `StoreBienRequest` et `UpdateBienRequest`, contrôle l'étage contre `nb_etages`, le bloc contre `nb_blocs`, et refuse tout bloc sur un immeuble dont `a_blocs` est faux.
+
+### Bornes dans les sélecteurs de date
+
+Les 36 champs `type="date"` du frontend n'avaient ni `min` ni `max` : le calendrier proposait des dates que le serveur refusait, et l'utilisateur ne l'apprenait qu'après envoi. 15 bornes posées, reflétant exactement les règles serveur — `max` à aujourd'hui pour `cin_delivree_le` et `date_naissance`, `min` relatif pour `date_fin` (sur `date_debut`), `periode_fin` (sur `periode_debut`) et `date_echeance` (sur `date_emission`).
+
+Les bornes relatives ne sont posées que là où le champ de référence existe dans le même formulaire ; ailleurs, la contrainte reste assurée par le serveur, qui compare à la valeur en base.
+
 ### Validation frontend
 
 `domtek-frontend/src/lib/validation.ts` centralise les règles de validation appliquées aux formulaires (auth + dashboard organisation) avant soumission :
