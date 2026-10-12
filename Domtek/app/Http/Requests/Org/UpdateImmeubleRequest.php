@@ -16,7 +16,7 @@ class UpdateImmeubleRequest extends FormRequest
             'type_propriete'       => ['sometimes', 'in:auto_propriete,co_propriete'],
             'a_blocs'              => ['sometimes', 'boolean'],
             'nb_blocs'             => ['nullable', 'integer', 'min:1'],
-            'nb_etages'            => ['sometimes', 'integer', 'min:0'],
+            'nb_etages'            => ['sometimes', 'integer', 'min:0', 'max:200'],
             'adresse'              => ['nullable', 'string', 'max:255'],
             'ville'                => ['nullable', 'string', 'max:100'],
             'maps_url'             => ['nullable', 'string', 'max:2048'],

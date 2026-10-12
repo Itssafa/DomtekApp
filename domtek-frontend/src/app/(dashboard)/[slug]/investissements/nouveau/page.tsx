@@ -81,7 +81,7 @@ export default function NouveauTauxPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date fin (optionnel)</label>
               <input type="date" value={form.date_fin} onChange={set('date_fin')}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" min={form.date_debut || undefined} />
             </div>
           </div>
 

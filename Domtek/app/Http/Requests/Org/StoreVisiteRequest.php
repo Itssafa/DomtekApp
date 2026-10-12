@@ -15,7 +15,7 @@ class StoreVisiteRequest extends FormRequest
             'bien_id'     => ['required', 'integer', 'exists:biens,id'],
             'employe_id'  => ['nullable', 'integer', 'exists:employes,id'],
             'nom_agent'   => ['nullable', 'string', 'max:255'],
-            'date_visite' => ['required', 'date'],
+            'date_visite' => ['required', 'date', 'after_or_equal:today'],
             'notes'       => ['nullable', 'string'],
         ];
     }

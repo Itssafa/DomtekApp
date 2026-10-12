@@ -76,6 +76,8 @@ const Field = ({ label, value }: { label: string; value?: string | null }) => (
 
 const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
 
+
+const AUJOURD_HUI = new Date().toISOString().slice(0, 10);
 export default function EditContratPage() {
   const { id }   = useParams<{ id: string }>();
   const fileRef  = useRef<HTMLInputElement>(null);
@@ -496,7 +498,7 @@ export default function EditContratPage() {
               </div>
               <div>
                 <label className={lc}>CIN délivrée le</label>
-                <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} />
+                <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} max={AUJOURD_HUI} />
               </div>
               <div>
                 <label className={lc}>Résidence</label>

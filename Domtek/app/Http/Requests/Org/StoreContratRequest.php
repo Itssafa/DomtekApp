@@ -84,7 +84,7 @@ class StoreContratRequest extends FormRequest
             'representant'         => ['nullable', 'string', 'max:150'],
             'date_contrat'         => ['nullable', 'date'],
             'ville_signature'      => ['nullable', 'string', 'max:100'],
-            'cin_delivree_le'      => ['nullable', 'date'],
+            'cin_delivree_le'      => ['nullable', 'date', 'before_or_equal:today'],
         ]);
     }
 
