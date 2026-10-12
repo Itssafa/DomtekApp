@@ -52,7 +52,6 @@ flowchart LR
 | Clients        | Client CRM per organization                      |
 | Employees      | Employee CRM per organization                    |
 | UtilityBills   | Water, electricity, gas billing per client       |
-| Investment     | Investment rate tracking per organization        |
 
 ```mermaid
 graph TB
@@ -72,7 +71,6 @@ graph TB
     ORG_M --> EM[Employee Model]
     ORG_M --> CTM[Contract Model]
     ORG_M --> BM[UtilityBill Model]
-    ORG_M --> INV[InvestmentRate Model]
 
     PUB_M --> LM
     PUB_M --> OM

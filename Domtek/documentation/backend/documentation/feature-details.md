@@ -23,7 +23,6 @@
 | `/api/v1/admin/organisations/{id}/deactivate`| PATCH| Deactivate organization            |
 | `/api/v1/admin/organisations/{id}`         | DELETE | Delete organization                |
 | `/api/v1/admin/organisations/{id}/annonces`| GET    | View org listings                  |
-| `/api/v1/admin/organisations/{id}/investissement`| GET | View org investment rates     |
 | `/api/v1/admin/organisations/{id}/comptes` | GET    | View org accounts                  |
 
 ---

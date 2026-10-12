@@ -122,14 +122,3 @@
 | role            | VARCHAR(100) | job title            |
 | created_by ... updated_at | — | required 4 columns |
 
----
-
-## investment_rates
-
-| Column          | Type         | Notes                |
-|-----------------|--------------|----------------------|
-| id              | BIGINT PK    |                      |
-| organisation_id | BIGINT FK    |                      |
-| rate            | DECIMAL(5,2) | percentage           |
-| period          | DATE         | applicable month     |
-| created_by ... updated_at | — | required 4 columns |

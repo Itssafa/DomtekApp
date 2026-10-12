@@ -29,7 +29,6 @@
 | Organisations list      | `/admin/organisations`                    | All orgs with status         |
 | Org detail              | `/admin/organisations/[id]`               | View and manage org          |
 | Org listings            | `/admin/organisations/[id]/annonces`      | Org's listings               |
-| Org investment          | `/admin/organisations/[id]/investissement`| Investment rates             |
 | Org accounts            | `/admin/organisations/[id]/comptes`       | Account overview             |
 
 ---

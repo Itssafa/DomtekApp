@@ -16,7 +16,6 @@ flowchart TD
 
     C --> E[Select organization]
     E --> E1[View annonces]
-    E --> E2[View investissement rates]
     E --> E3[View comptes / accounts]
     E --> E4[View properties for sale or rent]
 ```
