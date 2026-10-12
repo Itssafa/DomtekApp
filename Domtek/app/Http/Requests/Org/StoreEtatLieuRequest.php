@@ -2,10 +2,14 @@
 
 namespace App\Http\Requests\Org;
 
+use App\Http\Requests\Concerns\VerifieRelevesCompteurs;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StoreEtatLieuRequest extends FormRequest
 {
+    use VerifieRelevesCompteurs;
+
     public function authorize(): bool { return true; }
 
     public function rules(): array
@@ -28,5 +32,10 @@ class StoreEtatLieuRequest extends FormRequest
             'inventaires.*.description'        => ['nullable', 'string'],
             'inventaires.*.date'               => ['nullable', 'date'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(fn (Validator $v) => $this->verifierReleves($v));
     }
 }
