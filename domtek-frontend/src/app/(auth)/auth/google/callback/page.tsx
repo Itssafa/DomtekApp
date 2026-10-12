@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import api from '@/lib/api';
+import { AuthResponse } from '@/types';
 
 export default function GoogleCallbackPage() {
   const { setAuth } = useAuthStore();
@@ -32,22 +34,35 @@ export default function GoogleCallbackPage() {
 
     const orgSlug = params.get('org_slug') ?? '';
 
-    // Stocker l'auth (cookie + zustand)
+    // Premier enregistrement avec ce que contient l'URL : il pose le cookie de
+    // session, sans lequel l'appel suivant ne serait pas authentifié.
     setAuth(token, { name, role, email } as never, role as never);
-    if (orgSlug) {
-      // le cookie org-slug est posé par setAuth uniquement si organisation est passée
-      // on le pose manuellement ici car le backend ne renvoie pas l'objet complet
-      document.cookie = `org-slug=${orgSlug};path=/;max-age=${7 * 86400};SameSite=Lax`;
-    }
 
-    // Rechargement complet pour que le cookie soit bien lu dès la prochaine page
-    if (role === 'admin') {
-      window.location.replace('/admin');
-    } else if (orgSlug) {
-      window.location.replace(`/${orgSlug}`);
-    } else {
-      window.location.replace('/');
-    }
+    // L'URL ne transporte que le slug, pas l'organisation elle-même. Sans elle
+    // dans le store, le menu du tableau de bord construisait ses liens sur
+    // `/dashboard` et affichait « Organisation » au lieu du nom — ce qui ne
+    // touchait que les comptes connectés par Google, donc les organisations.
+    // /auth/me renvoie le profil complet, organisation comprise.
+    const terminer = (slug: string) => {
+      if (role === 'admin') window.location.replace('/admin');
+      else if (role === 'client') window.location.replace('/espace');
+      else if (slug) window.location.replace(`/${slug}`);
+      else window.location.replace('/');
+    };
+
+    api.get<AuthResponse>('/auth/me')
+      .then(({ data }) => {
+        setAuth(token, data.user, data.role, data.organisation);
+        terminer(data.organisation?.slug ?? orgSlug);
+      })
+      .catch(() => {
+        // Profil indisponible : on garde au moins le slug de l'URL pour la
+        // redirection. Le layout du tableau de bord complétera l'organisation.
+        if (orgSlug) {
+          document.cookie = `org-slug=${orgSlug};path=/;max-age=${7 * 86400};SameSite=Lax`;
+        }
+        terminer(orgSlug);
+      });
   }, [setAuth]);
 
   if (error) {

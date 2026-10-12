@@ -229,11 +229,13 @@ Layout organisation avec sidebar :
 - [ ] Gestion des uploads (images des biens)
 - [ ] Optimisation des performances (pagination, lazy loading)
 
-### Étape 18 — Déploiement
-- [ ] Configuration serveur (Apache/Nginx)
-- [ ] Variables d'environnement production
+### Étape 18 — Déploiement (en cours)
+- [x] Dockerisation : Docker Compose (MySQL, backend, scheduler, frontend, nginx) — voir A27 et A36
+- [x] Reverse proxy Nginx (`/api` et `/storage` → backend, reste → frontend)
+- [x] Build Next.js production (`standalone`, dans l'image frontend)
+- [x] `.env.example` complet ; `.env` hors de Git
+- [ ] Variables d'environnement de production (serveur réel)
 - [ ] HTTPS / certificat SSL
-- [ ] Build Next.js production
 - [ ] Mise en ligne et tests finaux
 
 ---
@@ -708,6 +710,8 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
   - **Actualisation automatique** toutes les 30 secondes avec `setInterval` + bouton "Actualiser" manuel + horodatage de la dernière mise à jour
 - [x] `(dashboard)/layout.tsx` : label sidebar "Investissements" → **"Statistiques"**
 
+> Le CRUD des taux d'investissement, resté en place derrière cette page, a ensuite été supprimé (voir A35). La page a été déplacée de `/investissements` vers `/statistiques`.
+
 ---
 
 ### A26 — Validation frontend centralisée (formulaires) ✅ TERMINÉ
@@ -726,6 +730,131 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 **Pages mises à jour (validation au submit, messages d'erreur inline) :**
 - Auth : `login`, `register/organisation`, `register/employe`, `register/client`, `forgot-password`, `reset-password`, `admin/compte`
 - Dashboard organisation : `biens/nouveau`, `biens/[id]/modifier`, `immeubles/nouveau`, `clients/nouveau`, `clients/[id]`, `contrats/nouveau`, `contrats/[id]`, `contrats` (liste), `employes/nouveau`, `employes/[id]`, `factures/nouvelle`, `factures/[id]`, `locations/[id]`, `prospects/nouveau`, `prospects/[id]`, `compte`
+
+---
+
+### A27 — Dockerisation de l'application ✅ TERMINÉ
+
+**Fonctionnalité** : Faire tourner toute l'application dans des conteneurs, servie depuis `http://localhost`.
+
+- [x] `Domtek/Dockerfile` : image `php:8.4-apache`, dépendances Composer dans une étape séparée
+- [x] `Domtek/docker/entrypoint.sh` : au démarrage, migrations + cache de la configuration et des routes
+- [x] `domtek-frontend/Dockerfile` : build Next.js `standalone` sur `node:20-alpine`
+- [x] `docker-compose.yml` : services `mysql`, `backend`, `scheduler` (planificateur toutes les 60 s), `frontend`, `nginx`
+- [x] `docker/nginx.conf` : reverse proxy sur le port 80
+
+---
+
+### A28 — Comptes clients et activation par e-mail ✅ TERMINÉ
+
+**Fonctionnalité** : Chaque fiche client reçoit automatiquement un compte de connexion. L'agence ne connaît jamais le mot de passe : le client le choisit lui-même via un lien d'activation.
+
+**Migration :**
+- [x] `2026_09_24_000001_add_user_account_to_clients.php` : colonne `user_id` sur `clients`, index unique `(organisation_id, email)`
+
+**Backend :**
+- [x] `app/Services/ClientAccountService.php` : création du compte avec un mot de passe aléatoire de 32 caractères, envoi du lien d'activation, renvoi de l'invitation
+- [x] `app/Observers/ClientObserver.php` : déclenche la création du compte à la création d'une fiche, quel que soit le chemin (fiche directe, conversion de prospect, contrat). Exécuté après la validation de la transaction
+- [x] `config/auth.php` : broker de mots de passe `clients`, lien valable 7 jours
+- [x] `POST /api/auth/activate-client` et `POST /api/org/clients/{id}/renvoyer-acces`
+- [x] E-mails `activation_compte` et `rattachement_agence` (client qui a déjà un compte)
+- [x] E-mail du client obligatoire et unique au sein de l'agence
+
+**Frontend :**
+- [x] `reset-password` : mode activation (`?activation=1`)
+- [x] Fiche client : statut de l'accès et bouton « Renvoyer l'accès »
+
+---
+
+### A29 — Espace client ✅ TERMINÉ
+
+**Fonctionnalité** : Espace personnel du client, en lecture seule.
+
+**Backend :**
+- [x] `app/Services/EspaceClientService.php` : toutes les requêtes bornées aux fiches du compte connecté
+- [x] `app/Http/Controllers/Api/Client/EspaceController.php` + 7 routes `/api/client/*` (`role:client`)
+- [x] Ressources dédiées `app/Http/Resources/Espace/` : rien des données internes de l'agence
+
+**Frontend :**
+- [x] `(client)/espace` : accueil, mes contrats (détail, PDF, états des lieux), mes factures (paiement en ligne), mes quittances
+- [x] Connexion d'un client → redirection vers `/espace`
+
+---
+
+### A30 — Sécurité : secrets hors de Git ✅ TERMINÉ
+
+**Problème** : `Domtek/.env` était suivi par Git sur un dépôt public, avec de vraies clés (Stripe, Google, Twilio, Groq, mot de passe SMTP).
+
+- [x] `.env` et `.env.local` retirés du suivi Git (les règles d'exclusion existaient mais ne s'appliquaient pas à des fichiers déjà suivis)
+- [x] `.env.example` complété et aligné sur la configuration réelle
+- [x] Clés exposées révoquées et renouvelées (Twilio, Groq, Google OAuth, mot de passe d'application Gmail). Le token Twilio avait été utilisé par un tiers le 2026-06-04, trois jours après la fuite (envois vers l'Inde, en échec)
+- [x] SMTP passé sur Gmail avec mot de passe d'application
+
+---
+
+### A31 — Audit des contrôles de saisie ✅ TERMINÉ
+
+**Problème** : Les formats (téléphone, CIN) n'étaient vérifiés que dans le navigateur, et les contrôles de cohérence disparaissaient à la modification. Un appel direct à l'API acceptait `telephone = "bonjour"`.
+
+- [x] `app/Rules/` : règles partagées `TelephoneTunisien`, `NumeroPieceIdentite`, `CodePostalTunisien`, appliquées dans tous les formulaires concernés
+- [x] Cohérences rétablies à la modification : échéance après émission, fin de contrat après début, période de facturation
+- [x] Montant TTC ≥ montant HT, première échéance après le début du bail
+- [x] Relevés de compteur : sortie ≥ entrée (sans état des lieux d'entrée : pas de contrôle)
+- [x] Dates plausibles : naissance, délivrance de CIN, embauche, construction, visite
+- [x] Structure d'immeuble : étage et bloc doivent exister dans l'immeuble
+- [x] Rapport d'audit complet : 20 constats, tous traités sauf un (8 écrans d'édition sans validation frontend, désormais couverts par le serveur)
+
+---
+
+### A32 — Messages de validation en français ✅ TERMINÉ
+
+- [x] `lang/fr/validation.php` : les 24 règles utilisées, libellés lisibles pour ~115 champs
+- [x] `APP_LOCALE=fr` (à reporter dans le `.env` de chaque environnement)
+
+---
+
+### A33 — Formulaires : téléphone et calendriers ✅ TERMINÉ
+
+- [x] `filtreTelephone` : impossible de taper des lettres dans les 10 champs téléphone
+- [x] `borneDate` : les calendriers bloquent les dates impossibles (ex. date de naissance future)
+- [x] Branché dans le helper `inp()` de 11 formulaires, donc appliqué à tous les champs qu'il affiche
+
+---
+
+### A34 — Corrections de bugs ✅ TERMINÉ
+
+- [x] Création du compte client : `email` manquait, aucun compte réellement nouveau ne pouvait être créé
+- [x] Création d'un prospect : erreur 500 avec « Très satisfait » ou « Plutôt non satisfait ». La colonne `impression_premiere_visite` n'avait que 3 valeurs sur 5 (migration `2026_10_12_000001`)
+- [x] Création d'un prospect : erreur 422 sur un numéro de pièce sans type choisi. La longueur n'est plus imposée que pour une CIN
+- [x] Page Compte : enregistrer le profil de l'organisation après un rechargement déconnectait l'utilisateur
+
+---
+
+### A35 — Suppression de la rubrique « Taux d'investissement » ✅ TERMINÉ
+
+- [x] Backend : modèle, contrôleur, requests, resource, policy, service et routes supprimés
+- [x] Migration `2026_10_12_000002` : suppression de la table `taux_investissement` (vide)
+- [x] Frontend : pages de création et d'édition et onglet admin supprimés ; page Statistiques déplacée vers `/[slug]/statistiques`
+- [x] Documentation mise à jour
+
+---
+
+### A36 — Déploiement Docker durable ✅ TERMINÉ
+
+**Problème** : Les images Docker ne se reconstruisaient plus. Le code devait être injecté à la main dans les conteneurs, et disparaissait à chaque recréation.
+
+- [x] Cause réseau : IPv6 annoncé mais non routé sur le Wi-Fi, ce qui tronquait les téléchargements. IPv6 désactivé sur la carte Wi-Fi
+- [x] `domtek-frontend/Dockerfile` : une installation npm incomplète fait échouer le build au lieu d'être mise en cache
+- [x] Images backend et frontend reconstruites : tout le code est dans les images, plus rien à injecter
+
+---
+
+### A37 — Connexion Google : slug de l'organisation ✅ TERMINÉ
+
+**Problème** : Après une connexion Google, le menu perdait le slug de l'organisation (liens vers `/dashboard`, « Organisation » au lieu du nom). Seuls les comptes connectés par Google étaient touchés, donc les organisations.
+
+- [x] Retour Google : récupération du profil complet via `/auth/me`, organisation comprise
+- [x] Layout du tableau de bord : complète une organisation manquante sans reconnexion
 
 ---
 
@@ -775,5 +904,16 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 | Améliorations | A24 — Auto-remplissage CIN délivrée le (contrats/nouveau) | ✅ Terminé |
 | Améliorations | A25 — Tableau de bord analytique (courbes occupation + conversion) | ✅ Terminé |
 | Améliorations | A26 — Validation frontend centralisée (lib/validation.ts) | ✅ Terminé |
+| Améliorations | A27 — Dockerisation de l'application | ✅ Terminé |
+| Améliorations | A28 — Comptes clients et activation par e-mail | ✅ Terminé |
+| Améliorations | A29 — Espace client | ✅ Terminé |
+| Améliorations | A30 — Sécurité : secrets hors de Git | ✅ Terminé |
+| Améliorations | A31 — Audit des contrôles de saisie | ✅ Terminé |
+| Améliorations | A32 — Messages de validation en français | ✅ Terminé |
+| Améliorations | A33 — Formulaires : téléphone et calendriers | ✅ Terminé |
+| Améliorations | A34 — Corrections de bugs | ✅ Terminé |
+| Améliorations | A35 — Suppression des taux d'investissement | ✅ Terminé |
+| Améliorations | A36 — Déploiement Docker durable | ✅ Terminé |
+| Améliorations | A37 — Connexion Google : slug de l'organisation | ✅ Terminé |
 | Intégration | 17 — Intégration complète | ⬜ À faire |
-| Déploiement | 18 — Déploiement | ⬜ À faire |
+| Déploiement | 18 — Déploiement | 🟨 En cours (Docker fait ; serveur, HTTPS et mise en ligne restent) |

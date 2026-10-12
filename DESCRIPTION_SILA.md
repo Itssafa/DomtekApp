@@ -25,7 +25,7 @@
 16. [Module État des Lieux](#16-module-état-des-lieux)
 17. [Module Visites](#17-module-visites)
 18. [Module Tâches](#18-module-tâches)
-19. [Module Investissements](#19-module-investissements)
+19. [Espace Client](#19-espace-client)
 20. [Module Notifications](#20-module-notifications)
 21. [Module Statistiques](#21-module-statistiques)
 22. [Intégrations Externes](#22-intégrations-externes)
@@ -73,6 +73,19 @@
 ### Infrastructure fichiers
 - Stockage local Laravel (`storage/app/public`) avec symlink `public/storage`
 - Chemins distincts par entité (biens, annonces, immeubles, documents, identité)
+
+### Déploiement (Docker Compose)
+| Service | Rôle |
+|---|---|
+| `mysql` | MySQL 8.0, volume persistant `mysql_data` |
+| `backend` | Laravel sur `php:8.4-apache`. Au démarrage, l'entrypoint applique les migrations puis met en cache la configuration et les routes |
+| `scheduler` | Même image que le backend, exécute `php artisan schedule:run` toutes les 60 s (publication des annonces planifiées) |
+| `frontend` | Next.js en build `standalone` sur `node:20-alpine` |
+| `nginx` | Reverse proxy sur le port 80 : `/api` et `/storage` vers le backend, le reste vers le frontend |
+
+- Tout se sert depuis `http://localhost`. En développement, le frontend peut aussi tourner hors Docker avec `npm run dev` (port 3000).
+- Le code est intégré aux images : il faut **reconstruire l'image** après une modification (`docker compose up -d --build`), un simple redémarrage ne suffit pas.
+- Les variables sont lues depuis `Domtek/.env` (non versionné ; modèle dans `Domtek/.env.example`).
 
 ---
 
@@ -245,11 +258,11 @@ Le système est **multi-tenant** : chaque organisation dispose de son propre esp
 |---|---|---|
 | id | bigint PK | — |
 | organisation_id | bigint FK | — |
-| user_id | bigint FK nullable | Compte utilisateur optionnel |
+| user_id | bigint FK nullable | Compte de connexion du client, créé automatiquement à la création de la fiche. `null` tant qu'aucun accès n'est provisionné. `ON DELETE SET NULL` |
 | civilite | string nullable | M., Mme, etc. |
 | nom | string | — |
 | prenom | string | — |
-| email | string nullable | — |
+| email | string | **Obligatoire** à la saisie : identifiant de connexion de l'espace client. Unique au sein de l'agence (index `organisation_id, email`) |
 | telephone | string nullable | — |
 | adresse | string nullable | — |
 | ville | string nullable | — |
@@ -432,20 +445,15 @@ Le système est **multi-tenant** : chaque organisation dispose de son propre esp
 | priorite | enum | `low`, `medium`, `high` |
 | created_by / updated_by | bigint FK | Audit |
 
-### 3.20 `taux_investissement`
-| Colonne | Type | Description |
-|---|---|---|
-| id | bigint PK | — |
-| organisation_id | bigint FK | — |
-| taux | decimal(5,2) | Taux en pourcentage |
-| periode | enum | `mensuel`, `trimestriel`, `annuel` |
-| description | text nullable | — |
-| date_debut | date nullable | — |
-| date_fin | date nullable | — |
-| created_by / updated_by | bigint FK | Audit |
-
-### 3.21 `personal_access_tokens`
+### 3.20 `personal_access_tokens`
 Table standard Laravel Sanctum pour stocker les tokens API.
+
+### 3.21 `password_reset_tokens`
+Jetons à usage unique, partagés par deux « brokers » :
+- `users` : réinitialisation de mot de passe, valable **60 minutes** ;
+- `clients` : activation de l'espace client, valable **7 jours** (le client ne demande pas ce lien, il le découvre dans sa boîte mail).
+
+> La table `taux_investissement` a été supprimée (migration `2026_10_12_000002`). La rubrique a été remplacée par le module Statistiques.
 
 ---
 
@@ -457,7 +465,7 @@ Table standard Laravel Sanctum pour stocker les tokens API.
 | `admin` | Super-administrateur | Gestion de toutes les organisations, activation/désactivation |
 | `organisation` | Responsable d'agence | CRUD complet sur son espace + gestion employés |
 | `employe` | Agent immobilier | Lecture + certaines actions dans l'espace de son organisation |
-| `client` | Locataire/acheteur | Accès limité (consulter factures, payer en ligne) |
+| `client` | Locataire/acheteur | Espace client en lecture seule : contrats, états des lieux, factures, quittances, paiement en ligne. Compte créé par l'agence |
 
 ### 4.2 Authentification email/mot de passe
 1. **Inscription** : formulaire avec email + mot de passe → token Sanctum retourné
@@ -466,6 +474,9 @@ Table standard Laravel Sanctum pour stocker les tokens API.
 4. **Réinitialisation de mot de passe** :
    - `POST /api/auth/forgot-password` → envoi d'un email avec lien signé
    - `POST /api/auth/reset-password` → nouveau mot de passe
+5. **Activation d'un espace client** :
+   - le lien reçu par e-mail ouvre `/reset-password?activation=1&token=…&email=…`
+   - `POST /api/auth/activate-client` → le client choisit son mot de passe (broker `clients`, 7 jours)
 
 ### 4.3 Authentification Google OAuth 2.0
 - `GET /api/auth/google` → redirige vers Google
@@ -475,6 +486,7 @@ Table standard Laravel Sanctum pour stocker les tokens API.
 - Flux client : identique
 - Token Google chiffré stocké en base avec expiration, déchiffré côté backend
 - Si un compte existe déjà avec cet email : liaison automatique du `google_id`
+- **Connexion d'un compte existant** : le backend redirige vers `/auth/google/callback?token=…&role=…&org_slug=…`. Le frontend enregistre le jeton, puis appelle `GET /api/auth/me` pour récupérer le profil complet, **organisation comprise**. L'URL ne transporte que le slug : sans cet appel, l'organisation n'était pas enregistrée et le menu du tableau de bord perdait le slug (bug corrigé, qui ne touchait que les comptes connectés par Google)
 
 ### 4.4 Workflow d'activation
 **Organisation** :
@@ -488,10 +500,19 @@ Table standard Laravel Sanctum pour stocker les tokens API.
 3. L'organisation active le compte → statut `actif`
 4. L'employé accède au portail
 
+**Client** :
+1. L'agence crée la fiche client (directement, par conversion d'un prospect ou depuis un contrat)
+2. Un compte `client` est créé automatiquement, avec un mot de passe aléatoire que personne ne connaît
+3. Le client reçoit un lien d'activation par e-mail et choisit son mot de passe
+4. Il se connecte et arrive sur `/espace`
+
+Si l'e-mail correspond déjà à un compte (auto-inscription, ou client d'une autre agence), la fiche est simplement rattachée à ce compte et le client reçoit un avis de rattachement.
+
 ### 4.5 Token & Cookie
 - Token Sanctum valide 7 jours
 - Stocké en cookie `domtek_token` côté frontend
-- Slug de l'organisation stocké en cookie `org-slug`
+- Slug de l'organisation stocké en cookie `org-slug`, tenu à jour par `setAuth` et `updateOrganisation`
+- Le jeton n'est **pas** persisté dans le store Zustand (seul le cookie fait foi). `setAuth` ignore donc un jeton vide, pour ne jamais écraser le cookie de session
 - Middleware `CheckRole` sur toutes les routes protégées
 - En cas de 401, redirection automatique vers `/login`
 
@@ -511,7 +532,7 @@ Chaque organisation représente une agence immobilière. Elle dispose d'un espac
 
 ### Interface Admin
 - Liste de toutes les organisations avec statut
-- Détail d'une organisation : biens, annonces, comptes liés, taux d'investissement
+- Détail d'une organisation : biens, annonces, comptes liés
 - Actions : activer, désactiver, supprimer
 
 ### Profil Public
@@ -608,7 +629,10 @@ CRM pour les clients ayant signé un contrat (locataires ou acheteurs). Distinct
   - Upload du scan de la pièce d'identité
   - Contact d'urgence : nom, téléphone, relation
   - Notes internes
-- Liaison avec un compte utilisateur (optionnel)
+- **E-mail obligatoire et unique au sein de l'agence** : il sert d'identifiant de connexion à l'espace client
+- **Compte de connexion provisionné automatiquement** à la création de la fiche (voir section 19)
+- Statut de l'accès affiché sur la fiche (`acces_statut`) : `aucun`, `invite` (lien envoyé, pas encore activé), `actif`
+- Bouton **« Renvoyer l'accès »** : régénère le lien d'activation (spam, e-mail perdu, lien expiré) ; le lien précédent devient caduc
 - Historique des contrats liés
 - Historique des factures liées
 
@@ -819,18 +843,31 @@ Gestionnaire de tâches interne à l'organisation (to-do list partagée).
 
 ---
 
-## 19. MODULE INVESTISSEMENTS
+## 19. ESPACE CLIENT
 
 ### Description
-Définition des taux de rendement/investissement proposés par l'organisation à ses clients.
+Espace personnel du locataire ou de l'acheteur, en **lecture seule** : le client consulte ses documents et règle ses factures ; toute modification reste du ressort de l'agence.
 
-### Fonctionnalités
-- **CRUD complet**
-- Taux en pourcentage (ex: 5.25%)
-- Périodicité : mensuelle, trimestrielle, annuelle
-- Description libre
-- Validité : date de début et de fin
-- Consultable par l'admin depuis le panel d'administration
+> Cette section remplace l'ancien module « Taux d'investissement », supprimé du projet (table, routes, pages et onglet admin). Seul le module Statistiques (section 21) est conservé.
+
+### Création du compte
+- Déclenchée automatiquement à la création d'une fiche client, quel que soit son chemin : création directe, conversion d'un prospect, ou nouveau client saisi depuis un contrat. Un observateur Eloquent (`ClientObserver`) couvre les trois.
+- Le compte reçoit un mot de passe aléatoire de 32 caractères, jamais affiché ni envoyé : l'agence ne connaît jamais le mot de passe.
+- Le client reçoit un lien d'activation à usage unique, valable 7 jours, et choisit lui-même son mot de passe.
+- L'envoi est différé après la validation de la transaction : un contrat annulé ne déclenche pas d'e-mail. Un échec d'envoi est journalisé sans bloquer la création du client.
+
+### Écrans (`/espace`)
+| Écran | Contenu |
+|---|---|
+| Accueil | Contrats actifs, factures à régler, montant dû, agences de rattachement |
+| Mes contrats | Bien, durée, conditions financières, agence ; détail avec **PDF** téléchargeable et **états des lieux** |
+| Mes factures | Filtre toutes / à régler / payées, bouton **Payer** (lien Stripe) |
+| Mes quittances | Échéances de loyer, reste à payer |
+
+### Périmètre et sécurité
+- Toutes les requêtes sont bornées aux fiches clients rattachées au compte : une ressource d'un autre client renvoie 404.
+- Des ressources API dédiées (`Http/Resources/Espace/`) n'exposent que ce qui concerne le client (pas de notes internes, ni de colonnes d'audit).
+- **Multi-agences** : une personne cliente de plusieurs agences a un seul compte et voit ses contrats de toutes ses agences.
 
 ---
 
@@ -850,7 +887,7 @@ Centre de notifications intégré à l'interface pour alerter sur les événemen
 ## 21. MODULE STATISTIQUES
 
 ### Description
-Tableaux de bord analytiques pour piloter l'activité immobilière.
+Tableaux de bord analytiques pour piloter l'activité immobilière. Page frontend : `/[slug]/statistiques` (anciennement `/[slug]/investissements`), lien « Statistiques » de la barre latérale.
 
 ### Endpoints et métriques
 
@@ -903,15 +940,19 @@ Tableaux de bord analytiques pour piloter l'activité immobilière.
 - **Connexion** : si `google_id` déjà lié → connexion directe
 
 ### 22.3 Twilio (SMS)
-- **Configuration** : `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM`
+- **Configuration** : `TWILIO_SID`, `TWILIO_TOKEN`, `TWILIO_FROM`
 - **Usage** : notifications SMS (implémentation partielle via `SmsService`)
 
 ### 22.4 Email SMTP
-- **Configuration** : variables `MAIL_*` dans `.env` (Mailtrap par défaut)
+- **Configuration** : variables `MAIL_*` dans `Domtek/.env`. Avec Gmail (`smtp.gmail.com:587`, TLS) :
+  - `MAIL_USERNAME` et `MAIL_FROM_ADDRESS` doivent être **la même adresse `@gmail.com`** : Gmail refuse d'expédier au nom d'un domaine qu'il ne contrôle pas ;
+  - `MAIL_PASSWORD` est un **mot de passe d'application** de 16 caractères (validation en deux étapes requise), pas le mot de passe du compte.
 - **Usages** :
-  - Email de réinitialisation de mot de passe
-  - Notifications aux employés lors de leur création
-  - Email `from` : `noreply@domtek.tn`
+  - Activation de l'espace client (`emails/activation_compte`)
+  - Avis de rattachement d'un client à une nouvelle agence (`emails/rattachement_agence`)
+  - Facture créée, avec lien de paiement (`emails/facture_creee`)
+  - Réinitialisation de mot de passe (`emails/reset_password`)
+  - Vérification d'e-mail (`emails/verify_email`)
 
 ### 22.5 Stockage de fichiers
 - Driver Laravel `local` avec disk `public`
@@ -941,6 +982,7 @@ GET    /api/auth/google/callback               Callback Google OAuth
 POST   /api/auth/google/prefill                Préremplissage depuis token Google
 POST   /api/auth/forgot-password               Demande de réinitialisation
 POST   /api/auth/reset-password                Réinitialisation de mot de passe
+POST   /api/auth/activate-client               Activation d'un espace client (choix du mot de passe)
 ```
 
 ### Utilisateur authentifié
@@ -961,7 +1003,6 @@ PATCH  /api/admin/organisations/{slug}/desactiver       Désactiver
 DELETE /api/admin/organisations/{slug}                  Supprimer
 GET    /api/admin/organisations/{slug}/biens            Biens de l'org
 GET    /api/admin/organisations/{slug}/annonces         Annonces de l'org
-GET    /api/admin/organisations/{slug}/investissements  Taux d'investissement
 GET    /api/admin/organisations/{slug}/comptes          Comptes liés
 ```
 
@@ -1038,6 +1079,7 @@ POST   /api/org/clients                        Créer (org only)
 PUT    /api/org/clients/{id}                   Modifier (org only)
 DELETE /api/org/clients/{id}                   Supprimer (org only)
 POST   /api/org/clients/{id}/document          Upload pièce d'identité
+POST   /api/org/clients/{id}/renvoyer-acces    Renvoyer le lien d'activation (l'ancien devient caduc)
 ```
 
 ### Prospects
@@ -1099,13 +1141,15 @@ PUT    /api/org/etat-lieux/{id}                 Modifier (org only)
 DELETE /api/org/etat-lieux/{id}                 Supprimer (org only)
 ```
 
-### Taux d'investissement
+### Espace client (rôle `client`, lecture seule)
 ```
-GET    /api/org/investissements                  Liste
-GET    /api/org/investissements/{id}             Détail
-POST   /api/org/investissements                  Créer
-PUT    /api/org/investissements/{id}             Modifier
-DELETE /api/org/investissements/{id}             Supprimer
+GET    /api/client/resume                        Accueil : contrats actifs, montant dû, agences
+GET    /api/client/contrats                      Ses contrats
+GET    /api/client/contrats/{id}                 Détail (bien, factures, états des lieux)
+GET    /api/client/contrats/{id}/pdf             Contrat en PDF
+GET    /api/client/factures                      Ses factures (filtres statut, dont « impayees », et type)
+GET    /api/client/factures/{id}                 Détail d'une facture
+GET    /api/client/quittances                    Ses quittances (filtres « impayees », « payees »)
 ```
 
 ### Notifications
@@ -1147,7 +1191,7 @@ GET    /api/organisations/{slug}                 Profil public d'une organisatio
 /register/employe                    Inscription employé
 /register/client                     Inscription client
 /forgot-password                     Demande de réinitialisation
-/reset-password                      Saisie du nouveau mot de passe
+/reset-password                      Saisie du nouveau mot de passe (?activation=1 : activation d'un espace client)
 /auth/google/callback                Callback Google OAuth (frontend)
 /en-attente                          Page d'attente d'activation
 ```
@@ -1160,7 +1204,6 @@ GET    /api/organisations/{slug}                 Profil public d'une organisatio
 /admin/organisations/[slug]          Détail d'une organisation
 /admin/organisations/[slug]/annonces       Annonces de l'org
 /admin/organisations/[slug]/biens         Biens de l'org
-/admin/organisations/[slug]/investissement Taux d'investissement
 /admin/organisations/[slug]/comptes        Comptes liés
 ```
 
@@ -1214,9 +1257,16 @@ GET    /api/organisations/{slug}                 Profil public d'une organisatio
 /[slug]/etat-lieux/nouveau           Créer un état des lieux
 /[slug]/etat-lieux/[id]              Détail d'un état des lieux
 
-/[slug]/investissements              Liste des taux d'investissement
-/[slug]/investissements/nouveau      Créer un taux
-/[slug]/investissements/[id]         Détail d'un taux
+/[slug]/statistiques                 Tableau de bord statistique (courbes)
+```
+
+### Espace client (`/espace`, rôle `client`)
+```
+/espace                              Accueil : contrats actifs, factures à régler, agences
+/espace/contrats                     Mes contrats
+/espace/contrats/[id]                Détail : bien, conditions, PDF, états des lieux, factures
+/espace/factures                     Mes factures, paiement en ligne
+/espace/quittances                   Mes quittances de loyer
 ```
 
 ---
@@ -1305,6 +1355,19 @@ GET    /api/organisations/{slug}                 Profil public d'une organisatio
 4. Confirmation de la remise des clés (boolean)
 5. À la fin du bail (sortie) : création état des lieux type "sortie"
 6. Comparaison possible entre entrée et sortie pour calcul des dégradations
+7. Contrôle : chaque relevé de sortie doit être supérieur ou égal au relevé
+   d'entrée du même contrat (un compteur ne recule pas). Sans état des lieux
+   d'entrée, la sortie est acceptée sans contrôle.
+```
+
+### 25.8 Ouverture d'un espace client
+```
+1. L'agence crée la fiche client (e-mail obligatoire)
+2. Un compte client est créé automatiquement, avec un mot de passe aléatoire
+3. Le client reçoit un e-mail « Activez votre espace client » (lien valable 7 jours)
+4. Il choisit son mot de passe sur /reset-password?activation=1
+5. Il se connecte et arrive sur /espace
+6. Lien perdu ou expiré : l'agence clique « Renvoyer l'accès » sur la fiche
 ```
 
 ---
@@ -1316,6 +1379,7 @@ GET    /api/organisations/{slug}                 Profil public d'une organisatio
 - `CheckRole` : vérifie que le rôle de l'utilisateur est autorisé pour la route
 - Toutes les routes `/api/org/*` requièrent `auth:sanctum + role:organisation|employe`
 - Toutes les routes `/api/admin/*` requièrent `auth:sanctum + role:admin`
+- Toutes les routes `/api/client/*` requièrent `auth:sanctum + role:client`, et sont bornées aux fiches clients du compte connecté
 
 ### Isolation des données
 - **Toutes les requêtes Eloquent** sont scopées à `organisation_id`
@@ -1332,13 +1396,23 @@ GET    /api/organisations/{slug}                 Profil public d'une organisatio
 | CRUD contrats/quittances | — | ✓ | Lecture | — |
 | CRUD factures | — | ✓ | — | — |
 | Payer une facture en ligne | — | — | — | ✓ (via token) |
+| Consulter ses contrats, factures, quittances | — | — | — | ✓ (espace client, lecture seule) |
 | CRUD employés | — | ✓ | — | — |
 | CRUD visites/tâches | — | ✓ | ✓ | — |
 | Voir les statistiques | — | ✓ | ✓ | — |
 | Gérer son profil | ✓ | ✓ | ✓ | ✓ |
 
+### Contrôles de saisie côté serveur
+Les formulaires vérifient la saisie, mais l'API applique les mêmes règles : un appel direct ne les contourne pas.
+- **Règles partagées** (`app/Rules/`) : `TelephoneTunisien` (8 chiffres commençant par 2 à 9, indicatif +216 facultatif), `NumeroPieceIdentite` (chiffres ; 8 exactement pour une CIN), `CodePostalTunisien` (4 chiffres)
+- **Dates plausibles** : date de naissance passée et postérieure à 1900, CIN, embauche et construction pas dans le futur, visite planifiée pas dans le passé
+- **Cohérences entre champs**, à la création comme à la modification : échéance après émission, fin de contrat après début, TTC supérieur ou égal au HT, première échéance après le début du bail
+- **Structure d'immeuble** : un bien ne peut pas être à un étage ou dans un bloc que son immeuble n'a pas
+- **Messages en français** : `lang/fr/validation.php`, avec des libellés lisibles pour chaque champ
+
 ### Autres mesures
 - Mots de passe hashés avec bcrypt
+- Mot de passe initial d'un compte client aléatoire (32 caractères), jamais communiqué : le client choisit le sien
 - Tokens Google chiffrés (AES) avec expiration 30 minutes
 - Validation des types et tailles de fichiers uploadés
 - Protection CSRF pour les sessions web
@@ -1370,20 +1444,21 @@ GET    /api/organisations/{slug}                 Profil public d'une organisatio
 ## 28. ÉTAT GLOBAL FRONTEND
 
 ### Zustand — `authStore`
-Persisté dans `localStorage` sous la clé `domtek-auth`.
+Persisté dans `localStorage` sous la clé `domtek-auth`. Le **jeton n'est pas persisté** : seul le cookie `domtek_token` fait foi.
 
 | Propriété | Type | Description |
 |---|---|---|
 | `user` | object | Données de l'utilisateur connecté |
 | `organisation` | object | Données de l'organisation active |
-| `token` | string | Token Sanctum |
+| `token` | string | Token Sanctum (en mémoire seulement, vide après un rechargement) |
 | `role` | string | Rôle de l'utilisateur |
 | `isAuthenticated` | boolean | État de connexion |
 
 Méthodes :
-- `setAuth(user, organisation, token, role)` : connexion
+- `setAuth(token, user, role, organisation?)` : connexion. Ignore un jeton vide, pour ne jamais écraser le cookie de session
 - `clearAuth()` : déconnexion
-- `updateOrganisation(org)` : mise à jour du profil org
+- `updateOrganisation(org)` : mise à jour de l'organisation et du cookie `org-slug`. À préférer à `setAuth` quand seule l'organisation change
+- Le layout du tableau de bord complète une organisation manquante via `GET /api/auth/me`
 
 ### React Query — Hooks de données
 Chaque module dispose d'un hook dédié qui gère le cache et les requêtes serveur :
@@ -1401,10 +1476,12 @@ Chaque module dispose d'un hook dédié qui gère le cache et les requêtes serv
 ### Validation des formulaires
 - `src/lib/validation.ts` : helpers réutilisables (`isValidEmail`, `validatePassword`, `isValidPhone`, `isPositiveAmount`, `isValidCin`, `isValidCinOrPasseport`, `isValidCityOrPlace`)
 - Appliqués aux formulaires d'authentification et à la majorité des formulaires du dashboard organisation (biens, clients, contrats, employés, factures, prospects, locations, immeubles) avec affichage des erreurs inline avant soumission
+- **Filtres de frappe** : `filtreTelephone` (chiffres, espaces, « + » en tête) sur les 10 champs téléphone, et filtre chiffres sur le CIN. Les lettres y sont impossibles à saisir
+- **Bornes des calendriers** : `borneDate(champ)` pose `min`/`max` selon le champ (pas de date de naissance future, par exemple). Branché dans le helper `inp()` des formulaires, il couvre tous les champs date qu'il affiche
 
 ### Client Axios
 - Instance unique configurée avec `baseURL` de l'API backend
-- Intercepteur request : injection automatique du token Bearer depuis le store Zustand
+- Intercepteur request : injection automatique du token Bearer depuis le cookie `domtek_token`
 - Intercepteur response : si `401` → `clearAuth()` + redirection vers `/login`
 - Exception pour la page `/auth/google/callback` (pas de redirection forcée)
 

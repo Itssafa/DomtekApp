@@ -26,7 +26,11 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
 
       setAuth: (token, user, role, organisation) => {
-        Cookies.set(TOKEN_KEY, token, { expires: 7, sameSite: 'Lax' });
+        // Le jeton n'est pas persisté dans le store (cf. partialize) : après un
+        // rechargement, `state.token` vaut null. Un appelant qui le relit pour
+        // rappeler setAuth passerait donc une chaîne vide, et écraserait le
+        // cookie de session — déconnexion silencieuse. Le cookie fait foi.
+        if (token) Cookies.set(TOKEN_KEY, token, { expires: 7, sameSite: 'Lax' });
         if (organisation?.slug) {
           Cookies.set('org-slug', organisation.slug, { expires: 7, sameSite: 'Lax' });
         }
@@ -40,6 +44,9 @@ export const useAuthStore = create<AuthState>()(
       },
 
       updateOrganisation: (org) => {
+        // Le middleware Next lit ce cookie pour rediriger un utilisateur déjà
+        // connecté vers son espace : il doit suivre l'organisation du store.
+        if (org?.slug) Cookies.set('org-slug', org.slug, { expires: 7, sameSite: 'Lax' });
         set({ organisation: org });
       },
     }),

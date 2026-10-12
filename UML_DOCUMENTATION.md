@@ -423,7 +423,8 @@ Conséquence sur UC47 : la conversion d'un prospect exige désormais que celui-c
 ```
 - id : int
 - organisation_id : int (FK → Organisation)
-- contrat_id : int (FK → Contrat)
+- contrat_id : int [nullable] (FK → Contrat)
+- location_id : int [nullable] (FK → Location)
 - designation : string
 - type : enum {entree, sortie}
 - date : date
@@ -431,7 +432,7 @@ Conséquence sur UC47 : la conversion d'un prospect exige désormais que celui-c
 - releve_electricite : decimal [nullable]
 - releve_gaz : decimal [nullable]
 - remise_cles : boolean
-- observations : text [nullable]
+- commentaire : text [nullable]
 - created_at : datetime
 - updated_at : datetime
 ```
@@ -483,6 +484,83 @@ Conséquence sur UC47 : la conversion d'un prospect exige désormais que celui-c
 - ordre : int
 ```
 
+#### Classe `Location`
+```
+- id : int
+- organisation_id : int (FK → Organisation)
+- bien_id : int (FK → Bien)
+- locataire_type : enum {client, prospect, nouveau}
+- locataire_id : int [nullable]        // Client ou Prospect selon locataire_type
+- locataire_nom : string [nullable]    // cas « nouveau » : locataire saisi sans fiche
+- designation : string [nullable]
+- type : enum {bail_habitation, bail_etudiant, bail_professionnel, bail_commercial, bail_saisonnier, loyer}
+- utilisation : string [nullable]
+- date_debut : date
+- date_fin : date [nullable]
+- premiere_echeance : date
+- montant_ht, montant_ttc, frais_syndic, montant_paiement, depot_garantie : decimal
+- tva, retenue_source : decimal (%)
+- periodicite : enum {mensuel, trimestriel, semestriel, annuel}
+- jour_paiement : int
+- renouvellement_auto : boolean
+- assurance : string [nullable]
+- fichier : string [nullable]
+- notes : text [nullable]
+- statut : enum {actif, expire, resilie}
+- created_at : datetime
+- updated_at : datetime
+
++ genererPeriodes() : array            // échéancier des quittances
++ client() : Client                    // si locataire_type = client
++ prospect() : Prospect                // si locataire_type = prospect
++ quittances() : Quittance[0..*]
+```
+
+> Le locataire est désigné par le couple `(locataire_type, locataire_id)`. Toute
+> requête qui filtre les locations d'un client doit porter sur **les deux
+> colonnes** : l'identifiant seul confondrait un client et un prospect de même id.
+
+#### Classe `Quittance`  (table `location_quittances`)
+```
+- id : int
+- location_id : int (FK → Location)
+- periode : string (AAAA-MM)
+- date_echeance : date
+- montant : decimal
+- montant_paye : decimal [nullable]
+- date_paiement : date [nullable]
+- statut : enum {prevu, paye, impaye, partiel, paye_en_retard}
+- notes : text [nullable]
+- created_at : datetime
+- updated_at : datetime
+
++ computeStatut() : string             // déduit le statut du montant payé et de l'échéance
+```
+
+#### Classe `EtatLieuInventaire`
+```
+- id : int
+- etat_lieu_id : int (FK → EtatLieu)
+- piece : string
+- categorie : enum {meuble, electromenager, equipement, textile}
+- designation : string
+- description : text [nullable]
+- date : date [nullable]
+- created_at : datetime
+- updated_at : datetime
+```
+
+#### Classe `ProspectSuggestion`
+```
+- id : int
+- organisation_id : int (FK → Organisation)
+- prospect_id : int (FK → Prospect)
+- bien_id : int (FK → Bien)
+- score : int (0–100)                  // adéquation entre le bien et le prospect
+- created_at : datetime
+- updated_at : datetime
+```
+
 ---
 
 ### 3.2 Associations (Multiplicités)
@@ -518,6 +596,18 @@ Annonce          "1" ——————— "0..*"  AnnoncePhoto
 Contrat          "0..*" ——— "0..*"   Client   [Table pivot : client_contrat]
 Contrat          "1" ——————— "0..*"  Facture
 Contrat          "1" ——————— "0..*"  EtatLieu
+
+Organisation     "1" ——————— "0..*"  Location
+Bien             "1" ——————— "0..*"  Location
+Location         "0..*" ——— "0..1"   Client    (locataire_type = client)
+Location         "0..*" ——— "0..1"   Prospect  (locataire_type = prospect)
+Location         "1" ——————— "0..*"  Quittance
+Location         "1" ——————— "0..*"  EtatLieu
+
+EtatLieu         "1" ——————— "0..*"  EtatLieuInventaire
+
+Prospect         "1" ——————— "0..*"  ProspectSuggestion
+Bien             "1" ——————— "0..*"  ProspectSuggestion
 
 Client           "1" ——————— "0..*"  Facture
 
@@ -585,6 +675,26 @@ Acteurs : Utilisateur, Frontend, Backend (Laravel), Google OAuth, Admin
 22. API → DB : UPDATE Organisation (statut=active), UPDATE User (is_active=true)
 23. Organisation peut maintenant se connecter
 ```
+
+**Connexion Google d'un compte existant :**
+
+```
+1. API → Frontend : Redirect /auth/google/callback?token=…&role=…&org_slug=…
+2. Frontend : setAuth(token) — pose le cookie de session
+3. Frontend → API : GET /api/auth/me
+4. API → Frontend : { user, role, organisation }
+5. Frontend : setAuth(token, user, role, organisation)
+6. Frontend : Redirige → /{slug}
+```
+
+> L'étape 3 est indispensable. L'URL de retour ne transporte que le slug, pas
+> l'organisation elle-même. Sans `/auth/me`, l'organisation n'était jamais
+> enregistrée dans le store : le menu du tableau de bord, qui construit tous
+> ses liens sur `organisation.slug`, retombait sur `/dashboard` et affichait
+> « Organisation » au lieu du nom. Seuls les comptes connectés par Google
+> étaient touchés, donc en pratique les organisations et jamais les employés.
+> Le layout du tableau de bord complète aussi lui-même une organisation
+> manquante, ce qui répare les sessions ouvertes avant la correction.
 
 ---
 
@@ -814,6 +924,10 @@ Acteurs : Organisation/Employé, Frontend, API, DB
 | BienDocument | id | bien_id | 1 Bien → N Documents |
 | AnnoncePhoto | id | annonce_id | 1 Annonce → N Photos |
 | ImmeublePhoto | id | immeuble_id | 1 Immeuble → N Photos |
+| Location | id | organisation_id, bien_id, locataire_id (polymorphe : client ou prospect) | 1 Bien → N Locations |
+| Quittance | id | location_id | 1 Location → N Quittances |
+| EtatLieuInventaire | id | etat_lieu_id | 1 État des lieux → N lignes d'inventaire |
+| ProspectSuggestion | id | organisation_id, prospect_id, bien_id | N biens suggérés par prospect |
 
 ### Table pivot (Many-to-Many)
 
