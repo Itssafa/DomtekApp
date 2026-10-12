@@ -2,10 +2,14 @@
 
 namespace App\Http\Requests\Org;
 
+use App\Http\Requests\Concerns\VerifieRelevesCompteurs;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class UpdateEtatLieuRequest extends FormRequest
 {
+    use VerifieRelevesCompteurs;
+
     public function authorize(): bool { return true; }
 
     public function rules(): array
@@ -27,5 +31,14 @@ class UpdateEtatLieuRequest extends FormRequest
             'inventaires.*.description'        => ['nullable', 'string'],
             'inventaires.*.date'               => ['nullable', 'date'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        // L'enregistrement courant fournit le type et le rattachement, qui ne
+        // sont pas forcément soumis lors d'une modification partielle.
+        $validator->after(
+            fn (Validator $v) => $this->verifierReleves($v, $this->route('etat_lieu'))
+        );
     }
 }

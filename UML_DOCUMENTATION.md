@@ -981,6 +981,7 @@ Les contraintes croisées présentes à la création disparaissaient à la modif
 | `premiere_echeance` ≥ `date_debut` | Contrat, création et modification | — |
 | `montant_ttc` ≥ `montant_ht` | Contrat, création et modification | Un TTC inférieur au HT produirait une TVA négative |
 | `date_publication` ≥ aujourd'hui | Annonce | **Uniquement en cas de reprogrammation.** Reprendre `after_or_equal:today` tel quel empêcherait de corriger le titre d'une annonce déjà publiée, dont la date est par nature passée. La comparaison se fait au **jour** : la valeur stockée est un datetime porteur de l'heure, le formulaire n'envoie qu'une date |
+| Relevés de sortie ≥ relevés d'entrée | État des lieux, création et modification | Un compteur ne recule pas. Les trois compteurs sont contrôlés indépendamment contre l'état des lieux d'**entrée** du même contrat ou de la même location, le plus récent faisant référence. **Sans état des lieux d'entrée, la sortie est acceptée sans contrôle** : les baux antérieurs au module n'en ont pas, et les refuser bloquerait des dossiers légitimes. Logique partagée par les deux requests via le trait `VerifieRelevesCompteurs` |
 
 Ces contrôles vivent dans un hook `withValidator()` plutôt que dans le tableau de règles, parce qu'ils comparent à l'état en base et non à un autre champ soumis.
 
