@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Client;
 use App\Services\ClientAccountService;
 use Illuminate\Contracts\Events\ShouldHandleEventsAfterCommit;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Provisionne automatiquement le compte de connexion d'un client.
@@ -24,7 +25,7 @@ class ClientObserver implements ShouldHandleEventsAfterCommit
 
     public function created(Client $client): void
     {
-        $this->comptes->provision($client);
+        $this->provisionnerSansRompre($client);
     }
 
     /**
@@ -34,7 +35,26 @@ class ClientObserver implements ShouldHandleEventsAfterCommit
     public function updated(Client $client): void
     {
         if ($client->user_id === null && filled($client->email)) {
+            $this->provisionnerSansRompre($client);
+        }
+    }
+
+    /**
+     * L'événement étant émis après le COMMIT, la fiche client est déjà
+     * enregistrée quand on arrive ici : une exception ne l'annulerait pas, elle
+     * se contenterait de renvoyer une erreur 500 à l'agence pour une fiche
+     * pourtant créée. On journalise donc au lieu de propager — l'agence garde
+     * son client, et le bouton « Renvoyer l'accès » permet de rattraper.
+     */
+    private function provisionnerSansRompre(Client $client): void
+    {
+        try {
             $this->comptes->provision($client);
+        } catch (\Throwable $e) {
+            Log::error("Provisionnement du compte client #{$client->id} échoué : " . $e->getMessage(), [
+                'client_id' => $client->id,
+                'email'     => $client->email,
+            ]);
         }
     }
 }

@@ -46,6 +46,7 @@ class ClientAccountService
         if ($estNouveau) {
             $user = User::create([
                 'name'      => $client->nom_complet,
+                'email'     => $client->email,
                 // Secret jamais affiché, jamais envoyé, jamais stocké en clair :
                 // il n'existe que pour empêcher toute connexion avant activation.
                 'password'  => Str::password(32),

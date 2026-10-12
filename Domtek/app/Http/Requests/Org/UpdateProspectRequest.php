@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Org;
 
+use App\Rules\NumeroPieceIdentite;
+use App\Rules\TelephoneTunisien;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProspectRequest extends FormRequest
@@ -18,13 +20,13 @@ class UpdateProspectRequest extends FormRequest
             'nom'               => ['sometimes', 'string', 'max:100'],
             'prenom'            => ['sometimes', 'string', 'max:100'],
             'email'             => ['nullable', 'email', 'max:255'],
-            'telephone'         => ['sometimes', 'required', 'string', 'max:20'],
+            'telephone'         => ['sometimes', 'required', 'string', 'max:20', new TelephoneTunisien],
             'adresse'           => ['nullable', 'string', 'max:255'],
             'ville'             => ['nullable', 'string', 'max:100'],
             'date_naissance'    => ['nullable', 'date', 'before:today'],
             'lieu_naissance'    => ['nullable', 'string', 'max:100'],
             'type_piece'        => ['nullable', 'in:CIN,Passeport'],
-            'cin'               => ['sometimes', 'required', 'string', 'max:20'],
+            'cin'               => ['sometimes', 'required', 'string', 'max:20', new NumeroPieceIdentite],
             'cin_delivree_le'   => ['sometimes', 'required', 'date'],
             'cin_delivree_a'    => ['sometimes', 'required', 'string', 'max:100'],
             'notes'              => ['nullable', 'string'],
