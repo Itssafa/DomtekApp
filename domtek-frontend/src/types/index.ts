@@ -367,19 +367,6 @@ export interface Immeuble {
   updated_at: string;
 }
 
-// ─── Taux Investissement ─────────────────────────────────────────────────────
-
-export interface TauxInvestissement {
-  id: number;
-  taux: number;
-  periode: 'mensuel' | 'trimestriel' | 'annuel';
-  description: string | null;
-  date_debut: string;
-  date_fin: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
 // ─── Pagination ───────────────────────────────────────────────────────────────
 
 export interface PaginationMeta {

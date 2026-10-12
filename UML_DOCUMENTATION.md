@@ -61,7 +61,6 @@ Si l'adresse saisie par l'agence correspond à un compte déjà existant (cas UC
 | UC13 | Supprimer une organisation | Suppression définitive |
 | UC14 | Voir les biens d'une organisation | Supervision des propriétés |
 | UC15 | Voir les annonces d'une organisation | Supervision des annonces |
-| UC16 | Voir les investissements d'une organisation | Supervision financière |
 | UC17 | Voir les comptes d'une organisation | Supervision des utilisateurs |
 
 ---
@@ -184,7 +183,6 @@ Conséquence sur UC47 : la conversion d'un prospect exige désormais que celui-c
 | UC55 | Gérer les immeubles | Organisation | CRUD immeubles + photos |
 | UC56 | Créer un état des lieux | Organisation, Employé | Rapport entrée/sortie + relevés compteurs |
 | UC57 | Gérer les tâches | Organisation, Employé | To-do list d'équipe |
-| UC58 | Configurer les taux d'investissement | Organisation | ROI, périodes |
 | UC59 | Consulter les statistiques | Organisation, Employé | Biens, prospects, visites, canaux |
 | UC60 | Recevoir des notifications | Organisation, Employé | Alertes système |
 
@@ -438,18 +436,6 @@ Conséquence sur UC47 : la conversion d'un prospect exige désormais que celui-c
 - updated_at : datetime
 ```
 
-#### Classe `TauxInvestissement`
-```
-- id : int
-- organisation_id : int (FK → Organisation)
-- taux : decimal
-- periode : string
-- date_debut : date
-- date_fin : date [nullable]
-- created_at : datetime
-- updated_at : datetime
-```
-
 #### Classe `Tache`
 ```
 - id : int
@@ -516,7 +502,6 @@ Organisation     "1" ——————— "0..*"  Prospect
 Organisation     "1" ——————— "0..*"  Visite
 Organisation     "1" ——————— "0..*"  EtatLieu
 Organisation     "1" ——————— "0..*"  Immeuble
-Organisation     "1" ——————— "0..*"  TauxInvestissement
 Organisation     "1" ——————— "0..*"  Tache
 
 Immeuble         "1" ——————— "0..*"  Bien
@@ -824,7 +809,6 @@ Acteurs : Organisation/Employé, Frontend, API, DB
 | Prospect | id | organisation_id, client_id (nullable) | 1 Org → N Prospects |
 | Visite | id | organisation_id, prospect_id, bien_id, employe_id | N Visites par Prospect |
 | EtatLieu | id | organisation_id, contrat_id | 1 Contrat → N États des lieux |
-| TauxInvestissement | id | organisation_id | 1 Org → N Taux |
 | Tache | id | organisation_id | 1 Org → N Tâches |
 | BienImage | id | bien_id | 1 Bien → N Images |
 | BienDocument | id | bien_id | 1 Bien → N Documents |
@@ -1077,8 +1061,7 @@ Les quatre champs `date_naissance` passant par ce helper avaient échappé à un
 │       └── /{slug}/
 │           ├── biens
 │           ├── annonces
-│           ├── comptes
-│           └── investissement
+│           └── comptes
 │
 └── /{slug}                (Tableau de bord Organisation/Employé)
     ├── /biens             (+ /nouveau + /{id} + /{id}/modifier)
@@ -1092,6 +1075,6 @@ Les quatre champs `date_naissance` passant par ce helper avaient échappé à un
     ├── /etat-lieux        (+ /nouveau + /{id})
     ├── /immeubles
     ├── /taches
-    ├── /investissements
+    ├── /statistiques       (courbes : occupation, conversion, visites, canaux)
     └── /compte
 ```

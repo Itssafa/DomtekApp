@@ -265,9 +265,6 @@ return [
         'source_connaissance'        => 'source de connaissance',
         'source_connaissance_detail' => 'détail de la source',
 
-        // Investissement
-        'taux'                       => 'taux',
-
         // Rattachements
         'bien_id'                    => 'bien',
         'immeuble_id'                => 'immeuble',
