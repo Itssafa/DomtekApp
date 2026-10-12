@@ -152,7 +152,7 @@ export default function NouvelleFacturePage() {
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Au</label>
-                <input type="date" value={form.periode_fin} onChange={set('periode_fin')} className={ic} />
+                <input type="date" value={form.periode_fin} onChange={set('periode_fin')} className={ic} min={form.periode_debut || undefined} />
               </div>
             </div>
           </div>
@@ -183,7 +183,7 @@ export default function NouvelleFacturePage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date d'échéance *</label>
-              <input type="date" value={form.date_echeance} onChange={set('date_echeance')} className={ic} />
+              <input type="date" value={form.date_echeance} onChange={set('date_echeance')} className={ic} min={form.date_emission || undefined} />
               {err('date_echeance')}
             </div>
           </div>

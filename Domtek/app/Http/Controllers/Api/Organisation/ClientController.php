@@ -7,6 +7,7 @@ use App\Http\Requests\Org\StoreClientRequest;
 use App\Http\Requests\Org\UpdateClientRequest;
 use App\Http\Resources\ClientResource;
 use App\Models\Client;
+use App\Services\ClientAccountService;
 use App\Services\ClientService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,7 +15,10 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ClientController extends Controller
 {
-    public function __construct(private ClientService $service) {}
+    public function __construct(
+        private ClientService $service,
+        private ClientAccountService $comptes,
+    ) {}
 
     private function orgId(): int
     {
@@ -39,9 +43,27 @@ class ClientController extends Controller
     public function show(Client $client): ClientResource
     {
         $this->authorize('view', $client);
-        $client->load(['contrats.bien', 'factures']);
+        $client->load(['contrats.bien', 'factures', 'user']);
 
         return new ClientResource($client);
+    }
+
+    /**
+     * Renvoyer au client son lien d'activation (spam, e-mail perdu, lien expiré).
+     */
+    public function renvoyerAcces(Client $client): JsonResponse
+    {
+        $this->authorize('update', $client);
+
+        try {
+            $this->comptes->renvoyerInvitation($client);
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'message' => "Un lien d'activation a été envoyé à {$client->email}.",
+        ]);
     }
 
     public function update(UpdateClientRequest $request, Client $client): ClientResource

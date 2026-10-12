@@ -11,6 +11,8 @@ interface OrgOption { id: number; nom: string; }
 const inputCls    = 'w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all';
 const inputErrCls = 'w-full border border-red-400 bg-red-50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 transition-all';
 
+
+const AUJOURD_HUI = new Date().toISOString().slice(0, 10);
 export default function RegisterEmployePage() {
   const [orgs, setOrgs] = useState<OrgOption[]>([]);
   const [form, setForm] = useState({
@@ -192,7 +194,7 @@ export default function RegisterEmployePage() {
                 {/* Date de naissance */}
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1.5">Date de naissance</label>
-                  <input type="date" value={form.date_naissance} onChange={set('date_naissance')} className={inputCls} />
+                  <input type="date" value={form.date_naissance} onChange={set('date_naissance')} className={inputCls} max={AUJOURD_HUI} />
                   {errors.date_naissance && <p className="text-red-500 text-xs mt-1">{errors.date_naissance[0]}</p>}
                 </div>
 
@@ -205,7 +207,7 @@ export default function RegisterEmployePage() {
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1.5">Délivré le</label>
-                    <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={errors.cin_delivree_le ? inputErrCls : inputCls} />
+                    <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={errors.cin_delivree_le ? inputErrCls : inputCls} max={AUJOURD_HUI} />
                     {errors.cin_delivree_le && <p className="text-red-500 text-xs mt-1">{errors.cin_delivree_le[0]}</p>}
                   </div>
                   <div>

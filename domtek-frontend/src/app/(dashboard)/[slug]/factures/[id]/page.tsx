@@ -235,7 +235,7 @@ export default function EditFacturePage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date échéance</label>
                 <input type="date" value={form.date_echeance} onChange={set('date_echeance')}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" min={form.date_emission || undefined} />
               </div>
             </div>
             <div>

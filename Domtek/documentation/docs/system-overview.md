@@ -74,7 +74,6 @@ graph LR
 
     ADMIN --> A1[Manage organizations - activate / deactivate / delete]
     ADMIN --> A2[View properties and listings per org]
-    ADMIN --> A3[View investment rates per org]
 
     ORG --> O1[Manage properties - sale and rental]
     ORG --> O2[Manage listings - schedule publication]
@@ -102,7 +101,6 @@ graph TD
 
     ADMIN_R --> AD1["/admin/organisations"]
     ADMIN_R --> AD2["/admin/org/annonces"]
-    ADMIN_R --> AD3["/admin/org/investissement"]
     ADMIN_R --> AD4["/admin/org/comptes"]
 
     ORG_R --> OR1["/org/proprietes"]

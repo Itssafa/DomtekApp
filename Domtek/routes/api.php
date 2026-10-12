@@ -15,7 +15,6 @@ use App\Http\Controllers\Api\Organisation\FactureController;
 use App\Http\Controllers\Api\Organisation\EtatLieuController;
 use App\Http\Controllers\Api\Organisation\VisiteController;
 use App\Http\Controllers\Api\Organisation\ImmeubleController;
-use App\Http\Controllers\Api\Organisation\InvestissementController;
 use App\Http\Controllers\Api\Organisation\CalendrierController;
 use App\Http\Controllers\Api\Organisation\LocationController;
 use App\Http\Controllers\Api\Organisation\NotificationController;
@@ -26,6 +25,7 @@ use App\Http\Controllers\Api\Organisation\GenerateDescriptionController;
 use App\Http\Controllers\Api\Organisation\ProspectSuggestionsController;
 use App\Http\Controllers\Api\Public\AnnonceController as AnnoncePubliqueController;
 use App\Http\Controllers\Api\Public\OrganisationController as OrganisationPubliqueController;
+use App\Http\Controllers\Api\Client\EspaceController;
 use App\Http\Controllers\Api\Public\PaiementController;
 use Illuminate\Support\Facades\Route;
 
@@ -50,6 +50,7 @@ Route::prefix('auth')->group(function () {
     // Mot de passe oublié
     Route::post('forgot-password', [PasswordResetController::class, 'sendResetLink']);
     Route::post('reset-password',  [PasswordResetController::class, 'resetPassword']);
+    Route::post('activate-client', [PasswordResetController::class, 'activateClient']);
 
     // Vérification e-mail
     Route::post('verify-email',    [AuthController::class, 'verifyEmail']);
@@ -102,8 +103,24 @@ Route::middleware('auth:sanctum')->group(function () {
         // Vue admin des données d'une organisation
         Route::get('organisations/{organisation}/biens',          [AdminOrganisationController::class, 'biens']);
         Route::get('organisations/{organisation}/annonces',       [AdminOrganisationController::class, 'annonces']);
-        Route::get('organisations/{organisation}/investissements', [AdminOrganisationController::class, 'investissements']);
         Route::get('organisations/{organisation}/comptes',         [AdminOrganisationController::class, 'comptes']);
+    });
+
+    /*
+    |----------------------------------------------------------------------
+    | ESPACE CLIENT
+    | Lecture seule : le client consulte ses contrats et ses factures.
+    | Le périmètre est borné par les fiches clients rattachées à son compte.
+    |----------------------------------------------------------------------
+    */
+    Route::middleware('role:client')->prefix('client')->group(function () {
+        Route::get('resume',          [EspaceController::class, 'resume']);
+        Route::get('contrats',            [EspaceController::class, 'contrats']);
+        Route::get('contrats/{id}',       [EspaceController::class, 'contrat']);
+        Route::get('contrats/{id}/pdf',   [EspaceController::class, 'contratPdf']);
+        Route::get('factures',            [EspaceController::class, 'factures']);
+        Route::get('factures/{id}',       [EspaceController::class, 'facture']);
+        Route::get('quittances',          [EspaceController::class, 'quittances']);
     });
 
     /*
@@ -152,6 +169,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('clients/{client}',      [ClientController::class, 'update']);
         Route::patch('clients/{client}',    [ClientController::class, 'update']);
         Route::delete('clients/{client}',   [ClientController::class, 'destroy']);
+        Route::post('clients/{client}/renvoyer-acces', [ClientController::class, 'renvoyerAcces']);
 
         // Dashboard IA
         Route::get('dashboard/suggestions', DashboardSuggestionsController::class);
@@ -222,9 +240,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('employes', EmployeController::class);
         Route::get('employes-en-attente',         [EmployeController::class, 'enAttente']);
         Route::post('employes/{employe}/activer', [EmployeController::class, 'activerCompte']);
-
-        // Taux d'investissement
-        Route::apiResource('investissements', InvestissementController::class);
 
         // Statistiques
         Route::get('statistiques/biens',     [StatistiqueController::class, 'biens']);

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Org;
 
+use App\Rules\NumeroPieceIdentite;
+use App\Rules\TelephoneTunisien;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProspectRequest extends FormRequest
@@ -18,14 +20,14 @@ class StoreProspectRequest extends FormRequest
             'nom'               => ['required', 'string', 'max:100'],
             'prenom'            => ['required', 'string', 'max:100'],
             'email'             => ['nullable', 'email', 'max:255'],
-            'telephone'         => ['required', 'string', 'max:20'],
+            'telephone'         => ['required', 'string', 'max:20', new TelephoneTunisien],
             'adresse'           => ['nullable', 'string', 'max:255'],
             'ville'             => ['nullable', 'string', 'max:100'],
-            'date_naissance'    => ['nullable', 'date', 'before:today'],
+            'date_naissance'    => ['nullable', 'date', 'before:today', 'after:1900-01-01'],
             'lieu_naissance'    => ['nullable', 'string', 'max:100'],
             'type_piece'        => ['nullable', 'in:CIN,Passeport'],
-            'cin'               => ['nullable', 'string', 'max:20'],
-            'cin_delivree_le'   => ['nullable', 'date'],
+            'cin'               => ['nullable', 'string', 'max:20', new NumeroPieceIdentite],
+            'cin_delivree_le'   => ['nullable', 'date', 'before_or_equal:today'],
             'cin_delivree_a'    => ['nullable', 'string', 'max:100'],
             'document_identite' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             'notes'              => ['nullable', 'string'],

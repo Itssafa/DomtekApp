@@ -87,8 +87,15 @@ class User extends Authenticatable
         return $this->hasOne(Employe::class);
     }
 
-    public function clientProfile(): HasOne
+    /**
+     * Fiches clients rattachées à ce compte.
+     *
+     * L'unicité de l'e-mail est scopée par agence : une même personne peut être
+     * cliente de plusieurs organisations, ce qui donne plusieurs fiches pour un
+     * seul et même compte de connexion.
+     */
+    public function clientProfiles(): HasMany
     {
-        return $this->hasOne(Client::class);
+        return $this->hasMany(Client::class);
     }
 }

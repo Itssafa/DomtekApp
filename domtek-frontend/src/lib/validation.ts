@@ -17,6 +17,51 @@ export function isValidPhone(phone: string): boolean {
   return /^(\+216)?[2-9]\d{7}$/.test(cleaned);
 }
 
+/**
+ * Filtre de frappe pour un numéro de téléphone : seuls les chiffres, les
+ * espaces de lisibilité et un « + » en tête sont retenus. Les lettres sont
+ * donc impossibles à saisir, comme pour le CIN.
+ *
+ * Volontairement plus permissif que `isValidPhone` : on n'empêche pas de
+ * taper un numéro incomplet pendant la saisie, seulement d'y mettre des
+ * caractères qui n'ont rien à y faire. La validité du format reste vérifiée
+ * à la soumission.
+ */
+export function filtreTelephone(valeur: string): string {
+  const indicatif = valeur.trimStart().startsWith("+") ? "+" : "";
+  const chiffres = valeur.replace(/[^\d ]/g, "").replace(/ {2,}/g, " ");
+  return (indicatif + chiffres).slice(0, 17);
+}
+
+/** Aujourd'hui au format attendu par un `<input type="date">`. */
+export const AUJOURD_HUI = new Date().toISOString().slice(0, 10);
+
+/** Champs dont la date ne peut pas être dans le futur. */
+const DATES_PASSEES = [
+  "date_naissance",
+  "cin_delivree_le",
+  "date_embauche",
+  "date_construction",
+];
+
+/** Champs dont la date ne peut pas être dans le passé. */
+const DATES_FUTURES = ["date_visite", "date_publication"];
+
+/**
+ * Bornes du sélecteur de date pour un champ donné, afin que le calendrier
+ * n'offre pas ce que le serveur refusera. Reflète les règles des FormRequest :
+ * `before_or_equal:today` d'un côté, `after_or_equal:today` de l'autre.
+ *
+ * Un champ absent des deux listes n'est pas borné — les dates relatives
+ * (fin de période, échéance) dépendent d'un autre champ du formulaire et sont
+ * posées au cas par cas.
+ */
+export function borneDate(champ: string): { min?: string; max?: string } {
+  if (DATES_PASSEES.includes(champ)) return { max: AUJOURD_HUI };
+  if (DATES_FUTURES.includes(champ)) return { min: AUJOURD_HUI };
+  return {};
+}
+
 export function isPositiveAmount(value: string | number): boolean {
   const n = typeof value === "number" ? value : Number(value);
   return !isNaN(n) && n > 0;

@@ -11,7 +11,6 @@ const TABS = [
   { label: 'Comptes', suffix: '/comptes' },
   { label: 'Biens', suffix: '/biens' },
   { label: 'Annonces', suffix: '/annonces' },
-  { label: 'Investissement', suffix: '/investissement' },
 ];
 
 const STATUT_STYLES: Record<string, string> = {

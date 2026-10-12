@@ -26,7 +26,6 @@ frontend/
 │   │           └── [id]/
 │   │               ├── page.tsx
 │   │               ├── annonces/page.tsx
-│   │               ├── investissement/page.tsx
 │   │               └── comptes/page.tsx
 │   ├── (org)/
 │   │   └── [org_slug]/

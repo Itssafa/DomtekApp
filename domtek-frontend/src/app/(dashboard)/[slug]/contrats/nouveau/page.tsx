@@ -10,7 +10,7 @@ import { Bien, Client, Prospect } from '@/types';
 import { AxiosError } from 'axios';
 import { ContratPreview, type ContratPreviewData } from '@/components/ContratPreview';
 import StepForm, { FormStep } from '@/components/StepForm';
-import { isValidEmail, isValidPhone, isPositiveAmount, isValidCin, isValidCityOrPlace } from '@/lib/validation';
+import { isValidEmail, isValidPhone, isPositiveAmount, isValidCin, isValidCityOrPlace, filtreTelephone } from '@/lib/validation';
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -114,6 +114,8 @@ function defaultNouveauClient() {
 
 // ─── Page principale ──────────────────────────────────────────────────────────
 
+
+const AUJOURD_HUI = new Date().toISOString().slice(0, 10);
 export default function NouveauContratPage() {
   const router = useRouter();
   const { organisation } = useAuthStore();
@@ -230,6 +232,11 @@ export default function NouveauContratPage() {
     return { ...p, [field]: digits };
   });
 
+  /** Filtre de frappe du téléphone : chiffres, espaces et « + » en tête. */
+  const setNcTelephone = (field: string) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => setNcForm(p => ({ ...p, [field]: filtreTelephone(e.target.value) }));
+
   // ── Dérivations ──────────────────────────────────────────────────────────
   const selectedBien    = biens.find(b => b.id === Number(form.bien_id)) ?? null;
   const selectedClient  = clients.find(c => c.id === Number(clientId)) ?? null;
@@ -283,7 +290,7 @@ export default function NouveauContratPage() {
     if (nature === 'location') return !!selectedLocation;
     if (modePB === 'client_existant') return !!clientId;
     if (modePB === 'prospect')        return !!prospectId;
-    if (modePB === 'nouveau_client')  return !!(ncForm.nom && ncForm.prenom);
+    if (modePB === 'nouveau_client')  return !!(ncForm.nom && ncForm.prenom && ncForm.email);
     return false;
   }, [nature, selectedLocation, modePB, clientId, prospectId, ncForm]);
 
@@ -544,7 +551,7 @@ export default function NouveauContratPage() {
                 {!form.cin_delivree_le && (
                   <div>
                     <label className={lc + ' mt-1'}>CIN délivrée le <span className="text-gray-400 font-normal">(non renseigné dans le profil)</span></label>
-                    <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} />
+                    <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} max={AUJOURD_HUI} />
                   </div>
                 )}
               </div>
@@ -647,7 +654,10 @@ export default function NouveauContratPage() {
       validate: () => {
         if (!partieB_valide) return 'Veuillez renseigner les informations du client.';
         if (modePB === 'nouveau_client') {
-          if (ncForm.email && !isValidEmail(ncForm.email)) return "L'email du client est invalide.";
+          // Obligatoire : identifiant de connexion du client et destinataire
+          // de son invitation à activer son espace.
+          if (!ncForm.email.trim()) return "L'email du client est obligatoire : il sert d'identifiant à son espace client.";
+          if (!isValidEmail(ncForm.email)) return "L'email du client est invalide.";
           if (ncForm.telephone && !isValidPhone(ncForm.telephone)) return 'Le téléphone du client est invalide (format tunisien attendu).';
           if (ncForm.cin && !isValidCin(ncForm.cin)) return 'Le CIN du client doit contenir exactement 8 chiffres.';
           if (ncForm.ville && !isValidCityOrPlace(ncForm.ville)) return 'La ville du client est invalide.';
@@ -699,7 +709,7 @@ export default function NouveauContratPage() {
                     <label className={lc}>CIN délivrée le</label>
                     {selectedClient.cin_delivree_le
                       ? <input type="text" value={fmtDate(selectedClient.cin_delivree_le)} disabled className={dc} />
-                      : <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} placeholder="Non renseigné" />
+                      : <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} placeholder="Non renseigné" max={AUJOURD_HUI} />
                     }
                   </div>
                   <div>
@@ -736,7 +746,7 @@ export default function NouveauContratPage() {
                     <label className={lc}>CIN délivrée le</label>
                     {selectedProspect.cin_delivree_le
                       ? <input type="text" value={fmtDate(selectedProspect.cin_delivree_le)} disabled className={dc} />
-                      : <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} placeholder="Non renseigné" />
+                      : <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} placeholder="Non renseigné" max={AUJOURD_HUI} />
                     }
                   </div>
                 </div>
@@ -746,7 +756,10 @@ export default function NouveauContratPage() {
 
           {modePB === 'nouveau_client' && (
             <div className="space-y-3">
-              <p className="text-xs text-blue-700 bg-blue-50 rounded-lg px-3 py-2">Ce client sera créé et directement lié au contrat.</p>
+              <p className="text-xs text-blue-700 bg-blue-50 rounded-lg px-3 py-2">
+                Ce client sera créé et directement lié au contrat. Il recevra par e-mail
+                une invitation à activer son espace client.
+              </p>
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className={lc}>Civilité</label>
@@ -761,14 +774,14 @@ export default function NouveauContratPage() {
                 <div><label className={lc}>Prénom *</label><input type="text" value={ncForm.prenom} onChange={setNc('prenom')} className={ic} />{errMsg('nouveau_client.prenom')}</div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className={lc}>Email</label><input type="email" value={ncForm.email} onChange={setNc('email')} className={ic} /></div>
-                <div><label className={lc}>Téléphone</label><input type="tel" value={ncForm.telephone} onChange={setNc('telephone')} className={ic} /></div>
+                <div><label className={lc}>Email *</label><input type="email" value={ncForm.email} onChange={setNc('email')} className={ic} />{errMsg('nouveau_client.email')}</div>
+                <div><label className={lc}>Téléphone</label><input type="tel" value={ncForm.telephone} onChange={setNcTelephone('telephone')} className={ic} /></div>
                 <div><label className={lc}>CIN</label><input type="text" value={ncForm.cin} onChange={setNcDigitsOnly('cin', 8)} className={ic} /></div>
-                <div><label className={lc}>Date de naissance</label><input type="date" value={ncForm.date_naissance} onChange={setNc('date_naissance')} className={ic} /></div>
+                <div><label className={lc}>Date de naissance</label><input type="date" value={ncForm.date_naissance} onChange={setNc('date_naissance')} className={ic} max={AUJOURD_HUI} /></div>
                 <div><label className={lc}>Adresse</label><input type="text" value={ncForm.adresse} onChange={setNc('adresse')} className={ic} /></div>
                 <div><label className={lc}>Ville</label><input type="text" value={ncForm.ville} onChange={setNc('ville')} className={ic} /></div>
               </div>
-              <div><label className={lc}>CIN délivrée le</label><input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} /></div>
+              <div><label className={lc}>CIN délivrée le</label><input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} max={AUJOURD_HUI} /></div>
             </div>
           )}
         </>

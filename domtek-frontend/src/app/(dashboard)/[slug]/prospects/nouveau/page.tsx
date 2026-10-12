@@ -8,7 +8,7 @@ import { orgPath } from '@/lib/org-path';
 import { Bien, BesoinProspect } from '@/types';
 import { AxiosError } from 'axios';
 import StepForm, { FormStep } from '@/components/StepForm';
-import { isValidEmail, isValidPhone, isValidCinOrPasseport, isValidCityOrPlace } from '@/lib/validation';
+import { isValidEmail, isValidPhone, isValidCinOrPasseport, isValidCityOrPlace, filtreTelephone, borneDate } from '@/lib/validation';
 
 const BESOINS_LABELS: Record<BesoinProspect, string> = {
   prix: '💰 Prix', emplacement: '📍 Emplacement', superficie: '📐 Superficie',
@@ -111,12 +111,18 @@ export default function NouveauProspectPage() {
     }
   };
 
+  /** Setter appliquant un filtre de frappe avant d'enregistrer la valeur. */
+  const setFiltre = (champ: string, filtre: (v: string) => string) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => setForm((prev) => ({ ...prev, [champ]: filtre(e.target.value) }));
+
   const inp = (label: string, key: string, type: React.HTMLInputTypeAttribute = 'text', placeholder = '', required = false, onChange = set(key)) => (
     <div>
       <label className="block text-xs font-medium text-gray-600 mb-1">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
-      <input type={type} value={(form as Record<string, string>)[key]} onChange={onChange} placeholder={placeholder}
+      <input type={type} value={(form as Record<string, string>)[key]} onChange={type === 'tel' ? setFiltre(key, filtreTelephone) : onChange}
+        {...borneDate(key)} placeholder={placeholder}
         className={errors[key]
           ? 'w-full border border-red-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-red-50'
           : 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500'} />
