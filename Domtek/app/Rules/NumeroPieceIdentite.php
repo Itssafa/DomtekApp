@@ -7,23 +7,36 @@ use Illuminate\Contracts\Validation\DataAwareRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 /**
- * Numéro de pièce d'identité, dont le format dépend du type de pièce saisi.
+ * Numéro de pièce d'identité, dont le format dépend du type de pièce.
  *
  * - CIN tunisienne : exactement 8 chiffres.
  * - Passeport : chiffres uniquement, longueur libre (les formats varient
  *   selon le pays émetteur).
+ * - Type inconnu : chiffres uniquement, longueur libre.
  *
- * Le type est lu dans la requête via `type_piece`. Les entités qui n'offrent
- * pas ce choix — les employés, par exemple — n'acceptent qu'une CIN : en
- * l'absence du champ, la règle applique donc les 8 chiffres.
+ * Le type est lu dans la requête via `type_piece`, ou impose par le
+ * constructeur quand le formulaire n'offre pas ce choix — c'est le cas des
+ * employés, qui ne peuvent produire qu'une CIN : `new NumeroPieceIdentite('CIN')`.
  *
- * Reproduit côté serveur ce que le filtre de saisie `setDigitsOnly` fait
- * déjà dans les formulaires, afin qu'un appel direct à l'API n'y échappe pas.
+ * Le dernier cas mérite d'être explicite. Sur les fiches clients et prospects,
+ * `type_piece` est facultatif : imposer les 8 chiffres faute de réponse
+ * rejetait un numéro de passeport parfaitement valide, alors que le filtre de
+ * saisie, lui, l'acceptait. Sans information, la règle se borne donc à exiger
+ * des chiffres ; la longueur n'est contrôlée que lorsque le type est connu.
+ *
+ * Reproduit côté serveur ce que le filtre de saisie `setDigitsOnly` fait déjà
+ * dans les formulaires, afin qu'un appel direct à l'API n'y échappe pas.
  */
 class NumeroPieceIdentite implements DataAwareRule, ValidationRule
 {
     /** @var array<string, mixed> */
     private array $data = [];
+
+    /**
+     * @param string|null $typeImpose Type de pièce imposé par le formulaire,
+     *                                quand celui-ci n'en propose pas le choix.
+     */
+    public function __construct(private ?string $typeImpose = null) {}
 
     public function setData(array $data): static
     {
@@ -45,12 +58,10 @@ class NumeroPieceIdentite implements DataAwareRule, ValidationRule
             return;
         }
 
-        // Le passeport est le seul cas où la longueur n'est pas imposée.
-        if (($this->data['type_piece'] ?? 'CIN') === 'Passeport') {
-            return;
-        }
+        $type = $this->typeImpose ?? ($this->data['type_piece'] ?? null);
 
-        if (strlen($numero) !== 8) {
+        // La longueur n'est contrôlée que si l'on sait avoir affaire à une CIN.
+        if ($type === 'CIN' && strlen($numero) !== 8) {
             $fail('La CIN doit contenir exactement 8 chiffres.');
         }
     }
