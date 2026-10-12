@@ -11,8 +11,7 @@ database/
 │   ├── 0001_01_01_000005_create_contracts_table.php
 │   ├── 0001_01_01_000006_create_clients_table.php
 │   ├── 0001_01_01_000007_create_employees_table.php
-│   ├── 0001_01_01_000008_create_utility_bills_table.php
-│   └── 0001_01_01_000009_create_investment_rates_table.php
+│   └── 0001_01_01_000008_create_utility_bills_table.php
 │
 └── seeders/
     ├── DatabaseSeeder.php              # Orchestrates all seeders
@@ -38,7 +37,6 @@ Migrations must run in dependency order:
 7. `listings` (needs `properties`, `organisations`)
 8. `contracts` (needs `properties`, `clients`, `organisations`)
 9. `utility_bills` (needs `clients`, `organisations`)
-10. `investment_rates` (needs `organisations`)
 
 ---
 

@@ -76,18 +76,11 @@ erDiagram
         string name
         string role
     }
-    investment_rates {
-        bigint id PK
-        bigint organisation_id FK
-        decimal rate
-        date period
-    }
 
     organisations ||--o{ users : "has members"
     organisations ||--o{ properties : "owns"
     organisations ||--o{ clients : "manages"
     organisations ||--o{ employees : "employs"
-    organisations ||--o{ investment_rates : "tracks"
     properties ||--o{ listings : "listed as"
     properties ||--o{ contracts : "covered by"
     clients ||--o{ contracts : "signs"
