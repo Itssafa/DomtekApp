@@ -964,10 +964,12 @@ colonnes : l'identifiant seul exposerait les quittances d'un prospect de même i
 | Règle | Format imposé | Appliquée à |
 |---|---|---|
 | `TelephoneTunisien` | 8 chiffres commençant par 2–9, indicatif `+216` ou `00216` facultatif. Séparateurs d'espacement tolérés à la saisie, retirés avant contrôle | `telephone` (7 requests), `urgence_telephone` (2) |
-| `NumeroPieceIdentite` | Chiffres uniquement. Exactement 8 si `type_piece = CIN` ou si le champ est absent (cas des employés) ; longueur libre pour un passeport. Lit `type_piece` via `DataAwareRule` | `cin` (7 requests) |
+| `NumeroPieceIdentite` | Chiffres uniquement. La longueur — exactement 8 — n'est imposée que lorsque le type est **connu** et vaut CIN : soit `type_piece` le dit, soit le constructeur l'impose (`new NumeroPieceIdentite('CIN')`, pour les formulaires employés qui n'offrent pas ce choix). Sans information sur le type, seuls les chiffres sont exigés | `cin` (7 requests) |
 | `CodePostalTunisien` | Exactement 4 chiffres | `code_postal` (2 requests) |
 
 Ces règles reproduisent côté serveur ce que les formulaires faisaient déjà seuls : sans elles, un appel direct à l'API acceptait `telephone = "bonjour"` et `cin = "AZERTYUI"`.
+
+> **Le type de pièce doit rester explicite.** Une première version de `NumeroPieceIdentite` considérait qu'un `type_piece` absent valait CIN, et exigeait donc 8 chiffres. Ce choix était nécessaire pour les employés, mais il rejetait un numéro de passeport sur les fiches clients et prospects, où le champ est facultatif — alors que le filtre de saisie, lui, l'acceptait. La règle ne contrôle désormais la longueur que lorsque le type est connu, et les formulaires employés l'imposent par le constructeur.
 
 ### Cohérences entre champs
 
