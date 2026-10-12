@@ -1009,6 +1009,16 @@ Les 36 champs `type="date"` du frontend n'avaient ni `min` ni `max` : le calendr
 
 Les bornes relatives ne sont posées que là où le champ de référence existe dans le même formulaire ; ailleurs, la contrainte reste assurée par le serveur, qui compare à la valeur en base.
 
+### Messages en français
+
+Laravel 11+ n'embarque plus de répertoire `lang/`. Sans traduction, et avec `APP_LOCALE=en`, tous les messages des règles déclaratives sortaient en anglais au milieu d'une interface française, avec des noms de champs bruts : *« The cin delivree le field must be a date before or equal to today. »*
+
+`lang/fr/validation.php` traduit les 24 règles effectivement employées dans le projet, et sa section `attributes` donne à chacun des ~115 champs son libellé lisible — c'est elle qui transforme « le champ date naissance » en « la date de naissance ».
+
+`APP_FALLBACK_LOCALE` reste à `en` : une règle ajoutée plus tard sans sa traduction retombe sur le message interne de Laravel plutôt que d'échouer. Un message anglais qui réapparaît signale donc simplement une clé à compléter dans ce fichier.
+
+La section `custom` existe pour un cas précis : le marqueur `:date` restitue le paramètre brut de la règle, ce qui donnait *« antérieure ou égale au today »*. Les règles bornées par `today` reçoivent donc leur propre formulation, qui énonce l'attendu au lieu de citer la contrainte — *« La date de délivrance de la CIN ne peut pas être dans le futur. »*
+
 ### Validation frontend
 
 `domtek-frontend/src/lib/validation.ts` centralise les règles de validation appliquées aux formulaires (auth + dashboard organisation) avant soumission :
