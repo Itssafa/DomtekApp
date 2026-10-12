@@ -400,7 +400,7 @@ Conséquence sur UC47 : la conversion d'un prospect exige désormais que celui-c
 - telephone : string [nullable]
 - score_solvabilite : decimal [0-40]
 - score_opportunite : decimal [total calculé]
-- impression_premiere_visite : enum [nullable]
+- impression_premiere_visite : enum {très_satisfait, satisfait, neutre, plutot_non_satisfait, non_satisfait} [nullable]
 - revenus_client : decimal [nullable]
 - created_at : datetime
 - updated_at : datetime
