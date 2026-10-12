@@ -955,7 +955,21 @@ colonnes : l'identifiant seul exposerait les quittances d'un prospect de même i
 
 ---
 
-## 6bis. VALIDATION FRONTEND
+## 6bis. VALIDATION
+
+### Règles partagées côté serveur
+
+`app/Rules/` regroupe les contrôles de format qui se répétaient d'un `FormRequest` à l'autre. Les déclarer une fois évite qu'ils redivergent : `telephone` était recopié dans 7 fichiers et `cin` dans 6, chacun avec la même règle incomplète (`['string', 'max:20']`, aucun contrôle de format).
+
+| Règle | Format imposé | Appliquée à |
+|---|---|---|
+| `TelephoneTunisien` | 8 chiffres commençant par 2–9, indicatif `+216` ou `00216` facultatif. Séparateurs d'espacement tolérés à la saisie, retirés avant contrôle | `telephone` (7 requests), `urgence_telephone` (2) |
+| `NumeroPieceIdentite` | Chiffres uniquement. Exactement 8 si `type_piece = CIN` ou si le champ est absent (cas des employés) ; longueur libre pour un passeport. Lit `type_piece` via `DataAwareRule` | `cin` (7 requests) |
+| `CodePostalTunisien` | Exactement 4 chiffres | `code_postal` (2 requests) |
+
+Ces règles reproduisent côté serveur ce que les formulaires faisaient déjà seuls : sans elles, un appel direct à l'API acceptait `telephone = "bonjour"` et `cin = "AZERTYUI"`.
+
+### Validation frontend
 
 `domtek-frontend/src/lib/validation.ts` centralise les règles de validation appliquées aux formulaires (auth + dashboard organisation) avant soumission :
 

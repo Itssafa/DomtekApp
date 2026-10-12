@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Rules\NumeroPieceIdentite;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RegisterEmployeRequest extends FormRequest
@@ -20,7 +21,7 @@ class RegisterEmployeRequest extends FormRequest
             'password'        => ['required', 'string', 'min:8', 'confirmed'],
             'organisation_id' => ['required', 'integer', 'exists:organisations,id'],
             'date_naissance'  => ['nullable', 'date', 'before:today'],
-            'cin'             => ['nullable', 'string', 'max:20'],
+            'cin'             => ['nullable', 'string', 'max:20', new NumeroPieceIdentite],
             'cin_delivree_le' => ['nullable', 'date'],
             'cin_delivree_a'  => ['nullable', 'string', 'max:100'],
         ];

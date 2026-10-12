@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Org;
 
+use App\Rules\CodePostalTunisien;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBienRequest extends FormRequest
@@ -33,7 +34,7 @@ class StoreBienRequest extends FormRequest
             'adresse'           => ['nullable', 'string', 'max:255'],
             'ville'             => ['nullable', 'string', 'max:100'],
             'pays'              => ['nullable', 'string', 'max:100'],
-            'code_postal'       => ['nullable', 'string', 'max:20'],
+            'code_postal'       => ['nullable', 'string', 'max:20', new CodePostalTunisien],
             'maps_url'          => ['nullable', 'string', 'max:2048'],
             'nb_pieces'         => ['nullable', 'integer', 'min:0'],
             'nb_chambres'       => ['nullable', 'integer', 'min:0'],
