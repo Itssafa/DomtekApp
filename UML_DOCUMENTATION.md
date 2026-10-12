@@ -969,6 +969,21 @@ colonnes : l'identifiant seul exposerait les quittances d'un prospect de même i
 
 Ces règles reproduisent côté serveur ce que les formulaires faisaient déjà seuls : sans elles, un appel direct à l'API acceptait `telephone = "bonjour"` et `cin = "AZERTYUI"`.
 
+### Cohérences entre champs
+
+Les contraintes croisées présentes à la création disparaissaient à la modification : chaque `Update…Request` avait été écrit sans reprendre celles de son `Store…Request`. La donnée était donc correcte à la création et corrompable ensuite.
+
+| Contrainte | Où elle s'applique | Référence comparée |
+|---|---|---|
+| `date_echeance` ≥ `date_emission` | Facture, création et modification | À la modification, `date_emission` n'est pas modifiable : la comparaison porte sur la **valeur enregistrée**, pas sur un champ du formulaire |
+| `periode_fin` ≥ `periode_debut` | Facture | Chaque borne peut être soumise seule ; l'autre est reprise en base |
+| `date_fin` > `date_debut` | Contrat | Idem : `date_debut` n'est pas modifiable |
+| `premiere_echeance` ≥ `date_debut` | Contrat, création et modification | — |
+| `montant_ttc` ≥ `montant_ht` | Contrat, création et modification | Un TTC inférieur au HT produirait une TVA négative |
+| `date_publication` ≥ aujourd'hui | Annonce | **Uniquement en cas de reprogrammation.** Reprendre `after_or_equal:today` tel quel empêcherait de corriger le titre d'une annonce déjà publiée, dont la date est par nature passée. La comparaison se fait au **jour** : la valeur stockée est un datetime porteur de l'heure, le formulaire n'envoie qu'une date |
+
+Ces contrôles vivent dans un hook `withValidator()` plutôt que dans le tableau de règles, parce qu'ils comparent à l'état en base et non à un autre champ soumis.
+
 ### Validation frontend
 
 `domtek-frontend/src/lib/validation.ts` centralise les règles de validation appliquées aux formulaires (auth + dashboard organisation) avant soumission :
