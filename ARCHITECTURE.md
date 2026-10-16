@@ -115,9 +115,10 @@ flowchart LR
     B -->|"SMTP 587 TLS"| GM["Gmail"]
     B -->|"SMS"| TW["Twilio"]
     B -->|"OAuth 2.0 (Socialite)"| GO["Google"]
-    B -->|"1er choix"| GR["Groq — Llama 3.3 70B"]
+    B -->|"1er choix : descriptions, suggestions"| GR["Groq — Llama 3.3 70B"]
     B -.->|"repli"| GE["Google Gemini 2.0 Flash"]
-    F["frontend Next.js"] -->|"résolution de liens"| MA["Google Maps"]
+    F["frontend Next.js"] -->|"géocodage + carte intégrée"| OS["OpenStreetMap<br/>(Nominatim)"]
+    F -.->|"suivi des liens raccourcis"| MA["Google Maps<br/>(lecture de liens)"]
 ```
 
 | Service | Usage | Point d'intégration |
@@ -126,8 +127,9 @@ flowchart LR
 | **Gmail SMTP** | Activation des comptes clients, factures, réinitialisation de mot de passe, vérification d'e-mail | `Mail::send` (envoi synchrone), vues `resources/views/emails/` |
 | **Twilio** | SMS au client à la création d'une facture | `App\Services\SmsService` |
 | **Google OAuth** | Inscription et connexion par compte Google | `SocialAuthController` (Laravel Socialite) |
-| **Groq**, puis **Gemini** | Génération automatique de la description d'un bien | `GenerateDescriptionController` : Groq d'abord, Gemini en repli si Groq échoue ou n'est pas configuré |
-| **Google Maps** | Aperçu de la localisation d'un bien | Composant `MapPreview` ; la route Next.js `/api/resolve-url` suit les redirections des liens courts |
+| **Groq**, puis **Gemini** | Génération de la description d'un bien (Groq puis Gemini en repli) ; affinage des suggestions de biens pour un prospect (Groq seul, avec repli sur les scores à règles) | `GenerateDescriptionController`, `ProspectSuggestionsController` |
+| **OpenStreetMap** (Nominatim et carte intégrée) | Aperçu de la localisation d'un bien | Composant `MapPreview` : extrait les coordonnées de ce que l'agence saisit, géocode une adresse via Nominatim, puis affiche la carte OpenStreetMap en `iframe`. Aucune clé d'API requise |
+| **Google Maps** (lecture seule) | Lien de localisation collé par l'agence | Aucune API Google n'est appelée : les coordonnées sont lues dans l'URL. Pour un lien raccourci (`maps.app.goo.gl`), la route Next.js `/api/resolve-url` suit la redirection côté serveur |
 
 ### 2.8 Mode développement
 
@@ -365,7 +367,7 @@ sequenceDiagram
 | Secrets | Fichiers `.env` hors de Git, modèle `.env.example` |
 | Paiement | Aucune donnée de carte ne transite par l'application : le paiement se fait sur la page Stripe |
 
-**Points d'attention pour une mise en production** : le site est servi en HTTP (pas de certificat TLS) ; le CORS accepte toutes les origines ; les logs ne sont pas persistés en dehors du conteneur.
+**Points d'attention pour une mise en production** : le site est servi en HTTP (pas de certificat TLS) ; le CORS accepte toutes les origines ; les logs ne sont pas persistés en dehors du conteneur ; la **vérification des certificats TLS est désactivée** sur quatre appels sortants (voir section 7).
 
 ---
 
@@ -375,5 +377,6 @@ sequenceDiagram
 - **Worker de file d'attente** : les e-mails et SMS sont envoyés pendant la requête. Un conteneur `php artisan queue:work` permettrait de les traiter en arrière-plan.
 - **Logs** : à monter sur un volume, ou à envoyer vers un service de collecte.
 - **CORS** : à restreindre au domaine de production.
+- **Vérification TLS désactivée sur les appels sortants.** `Http::withoutVerifying()` (Groq, Gemini, suggestions de prospects) et `'verify' => false` (Google OAuth dans `SocialAuthController`) acceptent n'importe quel certificat. Cela rend possible une attaque de l'homme du milieu sur des appels qui transportent des clés d'API et le profil Google. À retirer avant la mise en production, en configurant correctement les autorités de certification du conteneur.
 - **Tests automatisés** : absents (étapes 10 et 16 de `etapes.md`).
 - **React Query** : à généraliser aux pages qui appellent encore l'API directement.
