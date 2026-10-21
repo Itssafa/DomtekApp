@@ -115,7 +115,7 @@ flowchart LR
     B -->|"SMTP 587 TLS"| GM["Gmail"]
     B -->|"SMS"| TW["Twilio"]
     B -->|"OAuth 2.0 (Socialite)"| GO["Google"]
-    B -->|"1er choix : descriptions, suggestions"| GR["Groq — Llama 3.3 70B"]
+    B -->|"1er choix : descriptions, suggestions"| GR["Groq — gpt-oss-120b (texte)<br/>Qwen 3.8 27B (JSON)"]
     B -.->|"repli"| GE["Google Gemini 2.0 Flash"]
     F["frontend Next.js"] -->|"géocodage + carte intégrée"| OS["OpenStreetMap<br/>(Nominatim)"]
     F -.->|"suivi des liens raccourcis"| MA["Google Maps<br/>(lecture de liens)"]

@@ -48,7 +48,7 @@ class GenerateDescriptionController extends Controller
 
         $prompt = $this->buildPrompt($bien);
 
-        // ── Essai 1 : Groq (Llama 3.3) ───────────────────────────────────────
+        // ── Essai 1 : Groq ───────────────────────────────────────────────────
         $groqKey = config('services.groq.key');
         if ($groqKey) {
             $text = $this->callGroq($groqKey, $prompt);
@@ -75,15 +75,25 @@ class GenerateDescriptionController extends Controller
 
     private function callGroq(string $key, string $prompt): ?string
     {
-        $res = Http::withoutVerifying()
-            ->timeout(20)
-            ->withToken($key)
-            ->post('https://api.groq.com/openai/v1/chat/completions', [
-                'model'       => 'llama-3.3-70b-versatile',
-                'messages'    => [['role' => 'user', 'content' => $prompt]],
-                'max_tokens'  => 450,
-                'temperature' => 0.75,
-            ]);
+        // Une panne réseau (DNS, délai dépassé) lève une exception, là où une
+        // erreur HTTP renvoie une réponse. Sans ce try/catch, elle remontait en
+        // 500 et empêchait le repli sur Gemini.
+        try {
+            $res = Http::withoutVerifying()
+                ->timeout(20)
+                ->withToken($key)
+                ->post('https://api.groq.com/openai/v1/chat/completions', [
+                    'model'       => config('services.groq.model'),
+                    'messages'    => [['role' => 'user', 'content' => $prompt]],
+                    // Marge pour le raisonnement du modèle, qui compte dans le budget :
+                    // à 450 il pouvait consommer l'essentiel avant d'écrire la description.
+                    'max_tokens'  => 1000,
+                    'temperature' => 0.75,
+                ]);
+        } catch (\Throwable $e) {
+            \Log::warning('Groq injoignable', ['erreur' => $e->getMessage()]);
+            return null;
+        }
 
         if ($res->successful()) {
             return trim(data_get($res->json(), 'choices.0.message.content', '')) ?: null;
@@ -102,12 +112,17 @@ class GenerateDescriptionController extends Controller
         foreach ($models as $model) {
             $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$key}";
 
-            $res = Http::withoutVerifying()
-                ->timeout(20)
-                ->post($url, [
-                    'contents'         => [['parts' => [['text' => $prompt]]]],
-                    'generationConfig' => ['temperature' => 0.75, 'maxOutputTokens' => 450],
-                ]);
+            try {
+                $res = Http::withoutVerifying()
+                    ->timeout(20)
+                    ->post($url, [
+                        'contents'         => [['parts' => [['text' => $prompt]]]],
+                        'generationConfig' => ['temperature' => 0.75, 'maxOutputTokens' => 450],
+                    ]);
+            } catch (\Throwable $e) {
+                \Log::warning("Gemini injoignable sur {$model}", ['erreur' => $e->getMessage()]);
+                break;
+            }
 
             if ($res->successful()) {
                 return trim(data_get($res->json(), 'candidates.0.content.parts.0.text', '')) ?: null;

@@ -133,16 +133,24 @@ class ProspectSuggestionsController extends Controller
             . "Réponds UNIQUEMENT avec ce JSON (aucun texte autour) :\n"
             . "{\"suggestions\":[{\"id\":X,\"score\":Y},...]}";
 
-        $res = Http::withoutVerifying()
-            ->timeout(20)
-            ->withToken($key)
-            ->post('https://api.groq.com/openai/v1/chat/completions', [
-                'model'           => 'llama-3.3-70b-versatile',
-                'messages'        => [['role' => 'user', 'content' => $prompt]],
-                'max_tokens'      => 400,
-                'temperature'     => 0.1,
-                'response_format' => ['type' => 'json_object'],
-            ]);
+        // Cet appel n'est qu'un affinage : la panne du service ne doit jamais
+        // empêcher d'afficher les suggestions déjà calculées par les règles. Sans
+        // ce try/catch, une panne réseau remontait en erreur 500.
+        try {
+            $res = Http::withoutVerifying()
+                ->timeout(20)
+                ->withToken($key)
+                ->post('https://api.groq.com/openai/v1/chat/completions', [
+                    'model'           => config('services.groq.model_json'),
+                    'messages'        => [['role' => 'user', 'content' => $prompt]],
+                    'max_tokens'      => 600,
+                    'temperature'     => 0.1,
+                    'response_format' => ['type' => 'json_object'],
+                ]);
+        } catch (\Throwable $e) {
+            \Log::warning('Groq suggestions injoignable', ['erreur' => $e->getMessage()]);
+            return [];
+        }
 
         if (!$res->successful()) {
             \Log::warning('Groq suggestions error', ['status' => $res->status(), 'body' => $res->body()]);

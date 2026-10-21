@@ -201,11 +201,13 @@ flowchart LR
 
 1. **Pré-sélection par règles** : un score rapide et peu coûteux (prix à 15, 25 et 35 % près, type de bien, animaux) réduit tous les biens à **15 candidats**.
 2. **Re-notation par IA** : seuls ces 15 biens sont envoyés au modèle, avec le profil du prospect. Il les note selon des critères que les règles ne savent pas évaluer : **proximité géographique** et **cohérence d'ensemble**.
-3. **Repli** : sans clé ou en cas d'échec, les scores à règles sont conservés. La fonctionnalité se dégrade sans jamais échouer.
+3. **Repli** : sans clé, en cas d'erreur du service ou de panne réseau, les scores à règles sont conservés. La fonctionnalité se dégrade sans jamais échouer : la page affiche toujours des suggestions.
 
 Ce découpage limite le volume envoyé à l'IA (donc le coût et la latence) et garde le résultat exploitable même quand le service est indisponible. Les règles décident de **qui concourt**, l'IA affine **l'ordre**.
 
-**Backend.** `ProspectSuggestionsController` (appel Groq, modèle Llama 3.3 70B).
+**Modèle.** Cette étape exige une réponse en **JSON strict**. Elle utilise un modèle qui répond directement (`GROQ_MODEL_JSON`, Qwen 3.8 27B) : un modèle raisonnant dépense son budget de tokens en réflexion et ne produit rien, ou invalide le format JSON. C'est vérifié sur le prompt réel.
+
+**Backend.** `ProspectSuggestionsController` (appel Groq).
 **Frontend.** Panneau de suggestions de la fiche prospect (`prospects/[id]`).
 
 ---
@@ -415,10 +417,12 @@ Les coordonnées sont calculées par des fonctions d'échelle communes (`px`, `p
 
 **Méthode.** `GenerateDescriptionController` construit un *prompt* à partir de la fiche du bien (type, transaction, superficie, pièces, chambres, salles de bain, étage, équipements, animaux, adresse, ville), puis interroge **deux services d'IA générative selon un ordre de priorité** :
 
-1. **Groq**, modèle Llama 3.3 70B, via son API compatible OpenAI ;
+1. **Groq**, modèle `openai/gpt-oss-120b` (`GROQ_MODEL`), via son API compatible OpenAI. Ce modèle raisonne : son raisonnement est renvoyé dans un champ séparé, et le budget de tokens est dimensionné pour le contenir (1 000) ;
 2. **Google Gemini** (modèles `gemini-2.0-flash`, puis `gemini-2.0-flash-lite`) en **repli**, si Groq n'est pas configuré ou échoue.
 
-Chaque fournisseur n'est tenté que si sa clé est présente : la fonctionnalité se dégrade sans jamais faire échouer la création du bien. Les clés restent côté serveur, jamais exposées au navigateur.
+Chaque fournisseur n'est tenté que si sa clé est présente, et une **panne réseau est attrapée** (`try/catch`) pour permettre le repli sur le fournisseur suivant au lieu de remonter en erreur 500. Les clés restent côté serveur, jamais exposées au navigateur.
+
+**Les modèles sont de la configuration, pas du code.** Les fournisseurs retirent leurs modèles sans préavis : `llama-3.3-70b-versatile` a disparu de Groq et a fait tomber deux fonctionnalités à la fois. Les noms vivent désormais dans `config/services.php` et se changent par `.env`, sans modifier le code.
 
 **Backend.** `GenerateDescriptionController` (appels HTTP avec repli en cascade), clés dans `config/services.php`.
 **Frontend.** Bouton « Générer avec IA » du formulaire d'annonce (`annonces/nouvelle`) : une fois le bien choisi, il insère le texte généré dans le champ description, que l'agence relit et modifie.

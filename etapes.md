@@ -858,6 +858,19 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 
 ---
 
+### A38 — IA : modèle Groq retiré et pannes réseau ✅ TERMINÉ
+
+**Problème** : La génération de description (erreur 503) et les suggestions d'un prospect (erreur 500) ne fonctionnaient plus.
+
+- [x] Cause 1 : Groq avait retiré le modèle `llama-3.3-70b-versatile` (`model_not_found`). La clé était valide.
+- [x] Cause 2 : une panne réseau passagère (`Could not resolve host`) n'était pas attrapée et remontait en erreur 500.
+- [x] Les noms de modèle quittent le code : `config/services.php`, modifiables par `GROQ_MODEL` et `GROQ_MODEL_JSON`
+- [x] Deux modèles, car les usages diffèrent. Description (texte libre) : `openai/gpt-oss-120b`. Suggestions (JSON strict) : `qwen/qwen3.8-27b`. Un modèle raisonnant y échoue : il dépense tout son budget de tokens en réflexion et ne produit rien. Vérifié sur le prompt réel
+- [x] `try/catch` sur chaque appel sortant : les suggestions retombent sur les scores à règles (200 au lieu de 500), la description laisse le repli sur Gemini
+- [x] `Domtek/.env` et `domtek-frontend/.env.local` avaient disparu du disque. Reconstruits depuis les variables du conteneur en cours d'exécution
+
+---
+
 ## Récapitulatif de l'avancement
 
 | Phase | Étape | Statut |
@@ -915,5 +928,6 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 | Améliorations | A35 — Suppression des taux d'investissement | ✅ Terminé |
 | Améliorations | A36 — Déploiement Docker durable | ✅ Terminé |
 | Améliorations | A37 — Connexion Google : slug de l'organisation | ✅ Terminé |
+| Améliorations | A38 — IA : modèle Groq retiré et pannes réseau | ✅ Terminé |
 | Intégration | 17 — Intégration complète | ⬜ À faire |
 | Déploiement | 18 — Déploiement | 🟨 En cours (Docker fait ; serveur, HTTPS et mise en ligne restent) |
