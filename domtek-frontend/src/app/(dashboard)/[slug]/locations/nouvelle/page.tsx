@@ -6,7 +6,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import StepForm, { FormStep } from '@/components/StepForm';
 import { Champ } from '@/components/Champ';
-import { isValidEmail, filtreTelephone } from '@/lib/validation';
+import { isValidEmail, isValidCin, filtreTelephone } from '@/lib/validation';
 
 interface SelectOption { id: number; label: string; }
 
@@ -68,7 +68,7 @@ export default function NouvelleLocationPage() {
   const [locataireType, setLocataireType] = useState<'client' | 'prospect' | 'nouveau'>('client');
 
   const [form, setForm] = useState({
-    bien_id: '', locataire_id: '', locataire_nom: '', locataire_prenom: '', locataire_email: '', locataire_telephone: '',
+    bien_id: '', locataire_id: '', locataire_nom: '', locataire_prenom: '', locataire_email: '', locataire_cin: '', locataire_telephone: '',
     designation: '', type: 'bail_habitation', utilisation: '',
     date_debut: '', date_fin: '',
     montant_ht: '', tva: '19', frais_syndic: '0', retenue_source: '5',
@@ -112,7 +112,7 @@ export default function NouvelleLocationPage() {
         locataire_id:        locataireType !== 'nouveau' && form.locataire_id ? Number(form.locataire_id) : null,
         // Un nouveau locataire devient une vraie fiche client, créée par le serveur.
         nouveau_client:      locataireType === 'nouveau'
-          ? { nom: form.locataire_nom, prenom: form.locataire_prenom, email: form.locataire_email, telephone: form.locataire_telephone || undefined }
+          ? { nom: form.locataire_nom, prenom: form.locataire_prenom, email: form.locataire_email, cin: form.locataire_cin, telephone: form.locataire_telephone || undefined }
           : undefined,
         designation:         form.designation || null,
         type:                form.type,
@@ -158,6 +158,8 @@ export default function NouvelleLocationPage() {
           if (!form.locataire_prenom.trim()) return 'Le prénom du locataire est obligatoire.';
           if (!form.locataire_nom.trim()) return 'Le nom du locataire est obligatoire.';
           if (!form.locataire_email.trim()) return "L'adresse e-mail du locataire est obligatoire : elle sert d'identifiant à son espace client.";
+          if (!form.locataire_cin.trim()) return 'Le numéro de CIN du locataire est obligatoire.';
+          if (!isValidCin(form.locataire_cin)) return 'Le numéro CIN doit contenir exactement 8 chiffres.';
           if (!isValidEmail(form.locataire_email)) return "L'adresse e-mail du locataire est invalide.";
         }
         return null;
@@ -208,6 +210,13 @@ export default function NouvelleLocationPage() {
                   <input type="text" value={form.locataire_nom} onChange={set('locataire_nom')} className={inputCls} placeholder="Ben Ali" />
                   <Champ nom="nom" form={{ nom: form.locataire_nom }} requis />
                 </div>
+              </div>
+              <div>
+                <label className={labelCls}>N° CIN *</label>
+                <input type="text" inputMode="numeric" maxLength={8} value={form.locataire_cin}
+                  onChange={(e) => setForm(p => ({ ...p, locataire_cin: e.target.value.replace(/\D/g, '').slice(0, 8) }))}
+                  className={inputCls} placeholder="12345678" />
+                <Champ nom="cin" form={{ cin: form.locataire_cin }} requis />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>

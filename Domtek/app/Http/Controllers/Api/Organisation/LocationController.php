@@ -7,6 +7,7 @@ use App\Http\Resources\LocationResource;
 use App\Http\Resources\QuittanceResource;
 use App\Models\Location;
 use App\Models\Quittance;
+use App\Rules\NumeroPieceIdentite;
 use App\Rules\TelephoneTunisien;
 use App\Services\ClientService;
 use App\Services\LocationService;
@@ -74,7 +75,9 @@ class LocationController extends Controller
                     Rule::unique('clients', 'email')->where('organisation_id', $this->orgId()),
                 ],
                 'nouveau_client.telephone' => ['nullable', 'string', 'max:20', new TelephoneTunisien],
+                'nouveau_client.cin'       => ['required', 'string', 'max:20', new NumeroPieceIdentite('CIN')],
             ])['nouveau_client'];
+            $nouveau['type_piece'] = 'CIN';
         }
 
         $location = DB::transaction(function () use ($data, $nouveau) {

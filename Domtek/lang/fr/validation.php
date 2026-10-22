@@ -143,6 +143,7 @@ return [
         'nouveau_client.nom'         => 'nom du nouveau client',
         'nouveau_client.prenom'      => 'prénom du nouveau client',
         'nouveau_client.email'       => 'adresse e-mail du nouveau client',
+        'nouveau_client.cin'         => 'CIN du nouveau client',
         'nouveau_client.telephone'   => 'téléphone du nouveau client',
         // Identité
         'civilite'                   => 'civilité',
