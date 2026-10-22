@@ -14,23 +14,18 @@ export function validatePassword(password: string): string | null {
 
 export function isValidPhone(phone: string): boolean {
   const cleaned = phone.trim().replace(/\s+/g, "");
-  return /^(\+216)?[2-9]\d{7}$/.test(cleaned);
+  return /^\d{8}$/.test(cleaned);
 }
 
 /**
- * Filtre de frappe pour un numéro de téléphone : seuls les chiffres, les
- * espaces de lisibilité et un « + » en tête sont retenus. Les lettres sont
- * donc impossibles à saisir, comme pour le CIN.
- *
- * Volontairement plus permissif que `isValidPhone` : on n'empêche pas de
- * taper un numéro incomplet pendant la saisie, seulement d'y mettre des
- * caractères qui n'ont rien à y faire. La validité du format reste vérifiée
- * à la soumission.
+ * Filtre de frappe pour un numéro de téléphone : seuls les chiffres sont
+ * retenus, 8 au plus. Les lettres, l'indicatif et les espaces sont donc
+ * impossibles à saisir, comme pour le CIN. Un numéro incomplet reste
+ * saisissable ; son format (exactement 8 chiffres) est vérifié à la sortie
+ * du champ et à la soumission.
  */
 export function filtreTelephone(valeur: string): string {
-  const indicatif = valeur.trimStart().startsWith("+") ? "+" : "";
-  const chiffres = valeur.replace(/[^\d ]/g, "").replace(/ {2,}/g, " ");
-  return (indicatif + chiffres).slice(0, 17);
+  return valeur.replace(/\D/g, "").slice(0, 8);
 }
 
 /** Aujourd'hui au format attendu par un `<input type="date">`. */

@@ -1404,7 +1404,7 @@ GET    /api/organisations/{slug}                 Profil public d'une organisatio
 
 ### Contrôles de saisie côté serveur
 Les formulaires vérifient la saisie, mais l'API applique les mêmes règles : un appel direct ne les contourne pas.
-- **Règles partagées** (`app/Rules/`) : `TelephoneTunisien` (8 chiffres commençant par 2 à 9, indicatif +216 facultatif), `NumeroPieceIdentite` (chiffres ; 8 exactement pour une CIN), `CodePostalTunisien` (4 chiffres)
+- **Règles partagées** (`app/Rules/`) : `TelephoneTunisien` (exactement 8 chiffres, sans indicatif), `NumeroPieceIdentite` (chiffres ; 8 exactement pour une CIN), `CodePostalTunisien` (4 chiffres)
 - **Dates plausibles** : date de naissance passée et postérieure à 1900, CIN, embauche et construction pas dans le futur, visite planifiée pas dans le passé
 - **Cohérences entre champs**, à la création comme à la modification : échéance après émission, fin de contrat après début, TTC supérieur ou égal au HT, première échéance après le début du bail
 - **Structure d'immeuble** : un bien ne peut pas être à un étage ou dans un bloc que son immeuble n'a pas

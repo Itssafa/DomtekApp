@@ -86,7 +86,7 @@ export default function NouveauClientPage() {
         if (!form.nom.trim())       return 'Le nom est obligatoire.';
         if (!form.prenom.trim())    return 'Le prénom est obligatoire.';
         if (!form.telephone.trim()) return 'Le téléphone est obligatoire.';
-        if (!isValidPhone(form.telephone)) return 'Le numéro de téléphone est invalide.';
+        if (!isValidPhone(form.telephone)) return 'Le numéro de téléphone doit contenir exactement 8 chiffres.';
         // Obligatoire : sert d'identifiant de connexion au client et reçoit
         // son lien d'activation.
         if (!form.email.trim()) return "L'adresse e-mail est obligatoire : elle sert d'identifiant à l'espace client.";
@@ -111,7 +111,7 @@ export default function NouveauClientPage() {
             {inp('Prénom', 'prenom', 'text', 'Ahmed', true)}
           </div>
           <div className="grid grid-cols-3 gap-4">
-            {inp('N° Téléphone', 'telephone', 'tel', '+216 22 000 000', true)}
+            {inp('N° Téléphone', 'telephone', 'tel', '22123456', true)}
             {inp('Email', 'email', 'email', 'ahmed@email.com', true)}
             {inp('Ville', 'ville', 'text', 'Tunis')}
           </div>
@@ -169,7 +169,7 @@ export default function NouveauClientPage() {
       title: "Contact d'urgence & Notes",
       validate: () => {
         if (form.urgence_telephone.trim() && !isValidPhone(form.urgence_telephone)) {
-          return "Le numéro de téléphone d'urgence est invalide.";
+          return "Le téléphone d'urgence doit contenir exactement 8 chiffres.";
         }
         return null;
       },

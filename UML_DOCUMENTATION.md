@@ -1063,7 +1063,7 @@ colonnes : l'identifiant seul exposerait les quittances d'un prospect de même i
 
 | Règle | Format imposé | Appliquée à |
 |---|---|---|
-| `TelephoneTunisien` | 8 chiffres commençant par 2–9, indicatif `+216` ou `00216` facultatif. Séparateurs d'espacement tolérés à la saisie, retirés avant contrôle | `telephone` (7 requests), `urgence_telephone` (2) |
+| `TelephoneTunisien` | **exactement 8 chiffres**, sans indicatif. Séparateurs d'espacement tolérés à la saisie, retirés avant contrôle | `telephone` (7 requests), `urgence_telephone` (2) |
 | `NumeroPieceIdentite` | Chiffres uniquement. La longueur — exactement 8 — n'est imposée que lorsque le type est **connu** et vaut CIN : soit `type_piece` le dit, soit le constructeur l'impose (`new NumeroPieceIdentite('CIN')`, pour les formulaires employés qui n'offrent pas ce choix). Sans information sur le type, seuls les chiffres sont exigés | `cin` (7 requests) |
 | `CodePostalTunisien` | Exactement 4 chiffres | `code_postal` (2 requests) |
 
@@ -1133,12 +1133,12 @@ La section `custom` existe pour un cas précis : le marqueur `:date` restitue le
 |---|---|
 | `isValidEmail` | format email standard |
 | `validatePassword` | ≥8 car., 1 majuscule, 1 chiffre, 1 caractère spécial |
-| `isValidPhone` | format tunisien `(+216)?[2-9]XXXXXXX` |
+| `isValidPhone` | exactement 8 chiffres |
 | `isPositiveAmount` | nombre strictement positif |
 | `isValidCin` | 8 chiffres |
 | `isValidCinOrPasseport` | chiffres uniquement |
 | `isValidCityOrPlace` | lettres/accents/espaces/apostrophes/tirets |
-| `filtreTelephone` | **filtre de frappe** : ne retient que les chiffres, les espaces et un `+` en tête |
+| `filtreTelephone` | **filtre de frappe** : ne retient que les chiffres, 8 au plus |
 | `borneDate` | bornes `min`/`max` d'un sélecteur de date, déduites du nom du champ |
 
 **Deux niveaux distincts.** Les fonctions `isValid*` vérifient *à la soumission* et affichent un message ; `filtreTelephone` agit *à la frappe* et rend la saisie fautive impossible. Le téléphone n'avait que le premier niveau : on pouvait taper des lettres et ne l'apprendre qu'en cliquant sur Enregistrer. Le CIN, lui, avait déjà son filtre (`setDigitsOnly`).
@@ -1151,7 +1151,7 @@ La section `custom` existe pour un cas précis : le marqueur `:date` restitue le
 
 Les quatre champs `date_naissance` passant par ce helper avaient échappé à une première passe qui ne ciblait que les `<input type="date">` écrits en clair — d'où l'intérêt d'agir dans le helper.
 
-**Condition affichée et erreur au changement de champ.** Chaque champ de saisie porte, sous lui, sa **condition** en permanence (« 8 chiffres, indicatif +216 facultatif ») ; son **message d'erreur** (« Le mot de passe doit contenir au moins une majuscule. », « Les mots de passe ne correspondent pas. ») apparaît dès que l'utilisateur le quitte, puis suit la frappe jusqu'à correction. Trois pièces :
+**Condition affichée et erreur au changement de champ.** Chaque champ de saisie porte, sous lui, sa **condition** en permanence (« Exactement 8 chiffres ») ; son **message d'erreur** (« Le mot de passe doit contenir au moins une majuscule. », « Les mots de passe ne correspondent pas. ») apparaît dès que l'utilisateur le quitte, puis suit la frappe jusqu'à correction. Trois pièces :
 
 | Pièce | Rôle |
 |---|---|

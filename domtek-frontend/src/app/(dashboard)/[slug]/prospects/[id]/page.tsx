@@ -217,7 +217,7 @@ export default function FicheProspectPage() {
     setErrors({});
     const newErrors: Record<string, string[]> = {};
     if (form.telephone.trim() && !isValidPhone(form.telephone)) {
-      newErrors.telephone = ['Le numéro de téléphone est invalide.'];
+      newErrors.telephone = ['Le numéro de téléphone doit contenir exactement 8 chiffres.'];
     }
     if (form.email.trim() && !isValidEmail(form.email)) {
       newErrors.email = ["L'adresse e-mail est invalide."];

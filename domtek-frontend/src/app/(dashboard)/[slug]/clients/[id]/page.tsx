@@ -123,10 +123,10 @@ export default function FicheClientPage() {
     setErrors({});
     const newErrors: Record<string, string[]> = {};
     if (form.telephone.trim() && !isValidPhone(form.telephone)) {
-      newErrors.telephone = ['Le numéro de téléphone est invalide.'];
+      newErrors.telephone = ['Le numéro de téléphone doit contenir exactement 8 chiffres.'];
     }
     if (form.urgence_telephone.trim() && !isValidPhone(form.urgence_telephone)) {
-      newErrors.urgence_telephone = ["Le numéro de téléphone d'urgence est invalide."];
+      newErrors.urgence_telephone = ["Le téléphone d'urgence doit contenir exactement 8 chiffres."];
     }
     // Obligatoire : identifiant de connexion du client à son espace.
     if (!form.email.trim()) {

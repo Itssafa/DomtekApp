@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Rules\TelephoneTunisien;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -67,7 +68,7 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'email'       => ['nullable', 'email', 'max:255'],
-            'telephone'   => ['nullable', 'string', 'max:20'],
+            'telephone'   => ['nullable', 'string', 'max:20', new TelephoneTunisien],
             'ville'       => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:2000'],
             'logo'        => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],

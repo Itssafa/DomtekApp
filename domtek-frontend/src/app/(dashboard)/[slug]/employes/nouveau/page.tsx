@@ -78,7 +78,7 @@ export default function NouvelEmployePage() {
         if (!form.nom.trim())       return 'Le nom est obligatoire.';
         if (!form.prenom.trim())    return 'Le prénom est obligatoire.';
         if (!form.telephone.trim()) return 'Le téléphone est obligatoire.';
-        if (!isValidPhone(form.telephone)) return 'Le numéro de téléphone est invalide.';
+        if (!isValidPhone(form.telephone)) return 'Le numéro de téléphone doit contenir exactement 8 chiffres.';
         if (form.email.trim() && !isValidEmail(form.email)) return "L'adresse e-mail est invalide.";
         return null;
       },
@@ -89,7 +89,7 @@ export default function NouvelEmployePage() {
             {inp('Prénom', 'prenom', 'text', 'Sonia', true)}
           </div>
           <div className="grid grid-cols-2 gap-4">
-            {inp('Téléphone', 'telephone', 'tel', '+216 22 000 000', true)}
+            {inp('Téléphone', 'telephone', 'tel', '22123456', true)}
             {inp('Email', 'email', 'email', 'sonia@organisation.tn')}
           </div>
         </>

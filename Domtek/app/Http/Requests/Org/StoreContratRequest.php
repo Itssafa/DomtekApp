@@ -4,6 +4,7 @@ namespace App\Http\Requests\Org;
 
 use App\Models\Contrat;
 use App\Models\Prospect;
+use App\Rules\TelephoneTunisien;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -50,7 +51,7 @@ class StoreContratRequest extends FormRequest
                 Rule::unique('clients', 'email')
                     ->where('organisation_id', $this->user()->resolveOrgId()),
             ];
-            $clientRules['nouveau_client.telephone'] = ['nullable', 'string', 'max:20'];
+            $clientRules['nouveau_client.telephone'] = ['nullable', 'string', 'max:20', new TelephoneTunisien];
             $clientRules['nouveau_client.adresse']   = ['nullable', 'string', 'max:255'];
             $clientRules['nouveau_client.ville']     = ['nullable', 'string', 'max:100'];
             $clientRules['nouveau_client.cin']       = ['nullable', 'string', 'max:20'];

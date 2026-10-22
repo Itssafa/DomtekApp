@@ -96,8 +96,8 @@ const choix = (obligatoire: string): Regle => ({ obligatoire });
 
 const telephone: Regle = {
   libelle: 'Le numéro de téléphone',
-  aide: '8 chiffres, indicatif +216 facultatif',
-  valider: (v) => (isValidPhone(v) ? null : 'Numéro de téléphone invalide : 8 chiffres commençant par 2 à 9.'),
+  aide: 'Exactement 8 chiffres',
+  valider: (v) => (isValidPhone(v) ? null : 'Le numéro de téléphone doit contenir exactement 8 chiffres.'),
 };
 
 const email: Regle = {

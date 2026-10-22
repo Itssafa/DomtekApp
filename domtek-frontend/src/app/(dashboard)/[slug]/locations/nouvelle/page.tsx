@@ -226,7 +226,7 @@ export default function NouvelleLocationPage() {
                 </div>
                 <div>
                   <label className={labelCls}>Téléphone</label>
-                  <input type="tel" value={form.locataire_telephone} onChange={(e) => setForm(p => ({ ...p, locataire_telephone: filtreTelephone(e.target.value) }))} className={inputCls} placeholder="+216 22 000 000" />
+                  <input type="tel" value={form.locataire_telephone} onChange={(e) => setForm(p => ({ ...p, locataire_telephone: filtreTelephone(e.target.value) }))} className={inputCls} placeholder="22123456" />
                   <Champ nom="telephone" form={{ telephone: form.locataire_telephone }} />
                 </div>
               </div>

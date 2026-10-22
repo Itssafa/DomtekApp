@@ -661,7 +661,7 @@ export default function NouveauContratPage() {
           // de son invitation à activer son espace.
           if (!ncForm.email.trim()) return "L'email du client est obligatoire : il sert d'identifiant à son espace client.";
           if (!isValidEmail(ncForm.email)) return "L'email du client est invalide.";
-          if (ncForm.telephone && !isValidPhone(ncForm.telephone)) return 'Le téléphone du client est invalide (format tunisien attendu).';
+          if (ncForm.telephone && !isValidPhone(ncForm.telephone)) return 'Le téléphone du client doit contenir exactement 8 chiffres.';
           if (ncForm.cin && !isValidCin(ncForm.cin)) return 'Le CIN du client doit contenir exactement 8 chiffres.';
           if (ncForm.ville && !isValidCityOrPlace(ncForm.ville)) return 'La ville du client est invalide.';
         }

@@ -103,7 +103,7 @@ export default function ComptePage() {
       return;
     }
     if (orgForm.telephone && !isValidPhone(orgForm.telephone)) {
-      setOrgFeedback({ type: 'error', message: 'Numéro de téléphone de l\'organisation invalide.' });
+      setOrgFeedback({ type: 'error', message: 'Le téléphone de l\'organisation doit contenir exactement 8 chiffres.' });
       return;
     }
     setSavingOrg(true);

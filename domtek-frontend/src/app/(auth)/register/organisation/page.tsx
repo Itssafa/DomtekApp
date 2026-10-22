@@ -8,7 +8,7 @@ import { AxiosError } from 'axios';
 import { GoogleAuthButton } from '@/components/GoogleAuthButton';
 import { PasswordInput } from '@/components/PasswordInput';
 import { Champ } from '@/components/Champ';
-import { isValidEmail, isValidPhone, validatePassword, isValidCityOrPlace } from '@/lib/validation';
+import { isValidEmail, isValidPhone, filtreTelephone, validatePassword, isValidCityOrPlace } from '@/lib/validation';
 
 interface FormState {
   name:                 string;
@@ -76,7 +76,7 @@ export default function RegisterOrganisationPage() {
       newErrors.email_organisation = ["Adresse e-mail invalide."];
     }
     if (form.telephone && !isValidPhone(form.telephone)) {
-      newErrors.telephone = ["Numéro de téléphone invalide."];
+      newErrors.telephone = ["Le numéro de téléphone doit contenir exactement 8 chiffres."];
     }
     if (form.ville && !isValidCityOrPlace(form.ville)) {
       newErrors.ville = ["Ville invalide."];
@@ -124,7 +124,9 @@ export default function RegisterOrganisationPage() {
   const textField = (label: string, name: keyof FormState, type = 'text', placeholder = '', required = false) => {
     const props = {
       value: form[name],
-      onChange: set(name),
+      onChange: type === 'tel'
+        ? (e: React.ChangeEvent<HTMLInputElement>) => setForm(prev => ({ ...prev, [name]: filtreTelephone(e.target.value) }))
+        : set(name),
       placeholder,
       required,
       readOnly: fromGoogle && (name === 'name' || name === 'email'),
@@ -219,7 +221,7 @@ export default function RegisterOrganisationPage() {
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider pt-2">Organisation</p>
           {textField("Nom de l'organisation", 'nom_organisation', 'text', 'Soleil Immobilier', true)}
           {textField('Ville', 'ville', 'text', 'Tunis')}
-          {textField('Téléphone', 'telephone', 'tel', '+216 71 000 000')}
+          {textField('Téléphone', 'telephone', 'tel', '71123456')}
           {textField("Email de l'organisation", 'email_organisation', 'email', 'contact@organisation.tn')}
 
           <div>

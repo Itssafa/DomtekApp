@@ -6,8 +6,7 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 /**
- * Numéro de téléphone tunisien : 8 chiffres commençant par 2 à 9,
- * éventuellement précédé de l'indicatif +216 ou 00216.
+ * Numéro de téléphone tunisien : exactement 8 chiffres, sans indicatif.
  *
  * Les séparateurs de lisibilité sont tolérés à la saisie — « 53 542 151 »
  * et « 53-542-151 » désignent le même numéro — et retirés avant contrôle.
@@ -25,8 +24,8 @@ class TelephoneTunisien implements ValidationRule
 
         $normalise = preg_replace('/[\s.\-()]/', '', (string) $value);
 
-        if (! preg_match('/^(?:\+216|00216)?[2-9]\d{7}$/', $normalise)) {
-            $fail('Le champ :attribute doit être un numéro tunisien valide : 8 chiffres commençant par 2 à 9, indicatif +216 facultatif.');
+        if (! preg_match('/^\d{8}$/', $normalise)) {
+            $fail('Le champ :attribute doit contenir exactement 8 chiffres.');
         }
     }
 }

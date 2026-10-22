@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\RegisterClientRequest;
 use App\Http\Requests\Auth\RegisterEmployeRequest;
 use App\Http\Requests\Auth\RegisterOrganisationRequest;
 use App\Models\Organisation;
+use App\Rules\TelephoneTunisien;
 use App\Models\User;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
@@ -73,7 +74,7 @@ class AuthController extends Controller
             'google_token'       => ['required', 'string'],
             'nom_organisation'   => ['required', 'string', 'max:255'],
             'ville'              => ['nullable', 'string', 'max:100'],
-            'telephone'          => ['nullable', 'string', 'max:20'],
+            'telephone'          => ['nullable', 'string', 'max:20', new TelephoneTunisien],
             'email_organisation' => ['nullable', 'email', 'max:255'],
             'description'        => ['nullable', 'string'],
         ]);
