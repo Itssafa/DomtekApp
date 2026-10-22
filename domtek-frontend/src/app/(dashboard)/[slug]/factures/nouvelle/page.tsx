@@ -215,6 +215,12 @@ export default function NouvelleFacturePage() {
         <h1 className="text-2xl font-bold text-gray-800 mt-2">Nouvelle facture</h1>
       </div>
 
+      {Object.keys(errors).length > 0 && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          {Object.values(errors).map((m) => m[0]).join(' · ')}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
         <StepForm
           steps={steps}
