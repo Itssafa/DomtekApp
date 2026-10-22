@@ -917,6 +917,13 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 
 ---
 
+### A43 — Lien Google Maps et enregistrement involontaire ✅ TERMINÉ
+
+- [x] Lien Maps : la route Next.js de résolution des liens courts vivait sous `/api/resolve-url`, or nginx envoie tout `/api/*` au backend Laravel (404). Elle est déplacée sous `/resolve-url`, limitée aux hôtes Google Maps (plus de relais vers une URL quelconque), et les liens « place » contenant `!3d…!4d…` sont reconnus
+- [x] Formulaires à étapes : le bouton « Suivant » et le bouton d'envoi étaient le même élément DOM ; le clic sur « Suivant » de l'avant-dernière étape devenait un envoi (le bien ou l'immeuble s'enregistrait sans laisser choisir les photos). Chaque bouton a maintenant sa propre `key`
+
+---
+
 ## Récapitulatif de l'avancement
 
 | Phase | Étape | Statut |
@@ -979,5 +986,6 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 | Améliorations | A40 — Conditions de saisie affichées et erreurs à la sortie du champ | ✅ Terminé |
 | Améliorations | A41 — Nouveau locataire : création d'une vraie fiche client | ✅ Terminé |
 | Améliorations | A42 — Photos à la création d'un bien ou d'un immeuble | ✅ Terminé |
+| Améliorations | A43 — Lien Google Maps et enregistrement involontaire | ✅ Terminé |
 | Intégration | 17 — Intégration complète | ⬜ À faire |
 | Déploiement | 18 — Déploiement | 🟨 En cours (Docker fait ; serveur, HTTPS et mise en ligne restent) |

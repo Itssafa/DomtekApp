@@ -122,6 +122,7 @@ export default function StepForm({ steps, onSubmit, submitLabel = 'Enregistrer',
           </Link>
           {isLast ? (
             <button
+              key="envoyer"
               type="submit"
               disabled={loading}
               className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition"
@@ -130,6 +131,7 @@ export default function StepForm({ steps, onSubmit, submitLabel = 'Enregistrer',
             </button>
           ) : (
             <button
+              key="suivant"
               type="button"
               onClick={tryNext}
               className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition"

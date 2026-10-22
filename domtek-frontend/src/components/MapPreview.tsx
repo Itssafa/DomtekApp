@@ -17,6 +17,9 @@ function parseCoords(s: string): { lat: number; lng: number } | null {
     // @lat,lng,zoom
     let m = s.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
     if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+    // !3dlat!4dlng (liens « place » de Google Maps)
+    m = s.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/);
+    if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
     // q=lat,lng
     m = s.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
     if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
@@ -75,7 +78,7 @@ export function MapPreview({ value, onChange }: MapPreviewProps) {
       setStatus('loading');
       timerRef.current = setTimeout(async () => {
         try {
-          const res  = await fetch(`/api/resolve-url?url=${encodeURIComponent(s)}`);
+          const res  = await fetch(`/resolve-url?url=${encodeURIComponent(s)}`);
           const json = await res.json();
           const parsed = parseCoords(json.resolved ?? '');
           if (parsed) {
