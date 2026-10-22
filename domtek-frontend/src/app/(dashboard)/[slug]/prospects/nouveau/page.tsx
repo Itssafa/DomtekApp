@@ -53,7 +53,7 @@ export default function NouveauProspectPage() {
     civilite: '', nom: '', prenom: '',
     telephone: '', email: '', ville: '',
     date_naissance: '', lieu_naissance: '',
-    type_piece: '', cin: '', cin_delivree_le: '', cin_delivree_a: '',
+    type_piece: 'CIN', cin: '', cin_delivree_le: '', cin_delivree_a: '',
     notes: '',
     source_connaissance: '', source_connaissance_detail: '',
     profession: '', profession_detail: '', revenus_mensuels: '',
@@ -175,6 +175,7 @@ export default function NouveauProspectPage() {
     {
       title: "Document d'identité",
       validate: () => {
+        if (!form.cin.trim()) return 'Le numéro de pièce est obligatoire.';
         // 1. Si une CIN est saisie, on vérifie qu'elle contient exactement 8 chiffres
         if (form.type_piece === 'CIN' && form.cin.trim()) {
           const cinRegex = /^\d{8}$/;
@@ -208,7 +209,7 @@ export default function NouveauProspectPage() {
                 <option value="Passeport">Passeport</option>
               </select>
             </div>
-            {inp('N° de pièce (CIN)', 'cin', 'text', '12345678', false, setDigitsOnly('cin', form.type_piece === 'CIN' ? 8 : undefined))}
+            {inp('N° de pièce (CIN)', 'cin', 'text', '12345678', true, setDigitsOnly('cin', form.type_piece === 'CIN' ? 8 : undefined))}
             {inp('Délivrée le', 'cin_delivree_le', 'date')}
             {inp('Délivrée à (ville)', 'cin_delivree_a', 'text', 'Tunis')}
           </div>

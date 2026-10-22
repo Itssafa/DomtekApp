@@ -1071,6 +1071,8 @@ Ces règles reproduisent côté serveur ce que les formulaires faisaient déjà 
 
 > **Le type de pièce doit rester explicite.** Une première version de `NumeroPieceIdentite` considérait qu'un `type_piece` absent valait CIN, et exigeait donc 8 chiffres. Ce choix était nécessaire pour les employés, mais il rejetait un numéro de passeport sur les fiches clients et prospects, où le champ est facultatif — alors que le filtre de saisie, lui, l'acceptait. La règle ne contrôle désormais la longueur que lorsque le type est connu, et les formulaires employés l'imposent par le constructeur.
 
+> **Prospect : pièce d'identité obligatoire.** `POST /org/prospects` exige `cin` (rejeté sans lui). Le formulaire `prospects/nouveau` présélectionne `type_piece = CIN` (8 chiffres) ; le choix « Passeport » reste possible. La date et le lieu de délivrance sont alors exigés par le formulaire, comme à la modification.
+
 ### Cohérences entre champs
 
 Les contraintes croisées présentes à la création disparaissaient à la modification : chaque `Update…Request` avait été écrit sans reprendre celles de son `Store…Request`. La donnée était donc correcte à la création et corrompable ensuite.
