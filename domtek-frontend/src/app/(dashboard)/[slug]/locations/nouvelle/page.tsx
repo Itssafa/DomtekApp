@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import StepForm, { FormStep } from '@/components/StepForm';
 import { Champ } from '@/components/Champ';
+import { isValidEmail, filtreTelephone } from '@/lib/validation';
 
 interface SelectOption { id: number; label: string; }
 
@@ -67,7 +68,7 @@ export default function NouvelleLocationPage() {
   const [locataireType, setLocataireType] = useState<'client' | 'prospect' | 'nouveau'>('client');
 
   const [form, setForm] = useState({
-    bien_id: '', locataire_id: '', locataire_nom: '',
+    bien_id: '', locataire_id: '', locataire_nom: '', locataire_prenom: '', locataire_email: '', locataire_telephone: '',
     designation: '', type: 'bail_habitation', utilisation: '',
     date_debut: '', date_fin: '',
     montant_ht: '', tva: '19', frais_syndic: '0', retenue_source: '5',
@@ -109,7 +110,10 @@ export default function NouvelleLocationPage() {
         bien_id:             Number(form.bien_id),
         locataire_type:      locataireType,
         locataire_id:        locataireType !== 'nouveau' && form.locataire_id ? Number(form.locataire_id) : null,
-        locataire_nom:       locataireType === 'nouveau' ? form.locataire_nom : null,
+        // Un nouveau locataire devient une vraie fiche client, créée par le serveur.
+        nouveau_client:      locataireType === 'nouveau'
+          ? { nom: form.locataire_nom, prenom: form.locataire_prenom, email: form.locataire_email, telephone: form.locataire_telephone || undefined }
+          : undefined,
         designation:         form.designation || null,
         type:                form.type,
         utilisation:         form.utilisation || null,
@@ -150,7 +154,12 @@ export default function NouvelleLocationPage() {
       title: 'Locataire',
       validate: () => {
         if (locataireType !== 'nouveau' && !form.locataire_id) return 'Veuillez sélectionner un locataire.';
-        if (locataireType === 'nouveau' && !form.locataire_nom.trim()) return 'Le nom du locataire est obligatoire.';
+        if (locataireType === 'nouveau') {
+          if (!form.locataire_prenom.trim()) return 'Le prénom du locataire est obligatoire.';
+          if (!form.locataire_nom.trim()) return 'Le nom du locataire est obligatoire.';
+          if (!form.locataire_email.trim()) return "L'adresse e-mail du locataire est obligatoire : elle sert d'identifiant à son espace client.";
+          if (!isValidEmail(form.locataire_email)) return "L'adresse e-mail du locataire est invalide.";
+        }
         return null;
       },
       content: (
@@ -186,10 +195,32 @@ export default function NouvelleLocationPage() {
             </div>
           )}
           {locataireType === 'nouveau' && (
-            <div>
-              <label className={labelCls}>Nom complet *</label>
-              <input type="text" value={form.locataire_nom} onChange={set('locataire_nom')} className={inputCls} placeholder="Prénom Nom" />
-              <Champ nom="locataire_nom" form={form} />
+            <div className="space-y-3">
+              <p className="text-xs text-gray-500">Une fiche client est créée automatiquement avec ces informations ; le locataire reçoit un lien pour activer son espace client.</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Prénom *</label>
+                  <input type="text" value={form.locataire_prenom} onChange={set('locataire_prenom')} className={inputCls} placeholder="Ahmed" />
+                  <Champ nom="prenom" form={{ prenom: form.locataire_prenom }} requis />
+                </div>
+                <div>
+                  <label className={labelCls}>Nom *</label>
+                  <input type="text" value={form.locataire_nom} onChange={set('locataire_nom')} className={inputCls} placeholder="Ben Ali" />
+                  <Champ nom="nom" form={{ nom: form.locataire_nom }} requis />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>E-mail *</label>
+                  <input type="email" value={form.locataire_email} onChange={set('locataire_email')} className={inputCls} placeholder="ahmed@email.com" />
+                  <Champ nom="email" form={{ email: form.locataire_email }} requis />
+                </div>
+                <div>
+                  <label className={labelCls}>Téléphone</label>
+                  <input type="tel" value={form.locataire_telephone} onChange={(e) => setForm(p => ({ ...p, locataire_telephone: filtreTelephone(e.target.value) }))} className={inputCls} placeholder="+216 22 000 000" />
+                  <Champ nom="telephone" form={{ telephone: form.locataire_telephone }} />
+                </div>
+              </div>
             </div>
           )}
         </>

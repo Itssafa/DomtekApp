@@ -897,6 +897,16 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 
 ---
 
+### A41 — Nouveau locataire : création d'une vraie fiche client ✅ TERMINÉ
+
+**Problème** : créer un contrat à partir d'une location dont le locataire était « nouveau » échouait (422) : seul un nom en texte libre était enregistré, sans e-mail ni fiche client.
+
+- [x] `LocationController@store` : pour `locataire_type = nouveau`, validation de `nouveau_client` puis création de la fiche client (`ClientService`) dans la même transaction ; la location pointe vers ce client
+- [x] Formulaire de location : prénom, nom, e-mail (obligatoire) et téléphone à la place du « nom complet »
+- [x] Formulaire de contrat : les erreurs renvoyées par le serveur sont toutes résumées dans un bandeau rouge
+
+---
+
 ## Récapitulatif de l'avancement
 
 | Phase | Étape | Statut |
@@ -957,5 +967,6 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 | Améliorations | A38 — IA : modèle Groq retiré et pannes réseau | ✅ Terminé |
 | Améliorations | A39 — Affichage du mot de passe dans tous les formulaires | ✅ Terminé |
 | Améliorations | A40 — Conditions de saisie affichées et erreurs à la sortie du champ | ✅ Terminé |
+| Améliorations | A41 — Nouveau locataire : création d'une vraie fiche client | ✅ Terminé |
 | Intégration | 17 — Intégration complète | ⬜ À faire |
 | Déploiement | 18 — Déploiement | 🟨 En cours (Docker fait ; serveur, HTTPS et mise en ligne restent) |

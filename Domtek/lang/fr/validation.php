@@ -139,6 +139,11 @@ return [
     */
 
     'attributes' => [
+        'nouveau_client'             => 'nouveau client',
+        'nouveau_client.nom'         => 'nom du nouveau client',
+        'nouveau_client.prenom'      => 'prénom du nouveau client',
+        'nouveau_client.email'       => 'adresse e-mail du nouveau client',
+        'nouveau_client.telephone'   => 'téléphone du nouveau client',
         // Identité
         'civilite'                   => 'civilité',
         'nom'                        => 'nom',

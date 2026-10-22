@@ -382,7 +382,11 @@ export default function NouveauContratPage() {
     } catch (err) {
       const axiosError = err as AxiosError<{ errors?: Record<string, string[]>; message?: string }>;
       const ve = axiosError.response?.data?.errors;
-      if (ve) setErrors(ve);
+      if (ve) {
+        setErrors(ve);
+        // Certains champs (type, TTC, date de fin…) n'ont pas de zone d'erreur à eux : on résume tout pour que rien ne reste muet.
+        setGlobalError(Object.values(ve).map((m) => m[0]).join(' · '));
+      }
       else setGlobalError(axiosError.response?.data?.message ?? 'Une erreur est survenue.');
     } finally {
       setLoading(false);

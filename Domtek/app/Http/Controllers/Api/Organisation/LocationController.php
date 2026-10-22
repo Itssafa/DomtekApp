@@ -7,14 +7,18 @@ use App\Http\Resources\LocationResource;
 use App\Http\Resources\QuittanceResource;
 use App\Models\Location;
 use App\Models\Quittance;
+use App\Rules\TelephoneTunisien;
+use App\Services\ClientService;
 use App\Services\LocationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class LocationController extends Controller
 {
-    public function __construct(private LocationService $service) {}
+    public function __construct(private LocationService $service, private ClientService $clients) {}
 
     private function orgId(): int
     {
@@ -57,9 +61,34 @@ class LocationController extends Controller
             'statut'             => ['nullable', 'in:actif,expire,resilie'],
         ]);
 
-        return new LocationResource(
-            $this->service->store($this->orgId(), $data)
-        );
+        // Nouveau locataire : on crée sa vraie fiche client (et donc son accès
+        // à l'espace client) au lieu de ne garder qu'un nom en texte libre.
+        $nouveau = null;
+        if ($data['locataire_type'] === 'nouveau') {
+            $nouveau = $request->validate([
+                'nouveau_client'           => ['required', 'array'],
+                'nouveau_client.nom'       => ['required', 'string', 'max:100'],
+                'nouveau_client.prenom'    => ['required', 'string', 'max:100'],
+                'nouveau_client.email'     => [
+                    'required', 'email', 'max:255',
+                    Rule::unique('clients', 'email')->where('organisation_id', $this->orgId()),
+                ],
+                'nouveau_client.telephone' => ['nullable', 'string', 'max:20', new TelephoneTunisien],
+            ])['nouveau_client'];
+        }
+
+        $location = DB::transaction(function () use ($data, $nouveau) {
+            if ($nouveau) {
+                $client = $this->clients->store($this->orgId(), $nouveau);
+                $data['locataire_type'] = 'client';
+                $data['locataire_id']   = $client->id;
+                $data['locataire_nom']  = null;
+            }
+
+            return $this->service->store($this->orgId(), $data);
+        });
+
+        return new LocationResource($location);
     }
 
     public function show(Location $location): LocationResource

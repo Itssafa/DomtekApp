@@ -519,6 +519,8 @@ Conséquence sur UC47 : la conversion d'un prospect exige désormais que celui-c
 > Le locataire est désigné par le couple `(locataire_type, locataire_id)`. Toute
 > requête qui filtre les locations d'un client doit porter sur **les deux
 > colonnes** : l'identifiant seul confondrait un client et un prospect de même id.
+>
+> **Nouveau locataire (A41).** `POST /org/locations` avec `locataire_type = nouveau` exige `nouveau_client.{prenom, nom, email}` (e-mail unique par agence, téléphone facultatif). Le serveur crée alors la **vraie fiche client** (donc son compte d'espace client, via `ClientObserver`) dans la même transaction que la location, qui est enregistrée avec `locataire_type = client`. La valeur `nouveau` n'est donc plus stockée pour les nouvelles locations ; `locataire_nom` ne subsiste que sur les anciennes.
 
 #### Classe `Quittance`  (table `location_quittances`)
 ```
