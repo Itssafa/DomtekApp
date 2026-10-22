@@ -98,8 +98,11 @@ export default function NouvelImmeublePage() {
     } catch (err) {
       const axiosError = err as AxiosError<{ errors?: Record<string, string[]>; message?: string }>;
       const fieldErrors = axiosError.response?.data?.errors;
-      if (fieldErrors) setErrors(fieldErrors);
-      else setGlobalError(axiosError.response?.data?.message ?? 'Une erreur est survenue.');
+      if (fieldErrors) {
+        setErrors(fieldErrors);
+        // Les erreurs de photos (taille, format) n'ont pas de zone à elles : on les résume.
+        setGlobalError(Object.values(fieldErrors).map((m) => m[0]).join(' · '));
+      } else setGlobalError(axiosError.response?.data?.message ?? 'Une erreur est survenue.');
     } finally {
       setLoading(false);
     }

@@ -907,6 +907,16 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 
 ---
 
+### A42 — Photos à la création d'un bien ou d'un immeuble ✅ TERMINÉ
+
+**Problème** : l'ajout de photos échouait à la création (mais pas à la modification).
+
+- [x] PHP (conteneur backend) : `upload_max_filesize` passe de 2 Mo (défaut) à 8 Mo et `post_max_size` à 64 Mo (`Domtek/docker/uploads.ini`), pour que les photos de 5 Mo acceptées par la validation arrivent bien au serveur
+- [x] Immeuble : les erreurs de photos sont résumées dans le bandeau rouge au lieu de rester muettes
+- [x] Bien : si l'envoi des photos échoue après la création, un message l'indique et le formulaire ne laisse plus croire que la création a échoué (évite les doublons)
+
+---
+
 ## Récapitulatif de l'avancement
 
 | Phase | Étape | Statut |
@@ -968,5 +978,6 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 | Améliorations | A39 — Affichage du mot de passe dans tous les formulaires | ✅ Terminé |
 | Améliorations | A40 — Conditions de saisie affichées et erreurs à la sortie du champ | ✅ Terminé |
 | Améliorations | A41 — Nouveau locataire : création d'une vraie fiche client | ✅ Terminé |
+| Améliorations | A42 — Photos à la création d'un bien ou d'un immeuble | ✅ Terminé |
 | Intégration | 17 — Intégration complète | ⬜ À faire |
 | Déploiement | 18 — Déploiement | 🟨 En cours (Docker fait ; serveur, HTTPS et mise en ligne restent) |

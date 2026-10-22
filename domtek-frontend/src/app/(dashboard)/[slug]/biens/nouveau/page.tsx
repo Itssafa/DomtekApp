@@ -144,10 +144,19 @@ export default function NouveauBienPage() {
       const { data } = await api.post('/org/biens', payload);
       const bienId = data.data.id as number;
 
+      // Le bien existe déjà : un échec d'envoi des photos ne doit pas faire croire
+      // que la création a échoué (et en provoquer une seconde).
+      let echecMedias = '';
       if (photos.length > 0) {
-        const fd = new FormData();
-        photos.forEach((f) => fd.append('images[]', f));
-        await api.post(`/org/biens/${bienId}/images`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+        try {
+          const fd = new FormData();
+          photos.forEach((f) => fd.append('images[]', f));
+          await api.post(`/org/biens/${bienId}/images`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+        } catch (e) {
+          const ax = e as AxiosError<{ errors?: Record<string, string[]>; message?: string }>;
+          const detail = Object.values(ax.response?.data?.errors ?? {}).map((m) => m[0]).join(' · ') || ax.response?.data?.message || 'erreur inconnue';
+          echecMedias = `Photos non ajoutées : ${detail}`;
+        }
       }
 
       for (const doc of documents) {
@@ -157,6 +166,7 @@ export default function NouveauBienPage() {
         await api.post(`/org/biens/${bienId}/documents`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       }
 
+      if (echecMedias) window.alert(`Le bien a été créé. ${echecMedias}. Ajoutez-les depuis sa fiche.`);
       router.push(orgPath(`/dashboard/biens/${bienId}`));
     } catch (err) {
       const axiosError = err as AxiosError<{ errors?: Record<string, string[]> }>;
