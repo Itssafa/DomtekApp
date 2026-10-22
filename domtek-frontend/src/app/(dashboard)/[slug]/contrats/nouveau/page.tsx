@@ -554,13 +554,6 @@ export default function NouveauContratPage() {
                     {clientPreview.adresse && <span className="col-span-2"><span className="font-medium">Adresse :</span> {[clientPreview.adresse, clientPreview.ville].filter(Boolean).join(', ')}</span>}
                   </div>
                 )}
-                {!form.cin_delivree_le && (
-                  <div>
-                    <label className={lc + ' mt-1'}>CIN délivrée le <span className="text-gray-400 font-normal">(non renseigné dans le profil)</span></label>
-                    <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} max={AUJOURD_HUI} />
-                    <Champ nom="cin_delivree_le" form={form} erreur={errors.cin_delivree_le?.[0]} />
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -719,7 +712,7 @@ export default function NouveauContratPage() {
                     <label className={lc}>CIN délivrée le</label>
                     {selectedClient.cin_delivree_le
                       ? <input type="text" value={fmtDate(selectedClient.cin_delivree_le)} disabled className={dc} />
-                      : <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} placeholder="Non renseigné" max={AUJOURD_HUI} />
+                      : <input type="text" value="—" disabled className={dc} />
                     }
                   </div>
                   <div>
@@ -756,7 +749,7 @@ export default function NouveauContratPage() {
                     <label className={lc}>CIN délivrée le</label>
                     {selectedProspect.cin_delivree_le
                       ? <input type="text" value={fmtDate(selectedProspect.cin_delivree_le)} disabled className={dc} />
-                      : <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} placeholder="Non renseigné" max={AUJOURD_HUI} />
+                      : <input type="text" value="—" disabled className={dc} />
                     }
                   </div>
                 </div>

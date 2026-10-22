@@ -1073,6 +1073,8 @@ Ces règles reproduisent côté serveur ce que les formulaires faisaient déjà 
 
 > **Prospect : pièce d'identité obligatoire.** `POST /org/prospects` exige `cin` (rejeté sans lui). Le formulaire `prospects/nouveau` présélectionne `type_piece = CIN` (8 chiffres) ; le choix « Passeport » reste possible. La date et le lieu de délivrance sont alors exigés par le formulaire, comme à la modification.
 
+> **Contrat depuis un client ou un prospect existant.** Le formulaire ne redemande plus la date de délivrance de la CIN : le CIN et sa délivrance sont déjà sur la fiche (obligatoires à la création). Le CIN n'est saisi qu'à la création à la volée d'un nouveau locataire (location et contrat).
+
 ### Cohérences entre champs
 
 Les contraintes croisées présentes à la création disparaissaient à la modification : chaque `Update…Request` avait été écrit sans reprendre celles de son `Store…Request`. La donnée était donc correcte à la création et corrompable ensuite.
