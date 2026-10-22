@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from '@/components/OrgLink';
+import { EVENEMENT_VALIDER_TOUT } from '@/components/Champ';
 
 export interface FormStep {
   title: string;
@@ -34,6 +35,9 @@ export default function StepForm({ steps, onSubmit, submitLabel = 'Enregistrer',
     const error = steps[current].validate?.() ?? null;
     if (error) {
       setStepError(error);
+      // Le message de l'étape ne dit qu'une chose : on fait aussi apparaître
+      // celui de chaque champ concerné, à côté de lui.
+      document.dispatchEvent(new Event(EVENEMENT_VALIDER_TOUT));
       return;
     }
     goTo(current + 1);

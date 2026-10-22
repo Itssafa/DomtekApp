@@ -69,3 +69,13 @@ input::-ms-reveal,
 input::-ms-clear {
   display: none;
 }
+
+/* Un champ que `Champ` juge invalide (attribut pose sur le champ voisin) : meme
+   rendu rouge que les erreurs renvoyees par le serveur. Hors @layer, cette regle
+   l'emporte sur les classes utilitaires de Tailwind. */
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: #f87171;
+  background-color: #fef2f2;
+}
