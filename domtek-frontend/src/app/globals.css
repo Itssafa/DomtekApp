@@ -61,3 +61,11 @@ body {
 .animate-slide-up  { animation: slide-up 0.5s ease both; }
 .animate-scale-in  { animation: scale-in 0.3s ease both; }
 .animate-float     { animation: float 4s ease-in-out infinite; }
+
+/* Edge ajoute sa propre icône « afficher le mot de passe » : avec celle de
+   PasswordInput, chaque champ en aurait deux. On garde celle de l'application,
+   identique sur tous les navigateurs. */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}

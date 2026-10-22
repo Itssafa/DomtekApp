@@ -871,6 +871,18 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 
 ---
 
+### A39 — Affichage du mot de passe dans tous les formulaires ✅ TERMINÉ
+
+**Fonctionnalité** : Un bouton œil pour afficher ou masquer chaque mot de passe saisi, partout.
+
+- [x] `components/PasswordInput.tsx` : composant unique (bouton accessible, `aria-label`, état indépendant par champ)
+- [x] Ajouté là où il manquait : inscription client (2 champs) et inscription agence (2 champs)
+- [x] Doublons supprimés : le bloc d'icônes recopié dans 5 pages (connexion, réinitialisation, inscription employé, Compte admin, Compte agence) est remplacé par le composant. Dans les pages Compte, 3 boutons pilotaient un même état partagé ; la confirmation de la réinitialisation et de l'inscription employé n'avait pas de bouton propre
+- [x] `globals.css` : l'icône native d'Edge est masquée, pour qu'un champ n'ait pas deux yeux
+- [x] Au total : 9 champs sur 7 formulaires, un œil chacun
+
+---
+
 ## Récapitulatif de l'avancement
 
 | Phase | Étape | Statut |
@@ -929,5 +941,6 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 | Améliorations | A36 — Déploiement Docker durable | ✅ Terminé |
 | Améliorations | A37 — Connexion Google : slug de l'organisation | ✅ Terminé |
 | Améliorations | A38 — IA : modèle Groq retiré et pannes réseau | ✅ Terminé |
+| Améliorations | A39 — Affichage du mot de passe dans tous les formulaires | ✅ Terminé |
 | Intégration | 17 — Intégration complète | ⬜ À faire |
 | Déploiement | 18 — Déploiement | 🟨 En cours (Docker fait ; serveur, HTTPS et mise en ligne restent) |

@@ -1476,6 +1476,7 @@ Chaque module dispose d'un hook dédié qui gère le cache et les requêtes serv
 ### Validation des formulaires
 - `src/lib/validation.ts` : helpers réutilisables (`isValidEmail`, `validatePassword`, `isValidPhone`, `isPositiveAmount`, `isValidCin`, `isValidCinOrPasseport`, `isValidCityOrPlace`)
 - Appliqués aux formulaires d'authentification et à la majorité des formulaires du dashboard organisation (biens, clients, contrats, employés, factures, prospects, locations, immeubles) avec affichage des erreurs inline avant soumission
+- **Affichage du mot de passe** : composant `components/PasswordInput.tsx`, utilisé par les 9 champs mot de passe de l'application. Un œil par champ, état indépendant ; l'icône native d'Edge est masquée dans `globals.css` pour éviter le doublon
 - **Filtres de frappe** : `filtreTelephone` (chiffres, espaces, « + » en tête) sur les 10 champs téléphone, et filtre chiffres sur le CIN. Les lettres y sont impossibles à saisir
 - **Bornes des calendriers** : `borneDate(champ)` pose `min`/`max` selon le champ (pas de date de naissance future, par exemple). Branché dans le helper `inp()` des formulaires, il couvre tous les champs date qu'il affiche
 

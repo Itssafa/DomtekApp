@@ -1139,6 +1139,8 @@ La section `custom` existe pour un cas précis : le marqueur `:date` restitue le
 
 `filtreTelephone` est volontairement plus permissif qu'`isValidPhone` : il n'empêche pas de taper un numéro incomplet en cours de saisie, seulement d'y mettre des caractères qui n'ont rien à y faire.
 
+**Affichage du mot de passe.** Tous les champs mot de passe (9 champs sur 7 formulaires : connexion, inscriptions client, agence et employé, réinitialisation ou activation, et la page Compte de l'admin et de l'agence) utilisent le composant `PasswordInput`, qui ajoute un bouton œil. Chaque champ a **son propre bouton et son propre état** : on peut révéler la confirmation sans révéler le mot de passe. Le composant remplace un bloc d'icônes recopié dans cinq pages, dont un état partagé qui révélait ensemble des champs distincts. Le CSS global masque l'icône native d'Edge (`::-ms-reveal`), qui s'ajoutait à celle de l'application et donnait deux yeux par champ.
+
 **Le helper `inp()` est dupliqué dans 11 formulaires**, sous quatre formes légèrement différentes. Le filtre et les bornes y sont branchés une fois par fichier, au niveau du helper et non de ses appels : tout champ `type="tel"` qu'il rend est donc filtré, et tout champ `type="date"` reçoit ses bornes, sans avoir à reprendre les appels un par un. C'est aussi ce qui a permis à `cin_delivree_le` d'être borné sans intervention supplémentaire.
 
 Les quatre champs `date_naissance` passant par ce helper avaient échappé à une première passe qui ne ciblait que les `<input type="date">` écrits en clair — d'où l'intérêt d'agir dans le helper.

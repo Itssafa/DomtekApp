@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import { AuthResponse } from '@/types';
 import { AxiosError } from 'axios';
 import { GoogleAuthButton } from '@/components/GoogleAuthButton';
+import { PasswordInput } from '@/components/PasswordInput';
 import { isValidEmail, validatePassword } from '@/lib/validation';
 
 export default function RegisterClientPage() {
@@ -54,14 +55,24 @@ export default function RegisterClientPage() {
     }
   };
 
-  const inp = (label: string, field: string, type = 'text', placeholder = '') => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <input type={type} value={(form as Record<string, string>)[field]} onChange={set(field)} placeholder={placeholder} required
-        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-      {errors[field] && <p className="text-red-500 text-xs mt-1">{errors[field][0]}</p>}
-    </div>
-  );
+  const inp = (label: string, field: string, type = 'text', placeholder = '') => {
+    const props = {
+      value: (form as Record<string, string>)[field],
+      onChange: set(field),
+      placeholder,
+      required: true,
+      className: 'w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500',
+    };
+    return (
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+        {type === 'password'
+          ? <PasswordInput {...props} autoComplete="new-password" />
+          : <input type={type} {...props} />}
+        {errors[field] && <p className="text-red-500 text-xs mt-1">{errors[field][0]}</p>}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-10">
