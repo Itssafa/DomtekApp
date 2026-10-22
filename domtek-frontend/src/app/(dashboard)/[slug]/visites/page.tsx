@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { PaginatedResponse } from '@/types';
+import { Champ } from '@/components/Champ';
 
 interface Visite {
   id: number;
@@ -233,6 +234,7 @@ export default function VisitesPage() {
                   <option value="">— Sélectionner —</option>
                   {prospects.map(p => <option key={p.id} value={p.id}>{p.nom_complet}</option>)}
                 </select>
+                <Champ nom="prospect_id" form={form} requis />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Bien *</label>
@@ -240,6 +242,7 @@ export default function VisitesPage() {
                   <option value="">— Sélectionner —</option>
                   {biens.map(b => <option key={b.id} value={b.id}>{b.designation}</option>)}
                 </select>
+                <Champ nom="bien_id" form={form} requis />
               </div>
               {isEmploye ? (
                 <div>
@@ -258,11 +261,13 @@ export default function VisitesPage() {
                     <option value="">— Aucun —</option>
                     {employes.map(e => <option key={e.id} value={e.id}>{e.nom}</option>)}
                   </select>
+                  <Champ nom="employe_id" form={form} />
                 </div>
               )}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Date et heure *</label>
                 <input type="datetime-local" required value={form.date_visite} onChange={set('date_visite')} className={inputCls} />
+                <Champ nom="date_visite" form={form} requis />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Notes</label>

@@ -1474,6 +1474,7 @@ Chaque module dispose d'un hook dédié qui gère le cache et les requêtes serv
 - `useQuittances()` — quittances
 
 ### Validation des formulaires
+- **Condition affichée, erreur à la sortie du champ** : `src/lib/regles-champs.ts` (registre des règles par nom de champ) et `src/components/Champ.tsx` (affichage de la condition sous le champ et du message dès qu'on passe au champ suivant). Déployé sur tous les formulaires : toute nouvelle saisie doit déclarer sa règle dans le registre
 - `src/lib/validation.ts` : helpers réutilisables (`isValidEmail`, `validatePassword`, `isValidPhone`, `isPositiveAmount`, `isValidCin`, `isValidCinOrPasseport`, `isValidCityOrPlace`)
 - Appliqués aux formulaires d'authentification et à la majorité des formulaires du dashboard organisation (biens, clients, contrats, employés, factures, prospects, locations, immeubles) avec affichage des erreurs inline avant soumission
 - **Affichage du mot de passe** : composant `components/PasswordInput.tsx`, utilisé par les 9 champs mot de passe de l'application. Un œil par champ, état indépendant ; l'icône native d'Edge est masquée dans `globals.css` pour éviter le doublon

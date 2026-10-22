@@ -9,6 +9,7 @@ import { Immeuble } from '@/types';
 import { AxiosError } from 'axios';
 import { MapPreview } from '@/components/MapPreview';
 import StepForm, { FormStep } from '@/components/StepForm';
+import { Champ } from '@/components/Champ';
 
 const TYPES_BIEN = [
   { value: 'appartement',      label: 'Appartement' },
@@ -175,7 +176,7 @@ export default function NouveauBienPage() {
         placeholder={placeholder}
         className={errors[key] ? inputErrCls : inputCls}
       />
-      {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
+      <Champ nom={key} form={form} erreur={errors[key]?.[0]} />
     </div>
   );
 
@@ -288,6 +289,7 @@ export default function NouveauBienPage() {
                         <option key={n} value={n}>Étage {n}</option>
                       ))}
                     </select>
+                    <Champ nom="etage" form={form} erreur={errors.etage?.[0]} />
                   </div>
                   {selectedImmeuble.a_blocs && selectedImmeuble.nb_blocs && (
                     <div>

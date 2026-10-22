@@ -5,6 +5,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { AxiosError } from 'axios';
 import { isValidEmail } from '@/lib/validation';
+import { Champ } from '@/components/Champ';
 
 export default function ForgotPasswordPage() {
   const [email,   setEmail]   = useState('');
@@ -88,6 +89,7 @@ export default function ForgotPasswordPage() {
               placeholder="votre@email.com"
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            <Champ nom="email" form={{ email }} requis aide={null} />
           </div>
 
           <button type="submit" disabled={loading}

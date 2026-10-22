@@ -13,6 +13,7 @@ interface LocationSummary {
   bien?: { id: number; designation: string; ville?: string | null } | null;
 }
 import { AxiosError } from 'axios';
+import { Champ } from '@/components/Champ';
 
 const categorieLabel: Record<string, string> = {
   meuble:         'Meuble',
@@ -355,6 +356,7 @@ export default function EtatLieuDetailPage() {
                 <label className={lc}>Désignation</label>
                 <input type="text" value={form.designation} onChange={set('designation')}
                   placeholder="Ex : État d'entrée — Appt 3B — Mars 2026" className={ic} />
+                <Champ nom="designation" form={form} erreur={errors.designation?.[0]} />
               </div>
             </div>
 
@@ -369,6 +371,7 @@ export default function EtatLieuDetailPage() {
                   </option>
                 ))}
               </select>
+              <Champ nom="location_id" form={form} erreur={errors.location_id?.[0]} />
               {errMsg('location_id')}
               {selectedLocation && (
                 <div className="bg-blue-50 rounded-lg p-3 text-xs space-y-1 text-gray-600">
@@ -385,16 +388,19 @@ export default function EtatLieuDetailPage() {
                 <div>
                   <label className={lc}>Eau (m³)</label>
                   <input type="number" step="0.001" min="0" value={form.releve_eau} onChange={set('releve_eau')} placeholder="0.000" className={ic} />
+                  <Champ nom="releve_eau" form={form} erreur={errors.releve_eau?.[0]} />
                   {errMsg('releve_eau')}
                 </div>
                 <div>
                   <label className={lc}>Électricité (kWh)</label>
                   <input type="number" step="0.001" min="0" value={form.releve_electricite} onChange={set('releve_electricite')} placeholder="0.000" className={ic} />
+                  <Champ nom="releve_electricite" form={form} erreur={errors.releve_electricite?.[0]} />
                   {errMsg('releve_electricite')}
                 </div>
                 <div>
                   <label className={lc}>Gaz (m³)</label>
                   <input type="number" step="0.001" min="0" value={form.releve_gaz} onChange={set('releve_gaz')} placeholder="0.000" className={ic} />
+                  <Champ nom="releve_gaz" form={form} erreur={errors.releve_gaz?.[0]} />
                   {errMsg('releve_gaz')}
                 </div>
               </div>
@@ -466,6 +472,7 @@ export default function EtatLieuDetailPage() {
                   <input type="text" value={item.designation}
                     onChange={e => setItem(i, 'designation', e.target.value)}
                     placeholder="Ex : Canapé 3 places, Réfrigérateur…" className={ic} />
+                  <Champ nom="designation" form={item} erreur={errors.designation?.[0]} />
                   {errMsg(`inventaires.${i}.designation`)}
                 </div>
                 <div className="grid grid-cols-2 gap-3">

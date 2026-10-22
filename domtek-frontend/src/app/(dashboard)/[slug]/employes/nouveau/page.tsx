@@ -8,6 +8,7 @@ import { orgPath } from '@/lib/org-path';
 import { AxiosError } from 'axios';
 import StepForm, { FormStep } from '@/components/StepForm';
 import { isValidEmail, isValidPhone, isValidCin, isValidCityOrPlace, filtreTelephone, borneDate } from '@/lib/validation';
+import { Champ } from '@/components/Champ';
 
 export default function NouvelEmployePage() {
   const router = useRouter();
@@ -66,7 +67,7 @@ export default function NouvelEmployePage() {
           ? 'w-full border border-red-400 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-red-50'
           : 'w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500'}
       />
-      {errors[field] && <p className="text-red-500 text-xs mt-1">{errors[field][0]}</p>}
+      <Champ nom={field} form={form} requis={required} erreur={errors[field]?.[0]} />
     </div>
   );
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
+import { Champ } from '@/components/Champ';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -127,6 +128,7 @@ function TacheModal({ tache, onClose, onSaved }: ModalProps) {
               placeholder="Ex : Appeler le propriétaire…"
               autoFocus
             />
+            <Champ nom="titre" form={form} />
           </div>
 
           {/* Description */}
@@ -151,6 +153,7 @@ function TacheModal({ tache, onClose, onSaved }: ModalProps) {
                 onChange={e => set('date_echeance', e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
+              <Champ nom="date_echeance" form={form} />
             </div>
 
             {/* Priorité */}

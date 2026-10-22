@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { orgPath } from '@/lib/org-path';
 import { Annonce, AnnoncePhoto, Bien } from '@/types';
 import { AxiosError } from 'axios';
+import { Champ } from '@/components/Champ';
 
 export default function ModifierAnnoncePage() {
   const { id }       = useParams<{ id: string }>();
@@ -129,7 +130,7 @@ export default function ModifierAnnoncePage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
             <input type="text" value={form.titre} onChange={set('titre')}
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
-            {errors.titre && <p className="text-red-500 text-xs mt-1">{errors.titre[0]}</p>}
+            <Champ nom="titre" form={form} erreur={errors.titre?.[0]} />
           </div>
 
           <div>
@@ -145,6 +146,7 @@ export default function ModifierAnnoncePage() {
               <option value="">— Sélectionner —</option>
               {biens.map((b) => <option key={b.id} value={b.id}>{b.designation}</option>)}
             </select>
+            <Champ nom="bien_id" form={form} erreur={errors.bien_id?.[0]} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

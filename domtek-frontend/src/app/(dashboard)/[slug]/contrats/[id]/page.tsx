@@ -9,6 +9,7 @@ import { Bien, Client, Contrat } from '@/types';
 import { AxiosError } from 'axios';
 import { ContratPreview, printContrat, type ContratPreviewData } from '@/components/ContratPreview';
 import { isPositiveAmount } from '@/lib/validation';
+import { Champ } from '@/components/Champ';
 
 // ─── Constantes (identiques à nouveau/page.tsx) ───────────────────────────────
 
@@ -430,6 +431,7 @@ export default function EditContratPage() {
               <label className={lc}>Désignation</label>
               <input type="text" value={form.designation} onChange={set('designation')}
                 placeholder="Ex : Bail appartement F3" className={ic} />
+              <Champ nom="designation" form={form} erreur={errors.designation?.[0]} />
             </div>
           </div>
         </div>
@@ -480,6 +482,7 @@ export default function EditContratPage() {
               <option value="">— Sélectionner un client —</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.nom_complet}</option>)}
             </select>
+            <Champ nom="client_id" form={form} erreur={errors.client_id?.[0]} />
             {errMsg('client_ids')}
           </div>
           {selectedClient && (
@@ -499,6 +502,7 @@ export default function EditContratPage() {
               <div>
                 <label className={lc}>CIN délivrée le</label>
                 <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} max={AUJOURD_HUI} />
+                <Champ nom="cin_delivree_le" form={form} erreur={errors.cin_delivree_le?.[0]} />
               </div>
               <div>
                 <label className={lc}>Résidence</label>
@@ -521,6 +525,7 @@ export default function EditContratPage() {
               </option>
             ))}
           </select>
+          <Champ nom="bien_id" form={form} erreur={errors.bien_id?.[0]} />
           {errMsg('bien_id')}
         </div>
 
@@ -531,10 +536,12 @@ export default function EditContratPage() {
             <div>
               <label className={lc}>Date du contrat</label>
               <input type="date" value={form.date_contrat} onChange={set('date_contrat')} className={ic} />
+              <Champ nom="date_contrat" form={form} erreur={errors.date_contrat?.[0]} />
             </div>
             <div>
               <label className={lc}>Prise d'effet *</label>
               <input type="date" value={form.date_debut} onChange={set('date_debut')} className={ic} />
+              <Champ nom="date_debut" form={form} erreur={errors.date_debut?.[0]} />
               {errMsg('date_debut')}
             </div>
             {isLocation && (
@@ -542,6 +549,7 @@ export default function EditContratPage() {
                 <label className={lc}>Date de fin</label>
                 <input type="date" value={form.date_fin} onChange={set('date_fin')}
                   min={form.date_debut || undefined} className={ic} />
+                <Champ nom="date_fin" form={form} erreur={errors.date_fin?.[0]} />
                 {errMsg('date_fin')}
               </div>
             )}
@@ -562,12 +570,14 @@ export default function EditContratPage() {
               <label className={lc}>Montant HT (TND) *</label>
               <input type="number" step="0.001" min="0" value={form.montant_ht} onChange={set('montant_ht')}
                 placeholder="1500.000" className={ic} />
+              <Champ nom="montant_ht" form={form} erreur={errors.montant_ht?.[0]} />
               {errMsg('montant_ht')}
             </div>
             <div>
               <label className={lc}>TVA (%)</label>
               <input type="number" step="0.1" min="0" max="100" value={form.tva} onChange={set('tva')}
                 placeholder="19" className={ic} />
+              <Champ nom="tva" form={form} erreur={errors.tva?.[0]} />
             </div>
             <div>
               <label className={lc}>Montant TTC (calculé)</label>
@@ -581,11 +591,13 @@ export default function EditContratPage() {
               <label className={lc}>Frais de syndic (TND)</label>
               <input type="number" step="0.001" min="0" value={form.frais_syndic} onChange={set('frais_syndic')}
                 placeholder="50.000" className={ic} />
+              <Champ nom="frais_syndic" form={form} erreur={errors.frais_syndic?.[0]} />
             </div>
             <div>
               <label className={lc}>Retenue à la source (%)</label>
               <input type="number" step="0.1" min="0" max="100" value={form.retenue_source} onChange={set('retenue_source')}
                 placeholder="5" className={ic} />
+              <Champ nom="retenue_source" form={form} erreur={errors.retenue_source?.[0]} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -600,6 +612,7 @@ export default function EditContratPage() {
               <label className={lc}>Jour de paiement (1–28)</label>
               <input type="number" min="1" max="28" value={form.jour_paiement} onChange={set('jour_paiement')}
                 placeholder="1" className={ic} />
+              <Champ nom="jour_paiement" form={form} erreur={errors.jour_paiement?.[0]} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -607,6 +620,7 @@ export default function EditContratPage() {
               <label className={lc}>Dépôt de garantie (TND)</label>
               <input type="number" step="0.001" min="0" value={form.depot_garantie} onChange={set('depot_garantie')}
                 placeholder="3000.000" className={ic} />
+              <Champ nom="depot_garantie" form={form} erreur={errors.depot_garantie?.[0]} />
             </div>
             <div>
               <label className={lc}>

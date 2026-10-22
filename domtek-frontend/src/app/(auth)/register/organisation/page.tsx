@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { AxiosError } from 'axios';
 import { GoogleAuthButton } from '@/components/GoogleAuthButton';
 import { PasswordInput } from '@/components/PasswordInput';
+import { Champ } from '@/components/Champ';
 import { isValidEmail, isValidPhone, validatePassword, isValidCityOrPlace } from '@/lib/validation';
 
 interface FormState {
@@ -141,7 +142,8 @@ export default function RegisterOrganisationPage() {
         {type === 'password'
           ? <PasswordInput {...props} autoComplete="new-password" />
           : <input type={type} {...props} />}
-        {errors[name] && <p className="text-red-500 text-xs mt-1">{errors[name][0]}</p>}
+        <Champ nom={name} form={form} requis={required} erreur={errors[name]?.[0]}
+          aide={fromGoogle && (name === 'name' || name === 'email') ? null : undefined} />
       </div>
     );
   };

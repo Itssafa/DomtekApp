@@ -11,6 +11,7 @@ import { AxiosError } from 'axios';
 import { FacturePreview, printFacture, type FacturePreviewData } from '@/components/FacturePreview';
 import StepForm, { FormStep } from '@/components/StepForm';
 import { isPositiveAmount } from '@/lib/validation';
+import { Champ } from '@/components/Champ';
 
 const TYPE_OPTIONS = [
   { value: 'eau',             label: 'Eau' },
@@ -128,6 +129,7 @@ export default function NouvelleFacturePage() {
               <option value="">— Sélectionner un bien —</option>
               {biens.map((b) => <option key={b.id} value={b.id}>{b.designation}</option>)}
             </select>
+            <Champ nom="bien_id" form={form} erreur={errors.bien_id?.[0]} />
             {biens.length === 0 && <p className="text-amber-600 text-xs mt-1">Aucun bien avec un contrat actif.</p>}
           </div>
           {selectedContrat && (
@@ -137,6 +139,7 @@ export default function NouvelleFacturePage() {
                 <option value="">— Sélectionner —</option>
                 {clientsDisponibles.map((c) => <option key={c.id} value={c.id}>{c.nom_complet}</option>)}
               </select>
+              <Champ nom="client_id" form={form} erreur={errors.client_id?.[0]} />
               {err('client_id')}
             </div>
           )}
@@ -149,10 +152,12 @@ export default function NouvelleFacturePage() {
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Du</label>
                 <input type="date" value={form.periode_debut} onChange={set('periode_debut')} className={ic} />
+                <Champ nom="periode_debut" form={form} erreur={errors.periode_debut?.[0]} />
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Au</label>
                 <input type="date" value={form.periode_fin} onChange={set('periode_fin')} className={ic} min={form.periode_debut || undefined} />
+                <Champ nom="periode_fin" form={form} erreur={errors.periode_fin?.[0]} />
               </div>
             </div>
           </div>
@@ -173,17 +178,20 @@ export default function NouvelleFacturePage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Montant (TND) *</label>
             <input type="number" step="0.01" min="0" value={form.montant} onChange={set('montant')} placeholder="120.50" className={ic} />
+            <Champ nom="montant" form={form} erreur={errors.montant?.[0]} />
             {err('montant')}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date d'émission *</label>
               <input type="date" value={form.date_emission} onChange={set('date_emission')} className={ic} />
+              <Champ nom="date_emission" form={form} erreur={errors.date_emission?.[0]} />
               {err('date_emission')}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date d'échéance *</label>
               <input type="date" value={form.date_echeance} onChange={set('date_echeance')} className={ic} min={form.date_emission || undefined} />
+              <Champ nom="date_echeance" form={form} erreur={errors.date_echeance?.[0]} />
               {err('date_echeance')}
             </div>
           </div>

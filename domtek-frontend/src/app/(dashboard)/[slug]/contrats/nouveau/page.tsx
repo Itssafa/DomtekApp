@@ -11,6 +11,7 @@ import { AxiosError } from 'axios';
 import { ContratPreview, type ContratPreviewData } from '@/components/ContratPreview';
 import StepForm, { FormStep } from '@/components/StepForm';
 import { isValidEmail, isValidPhone, isPositiveAmount, isValidCin, isValidCityOrPlace, filtreTelephone } from '@/lib/validation';
+import { Champ } from '@/components/Champ';
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -503,6 +504,7 @@ export default function NouveauContratPage() {
             <label className={lc}>Désignation du contrat</label>
             <input type="text" value={form.designation} onChange={set('designation')}
               placeholder="Ex : Bail appartement F3 — Ref 2026-001" className={ic} />
+            <Champ nom="designation" form={form} erreur={errors.designation?.[0]} />
           </div>
         </>
       ),
@@ -552,6 +554,7 @@ export default function NouveauContratPage() {
                   <div>
                     <label className={lc + ' mt-1'}>CIN délivrée le <span className="text-gray-400 font-normal">(non renseigné dans le profil)</span></label>
                     <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} max={AUJOURD_HUI} />
+                    <Champ nom="cin_delivree_le" form={form} erreur={errors.cin_delivree_le?.[0]} />
                   </div>
                 )}
               </div>
@@ -571,6 +574,7 @@ export default function NouveauContratPage() {
           <div>
             <label className={lc}>Date du contrat</label>
             <input type="date" value={form.date_contrat} onChange={set('date_contrat')} className={ic} />
+            <Champ nom="date_contrat" form={form} erreur={errors.date_contrat?.[0]} />
           </div>
           <div>
             <label className={lc}>Ville de signature</label>
@@ -603,6 +607,7 @@ export default function NouveauContratPage() {
                 </option>
               ))}
             </select>
+            <Champ nom="bien_id" form={form} erreur={errors.bien_id?.[0]} />
             {errMsg('bien_id')}
           </div>
           {conflitVente && (
@@ -617,6 +622,7 @@ export default function NouveauContratPage() {
             <label className={lc}>Désignation du contrat</label>
             <input type="text" value={form.designation} onChange={set('designation')}
               placeholder="Ex : Vente appartement F3 — Ref 2026-001" className={ic} />
+            <Champ nom="designation" form={form} erreur={errors.designation?.[0]} />
           </div>
         </>
       ),
@@ -770,18 +776,27 @@ export default function NouveauContratPage() {
                     <option value="Mlle">Mlle</option>
                   </select>
                 </div>
-                <div><label className={lc}>Nom *</label><input type="text" value={ncForm.nom} onChange={setNc('nom')} className={ic} />{errMsg('nouveau_client.nom')}</div>
-                <div><label className={lc}>Prénom *</label><input type="text" value={ncForm.prenom} onChange={setNc('prenom')} className={ic} />{errMsg('nouveau_client.prenom')}</div>
+                <div><label className={lc}>Nom *</label><input type="text" value={ncForm.nom} onChange={setNc('nom')} className={ic} />
+                                                        <Champ nom="nom" form={ncForm} erreur={errors.nom?.[0]} />{errMsg('nouveau_client.nom')}</div>
+                <div><label className={lc}>Prénom *</label><input type="text" value={ncForm.prenom} onChange={setNc('prenom')} className={ic} />
+                                                           <Champ nom="prenom" form={ncForm} erreur={errors.prenom?.[0]} />{errMsg('nouveau_client.prenom')}</div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className={lc}>Email *</label><input type="email" value={ncForm.email} onChange={setNc('email')} className={ic} />{errMsg('nouveau_client.email')}</div>
-                <div><label className={lc}>Téléphone</label><input type="tel" value={ncForm.telephone} onChange={setNcTelephone('telephone')} className={ic} /></div>
-                <div><label className={lc}>CIN</label><input type="text" value={ncForm.cin} onChange={setNcDigitsOnly('cin', 8)} className={ic} /></div>
-                <div><label className={lc}>Date de naissance</label><input type="date" value={ncForm.date_naissance} onChange={setNc('date_naissance')} className={ic} max={AUJOURD_HUI} /></div>
-                <div><label className={lc}>Adresse</label><input type="text" value={ncForm.adresse} onChange={setNc('adresse')} className={ic} /></div>
-                <div><label className={lc}>Ville</label><input type="text" value={ncForm.ville} onChange={setNc('ville')} className={ic} /></div>
+                <div><label className={lc}>Email *</label><input type="email" value={ncForm.email} onChange={setNc('email')} className={ic} />
+                                                          <Champ nom="email" form={ncForm} erreur={errors.email?.[0]} />{errMsg('nouveau_client.email')}</div>
+                <div><label className={lc}>Téléphone</label><input type="tel" value={ncForm.telephone} onChange={setNcTelephone('telephone')} className={ic} />
+                                                            <Champ nom="telephone" form={ncForm} erreur={errors.telephone?.[0]} /></div>
+                <div><label className={lc}>CIN</label><input type="text" value={ncForm.cin} onChange={setNcDigitsOnly('cin', 8)} className={ic} />
+                                                      <Champ nom="cin" form={ncForm} erreur={errors.cin?.[0]} /></div>
+                <div><label className={lc}>Date de naissance</label><input type="date" value={ncForm.date_naissance} onChange={setNc('date_naissance')} className={ic} max={AUJOURD_HUI} />
+                                                                    <Champ nom="date_naissance" form={ncForm} erreur={errors.date_naissance?.[0]} /></div>
+                <div><label className={lc}>Adresse</label><input type="text" value={ncForm.adresse} onChange={setNc('adresse')} className={ic} />
+                                                          <Champ nom="adresse" form={ncForm} erreur={errors.adresse?.[0]} /></div>
+                <div><label className={lc}>Ville</label><input type="text" value={ncForm.ville} onChange={setNc('ville')} className={ic} />
+                                                        <Champ nom="ville" form={ncForm} erreur={errors.ville?.[0]} /></div>
               </div>
-              <div><label className={lc}>CIN délivrée le</label><input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} max={AUJOURD_HUI} /></div>
+              <div><label className={lc}>CIN délivrée le</label><input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={ic} max={AUJOURD_HUI} />
+                                                                <Champ nom="cin_delivree_le" form={form} erreur={errors.cin_delivree_le?.[0]} /></div>
             </div>
           )}
         </>
@@ -803,22 +818,26 @@ export default function NouveauContratPage() {
             <div>
               <label className={lc}>Date du contrat *</label>
               <input type="date" value={form.date_contrat} onChange={set('date_contrat')} className={ic} />
+              <Champ nom="date_contrat" form={form} erreur={errors.date_contrat?.[0]} />
             </div>
             <div>
               <label className={lc}>Prise d'effet *</label>
               <input type="date" value={form.date_debut} onChange={set('date_debut')} className={ic} />
+              <Champ nom="date_debut" form={form} erreur={errors.date_debut?.[0]} />
               {errMsg('date_debut')}
             </div>
           </div>
           <div>
             <label className={lc}>Montant HT (DT) *</label>
             <input type="number" step="0.001" min="0" value={form.montant_ht} onChange={set('montant_ht')} placeholder="1500.000" className={ic} />
+            <Champ nom="montant_ht" form={form} erreur={errors.montant_ht?.[0]} />
             {errMsg('montant_ht')}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={lc}>TVA (%)</label>
               <input type="number" step="0.1" min="0" max="100" value={form.tva} onChange={set('tva')} placeholder="19" className={ic} />
+              <Champ nom="tva" form={form} erreur={errors.tva?.[0]} />
             </div>
             <div>
               <label className={lc}>Montant TTC (calculé)</label>
@@ -828,6 +847,7 @@ export default function NouveauContratPage() {
           <div>
             <label className={lc}>Acompte (DT)</label>
             <input type="number" step="0.001" min="0" value={form.depot_garantie} onChange={set('depot_garantie')} placeholder="3000.000" className={ic} />
+            <Champ nom="depot_garantie" form={form} erreur={errors.depot_garantie?.[0]} />
           </div>
         </>
       ),

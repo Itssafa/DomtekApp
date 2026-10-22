@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { Bien, Prospect, ImpressionVisite, PaginatedResponse } from '@/types';
 import { AxiosError } from 'axios';
+import { Champ } from '@/components/Champ';
 
 interface EmployeOption { id: number; nom: string; }
 
@@ -119,6 +120,7 @@ function ModalVisite({ prospects, defaultProspectId, onClose, onDone }: {
                   <option key={c.id} value={c.id}>{c.nom_complet}</option>
                 ))}
               </select>
+              <Champ nom="prospect_id" form={form} requis erreur={errors.prospect_id?.[0]} />
               {errMsg('prospect_id')}
             </div>
             <div>
@@ -139,6 +141,7 @@ function ModalVisite({ prospects, defaultProspectId, onClose, onDone }: {
             <div>
               <label className={lc}>Date et heure *</label>
               <input required type="datetime-local" value={form.date_visite} onChange={set('date_visite')} className={ic} />
+              <Champ nom="date_visite" form={form} requis erreur={errors.date_visite?.[0]} />
               {errMsg('date_visite')}
             </div>
             <div>
@@ -189,6 +192,7 @@ function ModalVisite({ prospects, defaultProspectId, onClose, onDone }: {
                 </option>
               ))}
             </select>
+            <Champ nom="bien_id" form={form} requis erreur={errors.bien_id?.[0]} />
             {errMsg('bien_id')}
           </div>
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import StepForm, { FormStep } from '@/components/StepForm';
+import { Champ } from '@/components/Champ';
 
 interface SelectOption { id: number; label: string; }
 
@@ -171,6 +172,7 @@ export default function NouvelleLocationPage() {
                 <option value="">— Sélectionner —</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
               </select>
+              <Champ nom="locataire_id" form={form} />
             </div>
           )}
           {locataireType === 'prospect' && (
@@ -180,12 +182,14 @@ export default function NouvelleLocationPage() {
                 <option value="">— Sélectionner —</option>
                 {prospects.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
               </select>
+              <Champ nom="locataire_id" form={form} />
             </div>
           )}
           {locataireType === 'nouveau' && (
             <div>
               <label className={labelCls}>Nom complet *</label>
               <input type="text" value={form.locataire_nom} onChange={set('locataire_nom')} className={inputCls} placeholder="Prénom Nom" />
+              <Champ nom="locataire_nom" form={form} />
             </div>
           )}
         </>
@@ -206,6 +210,7 @@ export default function NouvelleLocationPage() {
                 <option value="">— Sélectionner —</option>
                 {biens.map(b => <option key={b.id} value={b.id}>{b.label}</option>)}
               </select>
+              <Champ nom="bien_id" form={form} />
             </div>
             <div>
               <label className={labelCls}>Type de bail *</label>
@@ -216,6 +221,7 @@ export default function NouvelleLocationPage() {
             <div className="col-span-2">
               <label className={labelCls}>Désignation</label>
               <input type="text" value={form.designation} onChange={set('designation')} className={inputCls} placeholder="Ex: Appartement F3 – Lot 14" />
+              <Champ nom="designation" form={form} />
             </div>
             <div>
               <label className={labelCls}>Utilisation</label>
@@ -245,10 +251,12 @@ export default function NouvelleLocationPage() {
             <div>
               <label className={labelCls}>Date de début *</label>
               <input type="date" value={form.date_debut} onChange={set('date_debut')} className={inputCls} />
+              <Champ nom="date_debut" form={form} />
             </div>
             <div>
               <label className={labelCls}>Date de fin</label>
               <input type="date" value={form.date_fin} onChange={set('date_fin')} className={inputCls} min={form.date_debut || undefined} />
+              <Champ nom="date_fin" form={form} />
             </div>
             {duree && (
               <div className="col-span-2">
@@ -273,10 +281,12 @@ export default function NouvelleLocationPage() {
             <div>
               <label className={labelCls}>Montant HT (DT) *</label>
               <input type="number" step="0.01" min="0" value={form.montant_ht} onChange={set('montant_ht')} className={inputCls} />
+              <Champ nom="montant_ht" form={form} />
             </div>
             <div>
               <label className={labelCls}>TVA (%)</label>
               <input type="number" step="0.01" min="0" max="100" value={form.tva} onChange={set('tva')} className={inputCls} />
+              <Champ nom="tva" form={form} />
             </div>
             <div>
               <label className={labelCls}>Montant TTC (auto)</label>
@@ -285,10 +295,12 @@ export default function NouvelleLocationPage() {
             <div>
               <label className={labelCls}>Frais syndic (DT)</label>
               <input type="number" step="0.01" min="0" value={form.frais_syndic} onChange={set('frais_syndic')} className={inputCls} />
+              <Champ nom="frais_syndic" form={form} />
             </div>
             <div>
               <label className={labelCls}>Retenue à la source (%)</label>
               <input type="number" step="0.01" min="0" max="100" value={form.retenue_source} onChange={set('retenue_source')} className={inputCls} />
+              <Champ nom="retenue_source" form={form} />
             </div>
             <div>
               <label className={labelCls}>Montant paiement (auto)</label>
@@ -297,6 +309,7 @@ export default function NouvelleLocationPage() {
             <div>
               <label className={labelCls}>Dépôt de garantie (DT)</label>
               <input type="number" step="0.01" min="0" value={form.depot_garantie} onChange={set('depot_garantie')} className={inputCls} />
+              <Champ nom="depot_garantie" form={form} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -309,6 +322,7 @@ export default function NouvelleLocationPage() {
             <div>
               <label className={labelCls}>Jour de paiement (1-28) *</label>
               <input type="number" min="1" max="28" value={form.jour_paiement} onChange={set('jour_paiement')} className={inputCls} />
+              <Champ nom="jour_paiement" form={form} />
             </div>
             <div className="col-span-2">
               <label className={labelCls}>Première échéance (calculée)</label>

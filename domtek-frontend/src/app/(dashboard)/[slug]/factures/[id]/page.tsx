@@ -9,6 +9,7 @@ import { Facture, Client, Contrat } from '@/types';
 import { AxiosError } from 'axios';
 import { FacturePreview, printFacture, type FacturePreviewData } from '@/components/FacturePreview';
 import { isPositiveAmount } from '@/lib/validation';
+import { Champ } from '@/components/Champ';
 
 const Field = ({ label, value }: { label: string; value?: string | null }) => (
   <div>
@@ -218,24 +219,26 @@ export default function EditFacturePage() {
                 <option value="">— Sélectionner —</option>
                 {clients.map((c) => <option key={c.id} value={c.id}>{c.nom_complet}</option>)}
               </select>
-              {errors.client_id && <p className="text-red-500 text-xs mt-1">{errors.client_id[0]}</p>}
+              <Champ nom="client_id" form={form} erreur={errors.client_id?.[0]} />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Montant (TND)</label>
               <input type="number" step="0.01" min="0" value={form.montant} onChange={set('montant')}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
-              {errors.montant && <p className="text-red-500 text-xs mt-1">{errors.montant[0]}</p>}
+              <Champ nom="montant" form={form} erreur={errors.montant?.[0]} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date émission</label>
                 <input type="date" value={form.date_emission} onChange={set('date_emission')}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                <Champ nom="date_emission" form={form} erreur={errors.date_emission?.[0]} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date échéance</label>
                 <input type="date" value={form.date_echeance} onChange={set('date_echeance')}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" min={form.date_emission || undefined} />
+                <Champ nom="date_echeance" form={form} erreur={errors.date_echeance?.[0]} />
               </div>
             </div>
             <div>

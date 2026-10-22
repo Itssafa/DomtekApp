@@ -883,6 +883,20 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 
 ---
 
+### A40 — Conditions de saisie affichées et erreurs à la sortie du champ ✅ TERMINÉ
+
+**Fonctionnalité** : sur tout champ, la condition de saisie est visible d'emblée et le message d'erreur (« Le mot de passe doit contenir au moins une majuscule. », « Les mots de passe ne correspondent pas. ») apparaît dès qu'on passe au champ suivant.
+
+- [x] `lib/regles-champs.ts` : registre unique des règles, une entrée par nom de champ (condition `aide` + contrôle `valider`) ; les règles dépendantes d'un autre champ (confirmation, type de pièce) reçoivent tout le formulaire
+- [x] `components/Champ.tsx` : affiche la condition en permanence et l'erreur après la sortie du champ ; pose `aria-invalid` / `aria-describedby` ; une erreur serveur disparaît dès que la valeur change
+- [x] `StepForm` : quand « Suivant » est refusé, tous les champs de l'étape sont marqués (événement `domtek:valider-tout`)
+- [x] `globals.css` : champ invalide en rouge via `[aria-invalid="true"]`
+- [x] Déployé sur 38 pages (transformation automatique par l'AST TypeScript, puis connexion, mot de passe oublié, réinitialisation, inscription agence et pages Compte à la main)
+- [x] Vérifié dans Chrome : réinitialisation, connexion, inscription client et agence
+- [!] Tout nouveau champ doit avoir une entrée dans le registre
+
+---
+
 ## Récapitulatif de l'avancement
 
 | Phase | Étape | Statut |
@@ -942,5 +956,6 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 | Améliorations | A37 — Connexion Google : slug de l'organisation | ✅ Terminé |
 | Améliorations | A38 — IA : modèle Groq retiré et pannes réseau | ✅ Terminé |
 | Améliorations | A39 — Affichage du mot de passe dans tous les formulaires | ✅ Terminé |
+| Améliorations | A40 — Conditions de saisie affichées et erreurs à la sortie du champ | ✅ Terminé |
 | Intégration | 17 — Intégration complète | ⬜ À faire |
 | Déploiement | 18 — Déploiement | 🟨 En cours (Docker fait ; serveur, HTTPS et mise en ligne restent) |

@@ -1145,6 +1145,16 @@ La section `custom` existe pour un cas précis : le marqueur `:date` restitue le
 
 Les quatre champs `date_naissance` passant par ce helper avaient échappé à une première passe qui ne ciblait que les `<input type="date">` écrits en clair — d'où l'intérêt d'agir dans le helper.
 
+**Condition affichée et erreur au changement de champ.** Chaque champ de saisie porte, sous lui, sa **condition** en permanence (« 8 chiffres, indicatif +216 facultatif ») ; son **message d'erreur** (« Le mot de passe doit contenir au moins une majuscule. », « Les mots de passe ne correspondent pas. ») apparaît dès que l'utilisateur le quitte, puis suit la frappe jusqu'à correction. Trois pièces :
+
+| Pièce | Rôle |
+|---|---|
+| `lib/regles-champs.ts` | registre `REGLES_CHAMPS`, **une entrée par nom de champ** : `aide` (condition) et `valider(valeur, form)` (message). Un champ peut dépendre d'un autre (`password_confirmation` compare à `password`, `cin` dépend de `type_piece`) |
+| `components/Champ.tsx` | composant posé **à la place de l'ancienne ligne d'erreur** : `<Champ nom="telephone" form={form} requis erreur={errors.telephone?.[0]} />`. Il surveille le champ voisin (sortie de focus), pose `aria-invalid` / `aria-describedby`, et peut aussi envelopper un champ (`{({ invalide, aria }) => …}`) |
+| `globals.css` | règle `[aria-invalid="true"]` : bordure et fond rouges |
+
+Un champ est marqué « touché » à la sortie du focus, à l'envoi du formulaire, ou quand un formulaire à étapes (`StepForm`) refuse « Suivant » (événement `domtek:valider-tout`) : tous les messages de l'étape apparaissent alors à côté de leur champ. Un message du serveur disparaît dès que la valeur change. **Tout nouveau champ doit avoir une entrée dans le registre** ; sans règle, `Champ` n'affiche que « … est obligatoire » si `requis`. Sur la connexion, la condition est volontairement masquée (`aide={null}`).
+
 `validatePassword` s'applique également au formulaire d'activation de l'espace client (`/reset-password?activation=1`) : c'est le client qui choisit son mot de passe, il est donc soumis à la même exigence que tout autre utilisateur. Le secret aléatoire généré au provisionnement échappe à cette règle — il n'est jamais saisi, et sert uniquement à bloquer la connexion avant activation.
 
 ---

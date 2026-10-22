@@ -10,6 +10,7 @@ import { AxiosError } from 'axios';
 import { GoogleAuthButton } from '@/components/GoogleAuthButton';
 import { isValidEmail } from '@/lib/validation';
 import { PasswordInput } from '@/components/PasswordInput';
+import { Champ } from '@/components/Champ';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -147,6 +148,7 @@ export default function LoginPage() {
                   placeholder="votre@email.com"
                   className="w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition-all"
                 />
+                <Champ nom="email" form={form} requis aide={null} />
               </div>
 
               <div>

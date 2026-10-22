@@ -8,6 +8,7 @@ import { orgPath } from '@/lib/org-path';
 import { AxiosError } from 'axios';
 import { MapPreview } from '@/components/MapPreview';
 import StepForm, { FormStep } from '@/components/StepForm';
+import { Champ } from '@/components/Champ';
 
 const Toggle = ({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) => (
   <button type="button" onClick={() => onChange(!value)}
@@ -50,7 +51,7 @@ export default function NouvelImmeublePage() {
         className={errors[key]
           ? 'w-full border border-red-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-red-50'
           : 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500'} />
-      {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
+      <Champ nom={key} form={form} requis={required} erreur={errors[key]?.[0]} />
     </div>
   );
 
@@ -64,7 +65,7 @@ export default function NouvelImmeublePage() {
         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
-      {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key][0]}</p>}
+      <Champ nom={key} form={form} requis={required} erreur={errors[key]?.[0]} />
     </div>
   );
 

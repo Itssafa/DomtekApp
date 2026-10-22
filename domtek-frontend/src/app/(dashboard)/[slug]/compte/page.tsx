@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { AxiosError } from 'axios';
 import { isValidEmail, isValidPhone, filtreTelephone } from '@/lib/validation';
 import { PasswordInput } from '@/components/PasswordInput';
+import { Champ } from '@/components/Champ';
 
 const Section = ({ title, subtitle }: { title: string; subtitle?: string }) => (
   <div className="mb-5">
@@ -194,16 +195,19 @@ export default function ComptePage() {
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">E-mail de contact</label>
                 <input type="email" value={orgForm.email}
                   onChange={(e) => setOrgForm((p) => ({ ...p, email: e.target.value }))} className={inputCls} />
+                <Champ nom="email" form={orgForm} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Téléphone</label>
                 <input type="tel" value={orgForm.telephone}
                   onChange={(e) => setOrgForm((p) => ({ ...p, telephone: filtreTelephone(e.target.value) }))} className={inputCls} />
+                <Champ nom="telephone" form={orgForm} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">Ville</label>
                 <input type="text" value={orgForm.ville}
                   onChange={(e) => setOrgForm((p) => ({ ...p, ville: e.target.value }))} className={inputCls} />
+                <Champ nom="ville" form={orgForm} />
               </div>
             </div>
             <div>
@@ -258,7 +262,8 @@ export default function ComptePage() {
                 value={pwd[key as keyof typeof pwd]}
                 onChange={(e) => setPwd((p) => ({ ...p, [key]: e.target.value }))}
                 className={inputCls} />
-              {pwdErrors[key] && <p className="text-red-500 text-xs mt-1">{pwdErrors[key][0]}</p>}
+              <Champ nom={key} form={pwd} requis erreur={pwdErrors[key]?.[0]}
+                aide={key === 'current_password' ? null : undefined} />
             </div>
           ))}
           <Alert fb={pwdFeedback} />

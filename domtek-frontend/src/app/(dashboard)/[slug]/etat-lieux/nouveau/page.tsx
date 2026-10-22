@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { orgPath } from '@/lib/org-path';
 import { AxiosError } from 'axios';
 import StepForm, { FormStep } from '@/components/StepForm';
+import { Champ } from '@/components/Champ';
 
 interface LocationOption {
   id: number;
@@ -145,6 +146,7 @@ function NouvelEtatLieuInner() {
             <label className={lc}>Désignation</label>
             <input type="text" value={form.designation} onChange={set('designation')}
               placeholder="Ex : État d'entrée — Appt 3B — Mars 2026" className={ic} />
+            <Champ nom="designation" form={form} erreur={errors.designation?.[0]} />
           </div>
           <div>
             <label className={lc}>Location *</label>
@@ -165,6 +167,7 @@ function NouvelEtatLieuInner() {
                     </option>
                   ))}
                 </select>
+                <Champ nom="location_id" form={form} erreur={errors.location_id?.[0]} />
                 {errMsg('location_id')}
                 {selectedLocation && (
                   <div className="bg-blue-50 rounded-lg p-3 text-xs space-y-1 text-gray-600 mt-2">
@@ -180,14 +183,17 @@ function NouvelEtatLieuInner() {
             <div>
               <label className={lc}>Eau (m³)</label>
               <input type="number" step="0.001" min="0" value={form.releve_eau} onChange={set('releve_eau')} placeholder="0.000" className={ic} />
+              <Champ nom="releve_eau" form={form} erreur={errors.releve_eau?.[0]} />
             </div>
             <div>
               <label className={lc}>Électricité (kWh)</label>
               <input type="number" step="0.001" min="0" value={form.releve_electricite} onChange={set('releve_electricite')} placeholder="0.000" className={ic} />
+              <Champ nom="releve_electricite" form={form} erreur={errors.releve_electricite?.[0]} />
             </div>
             <div>
               <label className={lc}>Gaz (m³)</label>
               <input type="number" step="0.001" min="0" value={form.releve_gaz} onChange={set('releve_gaz')} placeholder="0.000" className={ic} />
+              <Champ nom="releve_gaz" form={form} erreur={errors.releve_gaz?.[0]} />
             </div>
           </div>
           <label className="flex items-center gap-3 cursor-pointer select-none">
@@ -249,6 +255,7 @@ function NouvelEtatLieuInner() {
                 <label className={lc}>Désignation *</label>
                 <input type="text" value={item.designation} onChange={e => setItem(i, 'designation', e.target.value)}
                   placeholder="Ex : Canapé 3 places…" className={ic} />
+                <Champ nom="designation" form={item} erreur={errors.designation?.[0]} />
                 {errMsg(`inventaires.${i}.designation`)}
               </div>
               <div className="grid grid-cols-2 gap-3">

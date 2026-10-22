@@ -8,6 +8,7 @@ import { orgPath } from '@/lib/org-path';
 import { Bien } from '@/types';
 import { AxiosError } from 'axios';
 import StepForm, { FormStep } from '@/components/StepForm';
+import { Champ } from '@/components/Champ';
 
 const cls = 'w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
 
@@ -95,7 +96,7 @@ export default function NouvelleAnnoncePage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
             <input type="text" value={form.titre} onChange={set('titre')} placeholder="Beau F3 lumineux…" className={cls} />
-            {errors.titre && <p className="text-red-500 text-xs mt-1">{errors.titre[0]}</p>}
+            <Champ nom="titre" form={form} erreur={errors.titre?.[0]} />
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
@@ -144,7 +145,7 @@ export default function NouvelleAnnoncePage() {
                 <option key={b.id} value={b.id}>{b.designation} ({b.ville})</option>
               ))}
             </select>
-            {errors.bien_id && <p className="text-red-500 text-xs mt-1">{errors.bien_id[0]}</p>}
+            <Champ nom="bien_id" form={form} erreur={errors.bien_id?.[0]} />
           </div>
         </>
       ),

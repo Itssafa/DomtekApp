@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { AxiosError } from 'axios';
 import { validatePassword } from '@/lib/validation';
 import { PasswordInput } from '@/components/PasswordInput';
+import { Champ } from '@/components/Champ';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -18,6 +19,8 @@ export default function ResetPasswordPage() {
   const [loading,  setLoading]  = useState(false);
   const [success,  setSuccess]  = useState(false);
   const [error,    setError]    = useState('');
+  // Valeurs vues par le registre de règles (la confirmation se compare au mot de passe).
+  const valeurs = { password, password_confirmation: confirm };
 
   // Mode activation : le client ouvre son espace pour la première fois, sur
   // invitation de son agence. Même formulaire, mais token à durée de vie
@@ -145,36 +148,40 @@ export default function ResetPasswordPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {activation ? 'Mot de passe' : 'Nouveau mot de passe'}
             </label>
-            <PasswordInput
-              required
-              minLength={8}
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <Champ nom="password" form={valeurs} requis>
+              {({ invalide, aria }) => (
+                <PasswordInput
+                  required
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  {...aria}
+                  className={`w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalide ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}
+                />
+              )}
+            </Champ>
           </div>
 
           {/* Confirmation */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Confirmer le mot de passe</label>
-            <PasswordInput
-              required
-              minLength={8}
-              autoComplete="new-password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              placeholder="••••••••"
-              className={`w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500
-                ${confirm && confirm !== password ? 'border-red-300' : 'border-gray-300'}`}
-            />
-            {confirm && confirm !== password && (
-              <p className="text-red-500 text-xs mt-1">Les mots de passe ne correspondent pas.</p>
-            )}
+            <Champ nom="password_confirmation" form={valeurs} requis>
+              {({ invalide, aria }) => (
+                <PasswordInput
+                  required
+                  autoComplete="new-password"
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  placeholder="••••••••"
+                  {...aria}
+                  className={`w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${invalide ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}
+                />
+              )}
+            </Champ>
           </div>
 
-          <button type="submit" disabled={loading || (!!confirm && confirm !== password)}
+          <button type="submit" disabled={loading}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium py-2.5 rounded-lg text-sm transition">
             {loading
               ? (activation ? 'Activation…' : 'Mise à jour…')

@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { AxiosError } from 'axios';
 import { isValidEmail } from '@/lib/validation';
 import { PasswordInput } from '@/components/PasswordInput';
+import { Champ } from '@/components/Champ';
 
 const inputCls = 'w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all';
 
@@ -137,7 +138,8 @@ export default function AdminComptePage() {
                 value={pwd[key as keyof typeof pwd]}
                 onChange={(e) => setPwd((p) => ({ ...p, [key]: e.target.value }))}
                 className={inputCls} />
-              {pwdErrors[key] && <p className="text-red-500 text-xs mt-1">{pwdErrors[key][0]}</p>}
+              <Champ nom={key} form={pwd} requis erreur={pwdErrors[key]?.[0]}
+                aide={key === 'current_password' ? null : undefined} />
             </div>
           ))}
           <Alert fb={pwdFeedback} />

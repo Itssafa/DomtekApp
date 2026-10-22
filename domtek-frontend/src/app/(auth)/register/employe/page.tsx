@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { AxiosError } from 'axios';
 import { isValidEmail, validatePassword, isValidCin, isValidCityOrPlace } from '@/lib/validation';
 import { PasswordInput } from '@/components/PasswordInput';
+import { Champ } from '@/components/Champ';
 
 interface OrgOption { id: number; nom: string; }
 
@@ -175,12 +176,12 @@ export default function RegisterEmployePage() {
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1.5">Nom <span className="text-red-500">*</span></label>
                     <input type="text" required value={form.nom} onChange={set('nom')} className={errors.nom ? inputErrCls : inputCls} />
-                    {errors.nom && <p className="text-red-500 text-xs mt-1">{errors.nom[0]}</p>}
+                    <Champ nom="nom" form={form} requis erreur={errors.nom?.[0]} />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1.5">Prénom <span className="text-red-500">*</span></label>
                     <input type="text" required value={form.prenom} onChange={set('prenom')} className={errors.prenom ? inputErrCls : inputCls} />
-                    {errors.prenom && <p className="text-red-500 text-xs mt-1">{errors.prenom[0]}</p>}
+                    <Champ nom="prenom" form={form} requis erreur={errors.prenom?.[0]} />
                   </div>
                 </div>
 
@@ -188,14 +189,14 @@ export default function RegisterEmployePage() {
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1.5">Adresse e-mail <span className="text-red-500">*</span></label>
                   <input type="email" required value={form.email} onChange={set('email')} className={errors.email ? inputErrCls : inputCls} placeholder="votre@email.com" />
-                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email[0]}</p>}
+                  <Champ nom="email" form={form} requis erreur={errors.email?.[0]} />
                 </div>
 
                 {/* Date de naissance */}
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1.5">Date de naissance</label>
                   <input type="date" value={form.date_naissance} onChange={set('date_naissance')} className={inputCls} max={AUJOURD_HUI} />
-                  {errors.date_naissance && <p className="text-red-500 text-xs mt-1">{errors.date_naissance[0]}</p>}
+                  <Champ nom="date_naissance" form={form} erreur={errors.date_naissance?.[0]} />
                 </div>
 
                 {/* CIN */}
@@ -203,17 +204,17 @@ export default function RegisterEmployePage() {
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1.5">CIN</label>
                     <input type="text" value={form.cin} onChange={setDigitsOnly('cin', 8)} className={errors.cin ? inputErrCls : inputCls} placeholder="12345678" />
-                    {errors.cin && <p className="text-red-500 text-xs mt-1">{errors.cin[0]}</p>}
+                    <Champ nom="cin" form={form} erreur={errors.cin?.[0]} />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1.5">Délivré le</label>
                     <input type="date" value={form.cin_delivree_le} onChange={set('cin_delivree_le')} className={errors.cin_delivree_le ? inputErrCls : inputCls} max={AUJOURD_HUI} />
-                    {errors.cin_delivree_le && <p className="text-red-500 text-xs mt-1">{errors.cin_delivree_le[0]}</p>}
+                    <Champ nom="cin_delivree_le" form={form} erreur={errors.cin_delivree_le?.[0]} />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1.5">Délivré à</label>
                     <input type="text" value={form.cin_delivree_a} onChange={set('cin_delivree_a')} className={errors.cin_delivree_a ? inputErrCls : inputCls} />
-                    {errors.cin_delivree_a && <p className="text-red-500 text-xs mt-1">{errors.cin_delivree_a[0]}</p>}
+                    <Champ nom="cin_delivree_a" form={form} erreur={errors.cin_delivree_a?.[0]} />
                   </div>
                 </div>
 
@@ -226,7 +227,7 @@ export default function RegisterEmployePage() {
                       <option key={o.id} value={o.id}>{o.nom}</option>
                     ))}
                   </select>
-                  {errors.organisation_id && <p className="text-red-500 text-xs mt-1">{errors.organisation_id[0]}</p>}
+                  <Champ nom="organisation_id" form={form} requis erreur={errors.organisation_id?.[0]} />
                 </div>
 
                 {/* Mot de passe */}
@@ -235,7 +236,7 @@ export default function RegisterEmployePage() {
                   <PasswordInput required autoComplete="new-password"
                     value={form.password} onChange={set('password')} placeholder="8 caractères minimum"
                     className={errors.password ? inputErrCls : inputCls} />
-                  {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password[0]}</p>}
+                  <Champ nom="password" form={form} requis erreur={errors.password?.[0]} />
                 </div>
 
                 <div>
@@ -244,6 +245,7 @@ export default function RegisterEmployePage() {
                     value={form.password_confirmation} onChange={set('password_confirmation')}
                     placeholder="Répétez le mot de passe"
                     className={inputCls} />
+                  <Champ nom="password_confirmation" form={form} requis erreur={errors.password_confirmation?.[0]} />
                 </div>
 
                 <button type="submit" disabled={loading}
