@@ -126,7 +126,7 @@ function ModalRevision({ contrat, onClose, onDone }: {
           </div>
         </div>
 
-        {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+        {error && <p role="alert" className="text-red-600 text-xs mt-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
 
         <div className="flex gap-3 mt-5">
           <button onClick={handleSave} disabled={saving}
@@ -150,21 +150,35 @@ function ModalTerminer({ contrat, onClose, onDone }: {
   onClose: () => void;
   onDone: () => void;
 }) {
-  const [dateFin, setDateFin] = useState(new Date().toISOString().split('T')[0]);
+  // La fin doit suivre le début : si le bail ne commence que dans le futur, on propose
+  // le lendemain de son début plutôt qu'une date d'aujourd'hui forcément refusée.
+  const lendemainDebut = (() => {
+    const d = new Date(contrat.date_debut);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  })();
+  const aujourdhui = new Date().toISOString().split('T')[0];
+  const [dateFin, setDateFin] = useState(aujourdhui >= lendemainDebut ? aujourdhui : lendemainDebut);
   const [saving, setSaving]   = useState(false);
   const [error, setError]     = useState('');
 
   const handleSave = async () => {
-    setSaving(true);
     setError('');
+    if (!dateFin || dateFin < lendemainDebut) {
+      setError(`Date invalide : choisissez une date postérieure au début du contrat (${new Date(contrat.date_debut).toLocaleDateString('fr-FR')}).`);
+      return;
+    }
+    setSaving(true);
     try {
       await api.put(`/org/contrats/${contrat.id}`, {
         statut:   'termine',
         date_fin: dateFin,
       });
       onDone();
-    } catch {
-      setError('Une erreur est survenue.');
+    } catch (err) {
+      const ax = err as { response?: { data?: { errors?: Record<string, string[]>; message?: string } } };
+      const detail = Object.values(ax.response?.data?.errors ?? {}).map((m) => m[0]).join(' ') || ax.response?.data?.message;
+      setError(detail ?? 'Une erreur est survenue.');
     } finally {
       setSaving(false);
     }
@@ -187,7 +201,7 @@ function ModalTerminer({ contrat, onClose, onDone }: {
 
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Date de fin effective</label>
-          <input type="date" value={dateFin} onChange={e => setDateFin(e.target.value)}
+          <input type="date" value={dateFin} min={lendemainDebut} onChange={e => { setDateFin(e.target.value); setError(''); }}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
         </div>
 
