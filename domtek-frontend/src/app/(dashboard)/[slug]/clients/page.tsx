@@ -61,7 +61,6 @@ export default function ClientsPage() {
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Email</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Téléphone</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Ville</th>
-                <th className="text-left px-5 py-3 font-medium text-gray-600">Contact urgence</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Actions</th>
               </tr>
             </thead>
@@ -77,12 +76,6 @@ export default function ClientsPage() {
                   <td className="px-5 py-3 text-gray-600">{c.email ?? '—'}</td>
                   <td className="px-5 py-3 text-gray-600">{c.telephone ?? '—'}</td>
                   <td className="px-5 py-3 text-gray-600">{c.ville ?? '—'}</td>
-                  <td className="px-5 py-3 text-gray-500 text-xs">
-                    {c.urgence_nom
-                      ? <span>{c.urgence_nom}{c.urgence_relation ? ` (${c.urgence_relation})` : ''}</span>
-                      : <span className="italic text-gray-300">—</span>
-                    }
-                  </td>
                   <td className="px-5 py-3">
                     <div className="flex gap-3 items-center">
                       <Link href={`/dashboard/clients/${c.id}`} className="text-xs text-violet-600 hover:underline">
