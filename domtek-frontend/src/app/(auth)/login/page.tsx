@@ -19,6 +19,10 @@ export default function LoginPage() {
   const [form, setForm]               = useState({ email: '', password: '' });
   const [error, setError]             = useState('');
   const [loading, setLoading]         = useState(false);
+  // Champs en lecture seule jusqu'au premier clic : le navigateur ne peut ni les
+  // préremplir ni proposer de compte au chargement de la page.
+  const [saisieActive, setSaisieActive] = useState(false);
+  const activer = () => setSaisieActive(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,7 +146,8 @@ export default function LoginPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Adresse e-mail</label>
                 <input
-                  type="email" required autoComplete="email"
+                  type="email" required autoComplete="off" name="login-email"
+                  readOnly={!saisieActive} onFocus={activer}
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   placeholder="votre@email.com"
@@ -159,7 +164,8 @@ export default function LoginPage() {
                   </Link>
                 </div>
                 <PasswordInput required
-                  autoComplete="current-password"
+                  autoComplete="new-password" name="login-motdepasse"
+                  readOnly={!saisieActive} onFocus={activer}
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   placeholder="••••••••"
