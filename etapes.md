@@ -924,6 +924,15 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 
 ---
 
+### A44 — Inscriptions et liste des employés ✅ TERMINÉ
+
+- [x] Inscription organisation : mise en page identique à l'inscription employé (panneau bleu de présentation + formulaire)
+- [x] Inscription employé : champ téléphone obligatoire (8 chiffres), exigé aussi par `RegisterEmployeRequest`
+- [x] Liste des employés : bouton « Activer » sur chaque employé non actif (en attente ou inactif), sans passer par l'onglet « En attente »
+- [x] Dates de fin d'une location : message « Date invalide » avant envoi (A43bis)
+
+---
+
 ## Récapitulatif de l'avancement
 
 | Phase | Étape | Statut |
@@ -987,5 +996,6 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 | Améliorations | A41 — Nouveau locataire : création d'une vraie fiche client | ✅ Terminé |
 | Améliorations | A42 — Photos à la création d'un bien ou d'un immeuble | ✅ Terminé |
 | Améliorations | A43 — Lien Google Maps et enregistrement involontaire | ✅ Terminé |
+| Améliorations | A44 — Inscriptions et liste des employés | ✅ Terminé |
 | Intégration | 17 — Intégration complète | ⬜ À faire |
 | Déploiement | 18 — Déploiement | 🟨 En cours (Docker fait ; serveur, HTTPS et mise en ligne restent) |

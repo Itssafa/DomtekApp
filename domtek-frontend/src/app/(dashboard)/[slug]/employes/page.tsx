@@ -69,6 +69,7 @@ export default function EmployesPage() {
     try {
       await api.post(`/org/employes/${employe.id}/activer`);
       fetchPending();
+      fetchEmployes();
     } catch { /* noop */ }
     finally { setActivating(null); }
   };
@@ -163,6 +164,12 @@ export default function EmployesPage() {
                       <td className="px-5 py-3" onClick={(ev) => ev.stopPropagation()}>
                         <div className="flex gap-2">
                           <Link href={`/dashboard/employes/${e.id}`} className="text-xs text-violet-600 hover:underline">Voir</Link>
+                          {e.statut !== 'actif' && (
+                            <button onClick={() => handleActivate(e)} disabled={activating === e.id}
+                              className="text-xs text-green-600 hover:underline font-medium disabled:opacity-40">
+                              {activating === e.id ? 'Activation…' : 'Activer'}
+                            </button>
+                          )}
                           <button onClick={() => handleDelete(e.id, e.nom_complet)} disabled={deleting === e.id}
                             className="text-xs text-red-600 hover:underline disabled:opacity-40">Supprimer</button>
                         </div>

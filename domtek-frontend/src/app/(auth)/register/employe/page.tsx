@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { AxiosError } from 'axios';
-import { isValidEmail, validatePassword, isValidCin, isValidCityOrPlace } from '@/lib/validation';
+import { isValidEmail, isValidPhone, filtreTelephone, validatePassword, isValidCin, isValidCityOrPlace } from '@/lib/validation';
 import { PasswordInput } from '@/components/PasswordInput';
 import { Champ } from '@/components/Champ';
 
@@ -21,6 +21,7 @@ export default function RegisterEmployePage() {
     nom: '',
     prenom: '',
     email: '',
+    telephone: '',
     password: '',
     password_confirmation: '',
     organisation_id: '',
@@ -56,6 +57,10 @@ export default function RegisterEmployePage() {
 
     if (!isValidEmail(form.email)) {
       setErrors({ email: ["Adresse e-mail invalide."] });
+      return;
+    }
+    if (!form.telephone.trim() || !isValidPhone(form.telephone)) {
+      setErrors({ telephone: ['Le numéro de téléphone doit contenir exactement 8 chiffres.'] });
       return;
     }
     const passwordError = validatePassword(form.password);
@@ -190,6 +195,15 @@ export default function RegisterEmployePage() {
                   <label className="block text-xs font-medium text-gray-600 mb-1.5">Adresse e-mail <span className="text-red-500">*</span></label>
                   <input type="email" required value={form.email} onChange={set('email')} className={errors.email ? inputErrCls : inputCls} placeholder="votre@email.com" />
                   <Champ nom="email" form={form} requis erreur={errors.email?.[0]} />
+                </div>
+
+                {/* Téléphone */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">Téléphone <span className="text-red-500">*</span></label>
+                  <input type="tel" inputMode="numeric" required value={form.telephone}
+                    onChange={(e) => setForm((prev) => ({ ...prev, telephone: filtreTelephone(e.target.value) }))}
+                    className={errors.telephone ? inputErrCls : inputCls} placeholder="22123456" />
+                  <Champ nom="telephone" form={form} requis erreur={errors.telephone?.[0]} />
                 </div>
 
                 {/* Date de naissance */}

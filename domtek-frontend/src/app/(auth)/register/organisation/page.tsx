@@ -151,12 +151,66 @@ export default function RegisterOrganisationPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-10">
-      <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-8">
-        <h1 className="text-2xl font-bold text-center text-gray-800 mb-2">
-          Créer un compte organisation
-        </h1>
-        <p className="text-center text-gray-500 mb-6 text-sm">
+    <div className="min-h-screen flex">
+      {/* Panneau de présentation (bleu) */}
+      <div className="hidden lg:flex lg:w-[52%] bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 relative overflow-hidden flex-col justify-between p-14">
+        <div className="absolute -top-20 -right-20 w-96 h-96 bg-white/5 rounded-full" />
+        <div className="absolute -bottom-24 -left-16 w-80 h-80 bg-white/5 rounded-full" />
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+          <span className="text-white text-2xl font-bold tracking-tight">Domtek</span>
+        </div>
+        <div className="relative z-10 space-y-6">
+          <h2 className="text-4xl font-bold text-white leading-tight">
+            Gérez votre agence<br />immobilière sur<br />Domtek
+          </h2>
+          <p className="text-blue-100 text-base leading-relaxed max-w-sm">
+            Créez le compte de votre organisation et pilotez biens, contrats, clients et équipe depuis un seul espace.
+          </p>
+          <div className="space-y-3 pt-2">
+            {[
+              'Biens, immeubles et annonces',
+              'Contrats, locations et factures',
+              'Clients, prospects et employés',
+            ].map((f) => (
+              <div key={f} className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-blue-100 text-sm">{f}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="relative z-10">
+          <p className="text-blue-200/50 text-xs">© {new Date().getFullYear()} Domtek. Tous droits réservés.</p>
+        </div>
+      </div>
+
+      {/* Panneau du formulaire */}
+      <div className="flex-1 flex items-center justify-center p-6 bg-gray-50 overflow-y-auto">
+        <div className="w-full max-w-lg animate-fade-in py-8">
+
+          <div className="lg:hidden flex items-center gap-2 justify-center mb-8">
+            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
+              </svg>
+            </div>
+            <span className="text-xl font-bold text-gray-900">Domtek</span>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">Créer un compte organisation</h1>
+        <p className="text-gray-500 text-sm mb-7">
           Votre compte sera activé après validation par un administrateur.
         </p>
 
@@ -245,6 +299,8 @@ export default function RegisterOrganisationPage() {
           Déjà un compte ?{' '}
           <Link href="/login" className="text-blue-600 hover:underline font-medium">Se connecter</Link>
         </p>
+          </div>
+        </div>
       </div>
     </div>
   );
