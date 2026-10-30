@@ -933,6 +933,15 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 
 ---
 
+### A45 — Espace client : « Mon compte » ✅ TERMINÉ
+
+- [x] `GET` / `PUT /api/client/compte` : le client modifie lui-même ses coordonnées (téléphone, adresse, ville, contact d'urgence) ; mise à jour de toutes ses fiches (une par agence). Identité et e-mail restent en lecture seule
+- [x] Page `/espace/compte` : identité, coordonnées, changement de mot de passe (`PUT /auth/me/password`), avec conditions affichées et contrôles à la sortie du champ
+- [x] Onglet « Mon compte » dans la navigation de l'espace client
+- [x] Accueil : image de fond servie aussi aux visiteurs non connectés (middleware), convertie en WebP (2,4 Mo → 200 Ko)
+
+---
+
 ## Récapitulatif de l'avancement
 
 | Phase | Étape | Statut |
@@ -997,5 +1006,6 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 | Améliorations | A42 — Photos à la création d'un bien ou d'un immeuble | ✅ Terminé |
 | Améliorations | A43 — Lien Google Maps et enregistrement involontaire | ✅ Terminé |
 | Améliorations | A44 — Inscriptions et liste des employés | ✅ Terminé |
+| Améliorations | A45 — Espace client : « Mon compte » | ✅ Terminé |
 | Intégration | 17 — Intégration complète | ⬜ À faire |
 | Déploiement | 18 — Déploiement | 🟨 En cours (Docker fait ; serveur, HTTPS et mise en ligne restent) |

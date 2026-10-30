@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Client;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Client\UpdateCompteClientRequest;
 use App\Http\Resources\Espace\ContratResource;
 use App\Http\Resources\Espace\FactureResource;
 use App\Http\Resources\Espace\QuittanceResource;
@@ -14,11 +15,12 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Espace client — lecture seule.
+ * Espace client.
  *
- * Le client ne modifie rien ici : il consulte ses contrats et ses factures, et
- * règle ces dernières via le lien de paiement. Toute écriture reste du ressort
- * de son agence.
+ * Le client consulte ses contrats et ses factures, et règle ces dernières via
+ * le lien de paiement. Seule écriture permise : ses propres coordonnées
+ * (téléphone, adresse, contact d'urgence) depuis « Mon compte ». Le reste
+ * demeure du ressort de son agence.
  */
 class EspaceController extends Controller
 {
@@ -92,5 +94,26 @@ class EspaceController extends Controller
     public function facture(Request $request, int $id): FactureResource
     {
         return new FactureResource($this->service->facture($request->user(), $id));
+    }
+
+    /** Mon compte : identité et coordonnées. */
+    public function compte(Request $request): JsonResponse
+    {
+        return response()->json(['data' => $this->service->compte($request->user())]);
+    }
+
+    /** Mise à jour des coordonnées par le client lui-même. */
+    public function updateCompte(UpdateCompteClientRequest $request): JsonResponse
+    {
+        if (! $request->user()->clientProfiles()->exists()) {
+            return response()->json([
+                'message' => "Aucune agence ne vous a encore rattaché de fiche : il n'y a pas de coordonnées à modifier.",
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'Vos informations ont été mises à jour.',
+            'data'    => $this->service->updateCompte($request->user(), $request->validated()),
+        ]);
     }
 }

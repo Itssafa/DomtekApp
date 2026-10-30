@@ -109,7 +109,7 @@ Route::middleware('auth:sanctum')->group(function () {
     /*
     |----------------------------------------------------------------------
     | ESPACE CLIENT
-    | Lecture seule : le client consulte ses contrats et ses factures.
+    | Le client consulte ses contrats et ses factures, et modifie ses coordonnées (compte).
     | Le périmètre est borné par les fiches clients rattachées à son compte.
     |----------------------------------------------------------------------
     */
@@ -121,6 +121,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('factures',            [EspaceController::class, 'factures']);
         Route::get('factures/{id}',       [EspaceController::class, 'facture']);
         Route::get('quittances',          [EspaceController::class, 'quittances']);
+        Route::get('compte',              [EspaceController::class, 'compte']);
+        Route::put('compte',              [EspaceController::class, 'updateCompte']);
     });
 
     /*

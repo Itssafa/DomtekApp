@@ -28,6 +28,54 @@ class EspaceClientService
         return $user->clientProfiles()->pluck('id')->all();
     }
 
+    /** Coordonnées que le client peut modifier lui-même. */
+    public const CHAMPS_MODIFIABLES = [
+        'telephone', 'adresse', 'ville', 'urgence_nom', 'urgence_telephone', 'urgence_relation',
+    ];
+
+    /**
+     * Données du compte : identité (lecture seule) et coordonnées modifiables.
+     *
+     * Une personne cliente de plusieurs agences a une fiche par agence ; on
+     * présente la plus récemment modifiée, toutes étant tenues identiques par
+     * updateCompte().
+     *
+     * @return array<string, mixed>
+     */
+    public function compte(User $user): array
+    {
+        $fiche = $user->clientProfiles()->latest('updated_at')->first();
+
+        return [
+            'email'       => $user->email,
+            'nom_complet' => $fiche?->nom_complet ?? $user->name,
+            'a_une_fiche' => (bool) $fiche,
+            'identite'    => $fiche ? [
+                'civilite'       => $fiche->civilite,
+                'nom'            => $fiche->nom,
+                'prenom'         => $fiche->prenom,
+                'cin'            => $fiche->cin,
+                'date_naissance' => $fiche->date_naissance?->toDateString(),
+            ] : null,
+            'coordonnees' => $fiche ? $fiche->only(self::CHAMPS_MODIFIABLES) : null,
+        ];
+    }
+
+    /**
+     * Enregistre les coordonnées sur toutes les fiches du client, pour que
+     * chacune de ses agences dispose des mêmes informations à jour.
+     *
+     * @param  array<string, mixed>  $donnees
+     * @return array<string, mixed>
+     */
+    public function updateCompte(User $user, array $donnees): array
+    {
+        $champs = array_intersect_key($donnees, array_flip(self::CHAMPS_MODIFIABLES));
+        $user->clientProfiles()->get()->each->update($champs);
+
+        return $this->compte($user);
+    }
+
     /**
      * Fiches du client, une par agence qui le référence.
      */

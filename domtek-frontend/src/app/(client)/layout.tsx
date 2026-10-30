@@ -11,6 +11,7 @@ const NAV = [
   { href: '/espace/contrats',  label: 'Mes contrats', exact: false },
   { href: '/espace/factures',  label: 'Mes factures', exact: false },
   { href: '/espace/quittances', label: 'Mes quittances', exact: false },
+  { href: '/espace/compte',    label: 'Mon compte',   exact: false },
 ];
 
 export default function EspaceClientLayout({ children }: { children: React.ReactNode }) {

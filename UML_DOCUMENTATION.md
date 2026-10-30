@@ -1032,6 +1032,8 @@ Toutes ces routes sont bornées aux fiches clients rattachées au compte connect
 | GET | /api/client/factures | Ses factures (filtres `statut` — dont `impayees` — et `type`) |
 | GET | /api/client/factures/{id} | Détail d'une facture |
 | GET | /api/client/quittances | Ses quittances de loyer (filtres `statut` : `impayees`, `payees`) |
+| GET | /api/client/compte | Mon compte : identité (lecture seule) et coordonnées |
+| PUT | /api/client/compte | Modifier ses coordonnées (`UpdateCompteClientRequest`) : téléphone (obligatoire, 8 chiffres), adresse, ville, contact d'urgence. Appliqué à **toutes** ses fiches clients (une par agence). Nom, prénom, CIN et e-mail restent gérés par l'agence |
 
 **Ressources dédiées.** Ces endpoints n'utilisent pas les ressources du
 back-office, qui exposent `notes`, `retenue_source`, `stripe_session_id` et les
