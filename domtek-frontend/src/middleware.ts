@@ -38,6 +38,9 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
+// Les fichiers de `public/` (images, icônes…) sont servis à tout le monde : sans
+// cette exclusion, un visiteur non connecté était renvoyé vers /login au lieu de
+// recevoir l'image de fond de la page d'accueil.
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|public).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|images/|.*\\.(?:png|jpe?g|webp|gif|svg|ico)$).*)'],
 };

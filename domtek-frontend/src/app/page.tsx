@@ -126,7 +126,7 @@ export default function HomePage() {
   const inputCls = 'w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-gray-900 transition-colors';
 
   return (
-    <div className="min-h-screen relative" style={{ backgroundImage: "url('/image%20arri%C3%A8re%20plan.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
+    <div className="min-h-screen relative" style={{ backgroundImage: "url('/images/arriere-plan.webp')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
       {/* Overlay dégradé : transparent en haut → blanc vers les annonces */}
       <div className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-transparent via-white/30 to-white/85" />
 
