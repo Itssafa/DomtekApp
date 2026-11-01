@@ -14,6 +14,7 @@ interface AuthState {
   setAuth: (token: string, user: User, role: Role, organisation?: Organisation) => void;
   clearAuth: () => void;
   updateOrganisation: (org: Organisation) => void;
+  updateUser: (user: User) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -49,6 +50,10 @@ export const useAuthStore = create<AuthState>()(
         if (org?.slug) Cookies.set('org-slug', org.slug, { expires: 7, sameSite: 'Lax' });
         set({ organisation: org });
       },
+
+      // Le profil est persisté dans le navigateur au moment de la connexion :
+      // sans rafraîchissement, un nom corrigé depuis restait affiché à l'ancienne.
+      updateUser: (user) => set({ user }),
     }),
     {
       name: 'domtek-auth',

@@ -24,6 +24,33 @@ class ClientAccountService
     private const BROKER = 'clients';
 
     /**
+     * Nom affiché du compte de connexion, tiré de la fiche client (sans la
+     * civilité, qui n'a pas sa place dans un en-tête).
+     */
+    public static function nomDeFiche(Client $client): string
+    {
+        return trim($client->prenom . ' ' . $client->nom);
+    }
+
+    /**
+     * Recopie le nom de la fiche sur le compte de connexion rattaché.
+     *
+     * Le nom affiché dans l'espace client est celui du compte (`users.name`).
+     * Sans cette recopie, il gardait sa valeur d'origine — le nom du profil
+     * Google pour une inscription Google — quelles que soient les corrections
+     * faites par l'agence sur la fiche.
+     */
+    public function synchroniserNom(Client $client): void
+    {
+        $user = $client->user_id ? User::find($client->user_id) : null;
+        $nom  = self::nomDeFiche($client);
+
+        if ($user && $user->role === User::ROLE_CLIENT && $nom !== '' && $user->name !== $nom) {
+            $user->update(['name' => $nom]);
+        }
+    }
+
+    /**
      * Créer ou rattacher le compte de connexion d'une fiche client.
      *
      * Idempotent : ne fait rien si la fiche est déjà rattachée à un compte.
@@ -45,7 +72,7 @@ class ClientAccountService
 
         if ($estNouveau) {
             $user = User::create([
-                'name'      => $client->nom_complet,
+                'name'      => self::nomDeFiche($client),
                 'email'     => $client->email,
                 // Secret jamais affiché, jamais envoyé, jamais stocké en clair :
                 // il n'existe que pour empêcher toute connexion avant activation.
@@ -56,6 +83,10 @@ class ClientAccountService
         }
 
         $client->forceFill(['user_id' => $user->id])->save();
+
+        // Compte préexistant (inscription Google, autre agence) : son nom venait
+        // d'ailleurs, par exemple du profil Google. La fiche de l'agence fait foi.
+        $this->synchroniserNom($client);
 
         if ($estNouveau) {
             $this->envoyerLienActivation($client, $user);

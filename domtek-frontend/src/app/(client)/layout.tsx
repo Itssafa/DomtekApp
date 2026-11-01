@@ -17,7 +17,7 @@ const NAV = [
 export default function EspaceClientLayout({ children }: { children: React.ReactNode }) {
   const router   = useRouter();
   const pathname = usePathname();
-  const { user, role, clearAuth } = useAuthStore();
+  const { user, role, clearAuth, updateUser } = useAuthStore();
 
   // Le middleware Next ne connaît que la présence du cookie, pas le rôle.
   // On écarte donc ici un utilisateur authentifié mais non-client, qui serait
@@ -30,6 +30,14 @@ export default function EspaceClientLayout({ children }: { children: React.React
     }
     setVerifie(true);
   }, [role, router]);
+
+  // Nom et e-mail de l'en-tête relus à chaque ouverture de l'espace : ceux du
+  // store datent de la connexion et ne suivent pas une correction de la fiche.
+  useEffect(() => {
+    api.get('/auth/me')
+      .then(({ data }) => { if (data?.user) updateUser(data.user); })
+      .catch(() => { /* l'en-tête garde le nom connu */ });
+  }, [updateUser]);
 
   const handleLogout = async () => {
     try { await api.post('/auth/logout'); } catch { /* le token local part quoi qu'il arrive */ }

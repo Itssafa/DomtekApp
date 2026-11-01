@@ -36,6 +36,17 @@ class ClientObserver implements ShouldHandleEventsAfterCommit
     {
         if ($client->user_id === null && filled($client->email)) {
             $this->provisionnerSansRompre($client);
+            return;
+        }
+
+        // L'agence corrige le nom ou le prénom : le compte de connexion suit,
+        // pour que l'espace client affiche le bon nom.
+        if ($client->user_id !== null && $client->wasChanged(['nom', 'prenom'])) {
+            try {
+                $this->comptes->synchroniserNom($client);
+            } catch (\Throwable $e) {
+                Log::error("Synchronisation du nom du compte client #{$client->id} échouée : " . $e->getMessage());
+            }
         }
     }
 

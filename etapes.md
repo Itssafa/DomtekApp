@@ -942,6 +942,16 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 
 ---
 
+### A46 — Nom du compte client aligné sur sa fiche ✅ TERMINÉ
+
+**Problème** : l'en-tête de l'espace client affichait « Main Branch Protection » pour Adib Koussaier. Le compte de connexion avait été créé par inscription Google et portait le nom du profil Google ; corriger la fiche, ou la supprimer et la recréer (elle se rattache au même compte par l'e-mail), ne changeait jamais `users.name`. L'en-tête lisait en plus le nom mis en cache à la connexion.
+
+- [x] `ClientAccountService::synchroniserNom()` : le nom du compte (prénom + nom, sans civilité) est recopié depuis la fiche au rattachement d'un compte existant et à chaque modification du nom ou du prénom (`ClientObserver::updated`)
+- [x] Migration `2026_11_01_000001_synchroniser_nom_comptes_clients` : alignement des comptes existants sur leur fiche la plus récente
+- [x] Espace client : l'en-tête relit `GET /auth/me` à l'ouverture (`authStore.updateUser`)
+
+---
+
 ## Récapitulatif de l'avancement
 
 | Phase | Étape | Statut |
@@ -1007,5 +1017,6 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 | Améliorations | A43 — Lien Google Maps et enregistrement involontaire | ✅ Terminé |
 | Améliorations | A44 — Inscriptions et liste des employés | ✅ Terminé |
 | Améliorations | A45 — Espace client : « Mon compte » | ✅ Terminé |
+| Améliorations | A46 — Nom du compte client aligné sur sa fiche | ✅ Terminé |
 | Intégration | 17 — Intégration complète | ⬜ À faire |
 | Déploiement | 18 — Déploiement | 🟨 En cours (Docker fait ; serveur, HTTPS et mise en ligne restent) |

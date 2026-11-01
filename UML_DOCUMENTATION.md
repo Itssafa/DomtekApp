@@ -158,6 +158,8 @@ Si l'adresse saisie par l'agence correspond à un compte déjà existant (cas UC
 
 **Note — les trois origines d'une fiche client.** Une fiche naît à trois endroits : création directe (UC42), conversion d'un prospect (UC47), et saisie en ligne lors de la création d'un contrat. Le provisionnement passe donc par un observateur Eloquent sur l'entité `Client` plutôt que par un appel dans chaque service, afin qu'aucun chemin n'y échappe. L'envoi est différé après validation de la transaction : un contrat annulé en cours de transaction ne doit pas avoir déjà déclenché d'e-mail.
 
+**Note — nom du compte (A46).** Le nom affiché dans l'espace client est `users.name`. Il est recopié depuis la fiche (prénom + nom) par `ClientAccountService::synchroniserNom()` : au rattachement d'un compte déjà existant (inscription Google, autre agence) et à chaque modification du nom ou du prénom de la fiche (`ClientObserver::updated`). La fiche de l'agence fait foi, jamais le profil Google.
+
 Conséquence sur UC47 : la conversion d'un prospect exige désormais que celui-ci ait une adresse e-mail, sans quoi le client résultant resterait sans accès, silencieusement.
 
 ---
