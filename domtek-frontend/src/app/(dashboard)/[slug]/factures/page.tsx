@@ -33,6 +33,7 @@ export default function FacturesPage() {
   const [type, setType] = useState('');
   const [page, setPage] = useState(1);
   const [payingId, setPayingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [printData, setPrintData] = useState<FacturePreviewData | null>(null);
   const printPending = useRef(false);
@@ -94,6 +95,20 @@ export default function FacturesPage() {
       fetchFactures();
     } catch { /* noop */ }
     finally { setPayingId(null); }
+  };
+
+  const handleSupprimer = async (f: Facture) => {
+    if (!confirm(`Supprimer la facture ${f.reference ?? `#${f.id}`} ? Cette action est définitive.`)) return;
+    setDeletingId(f.id);
+    try {
+      await api.delete(`/org/factures/${f.id}`);
+      fetchFactures();
+    } catch (err) {
+      const ax = err as { response?: { data?: { message?: string } } };
+      alert(ax.response?.data?.message ?? 'La facture n\'a pas pu être supprimée.');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -170,6 +185,12 @@ export default function FacturesPage() {
                           className="text-xs text-green-600 hover:underline disabled:opacity-40">Marquer payée</button>
                       )}
                       <Link href={`/dashboard/factures/${f.id}`} className="text-xs text-violet-600 hover:underline">Voir</Link>
+                      {f.statut !== 'payee' && (
+                        <button onClick={() => handleSupprimer(f)} disabled={deletingId === f.id}
+                          className="text-xs text-red-600 hover:underline disabled:opacity-40">
+                          {deletingId === f.id ? 'Suppression…' : 'Supprimer'}
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

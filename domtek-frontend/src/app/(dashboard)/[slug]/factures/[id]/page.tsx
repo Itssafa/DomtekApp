@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { orgPath } from '@/lib/org-path';
 import Link from '@/components/OrgLink';
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore';
@@ -49,6 +50,21 @@ export default function EditFacturePage() {
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
+
+  const handleSupprimer = async () => {
+    if (!confirm('Supprimer cette facture ? Cette action est définitive.')) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/org/factures/${id}`);
+      router.push(orgPath('/dashboard/factures'));
+    } catch (err) {
+      const ax = err as AxiosError<{ message?: string }>;
+      alert(ax.response?.data?.message ?? 'La facture n\'a pas pu être supprimée.');
+      setDeleting(false);
+    }
+  };
 
   const fetchFacture = () => {
     setLoading(true);
@@ -153,6 +169,12 @@ export default function EditFacturePage() {
                 className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition">
                 Modifier
               </button>
+              {facture?.statut !== 'payee' && (
+                <button onClick={handleSupprimer} disabled={deleting}
+                  className="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60 text-sm font-medium rounded-lg transition">
+                  {deleting ? 'Suppression…' : 'Supprimer'}
+                </button>
+              )}
             </div>
           </div>
         </div>

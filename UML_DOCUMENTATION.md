@@ -991,7 +991,7 @@ Acteurs : Organisation/Employé, Frontend, API, DB
 | GET | /api/org/contrats/{id}/pdf | Télécharger PDF |
 | GET | /api/org/factures | Liste des factures |
 | POST | /api/org/factures | Créer facture |
-| GET/PUT/DELETE | /api/org/factures/{id} | CRUD facture |
+| GET/PUT/DELETE | /api/org/factures/{id} | CRUD facture. `DELETE` refusé (422) pour une facture **payée**, justificatif du paiement |
 | PATCH | /api/org/factures/{id}/payer | Marquer payée |
 | GET | /api/org/factures/{id}/pdf | Télécharger PDF |
 | GET | /api/org/clients | Liste des clients |

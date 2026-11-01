@@ -952,6 +952,13 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 
 ---
 
+### A47 — Suppression des factures ✅ TERMINÉ
+
+- [x] Bouton « Supprimer » dans la liste des factures et sur la fiche d'une facture, avec confirmation
+- [x] Facture payée : non supprimable (bouton masqué, et refus 422 côté serveur), car elle sert de justificatif de paiement
+
+---
+
 ## Récapitulatif de l'avancement
 
 | Phase | Étape | Statut |
@@ -1018,5 +1025,6 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 | Améliorations | A44 — Inscriptions et liste des employés | ✅ Terminé |
 | Améliorations | A45 — Espace client : « Mon compte » | ✅ Terminé |
 | Améliorations | A46 — Nom du compte client aligné sur sa fiche | ✅ Terminé |
+| Améliorations | A47 — Suppression des factures | ✅ Terminé |
 | Intégration | 17 — Intégration complète | ⬜ À faire |
 | Déploiement | 18 — Déploiement | 🟨 En cours (Docker fait ; serveur, HTTPS et mise en ligne restent) |

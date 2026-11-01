@@ -59,6 +59,15 @@ class FactureController extends Controller
     public function destroy(Facture $facture): JsonResponse
     {
         $this->authorize('delete', $facture);
+
+        // Une facture réglée est le justificatif d'un paiement (Stripe ou
+        // manuel) : la supprimer effacerait la trace de l'encaissement.
+        if ($facture->statut === Facture::STATUT_PAYEE) {
+            return response()->json([
+                'message' => 'Une facture payée ne peut pas être supprimée : elle sert de justificatif de paiement.',
+            ], 422);
+        }
+
         $this->service->destroy($facture);
 
         return response()->json(['message' => 'Facture supprimée.']);
