@@ -10,3 +10,9 @@ Artisan::command('inspire', function () {
 
 // Publier automatiquement les annonces planifiées toutes les minutes
 Schedule::command('annonces:publier')->everyMinute();
+
+// File d'attente (recalcul des suggestions par l'IA) : traitée chaque minute
+// par le conteneur « scheduler », sans conteneur dédié.
+Schedule::command('queue:work --stop-when-empty --tries=2 --max-time=55')
+    ->everyMinute()
+    ->withoutOverlapping();

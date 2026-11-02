@@ -6,213 +6,82 @@ use App\Models\Bien;
 use App\Models\Prospect;
 
 /**
- * Adéquation entre le profil d'un prospect et un bien.
+ * Mise en forme du prospect et des biens pour l'analyse IA.
  *
- * Deux questions distinctes :
- *  1. Solvabilité — le prospect peut-il payer ce bien ? Le loyer est comparé
- *     à ses revenus mensuels, le prix de vente à sa capacité d'emprunt.
- *  2. Cohérence — le bien correspond-il à sa vie ? Un cabinet pour un médecin,
- *     un terrain ou une ferme pour un agriculteur, un S+3 pour une famille
- *     avec enfants plutôt que pour une personne seule…
- *
- * Ces règles servent à la fois au calcul automatique des suggestions
- * (ProspectMatchingService) et de pré-filtre / contexte à l'analyse IA
- * (ProspectSuggestionsController), pour que les deux restent cohérents.
+ * Aucun score n'est calculé ici : c'est l'IA qui juge l'adéquation
+ * (SuggestionIaService). Ce service ne fait que décrire, de façon fidèle et
+ * sans donnée personnelle superflue (ni nom, ni CIN, ni contact), ce que
+ * l'IA doit savoir.
  */
 class ProfilProspectService
 {
-    /** Revenu mensuel retenu pour chaque tranche (milieu de tranche, en DT). */
-    private const REVENU_MENSUEL = [
-        'moins_1000'  => 800,
-        '1000_2000'   => 1_500,
-        '3000_6000'   => 4_500,
-        '7000_10000'  => 8_500,
-        'plus_10000'  => 12_000,
+    /** Bornes de chaque tranche de revenu mensuel (DT). */
+    private const TRANCHES_REVENUS = [
+        'moins_1000'  => [500, 1_000],
+        '1000_2000'   => [1_000, 2_000],
+        '3000_6000'   => [3_000, 6_000],
+        '7000_10000'  => [7_000, 10_000],
+        'plus_10000'  => [10_000, 15_000],
     ];
-
-    /** Part du revenu qu'un loyer peut raisonnablement absorber. */
-    private const TAUX_EFFORT_LOYER = 0.40;
-
-    /** Prix d'achat finançable : environ 100 mois de revenu (crédit sur ~20 ans). */
-    private const MOIS_REVENU_ACHAT = 100;
-
-    /** Biens d'habitation, par opposition aux biens professionnels ou agricoles. */
-    private const HABITATION = ['appartement', 'maison', 'villa', 'studio', 'duplex'];
-
-    /** Types de biens adaptés à chaque profession (liste du formulaire prospect). */
-    private const BIENS_PAR_PROFESSION = [
-        'Médecin / Dentiste'        => ['bureau', 'local_commercial'],
-        'Avocat / Notaire'          => ['bureau'],
-        'Architecte'                => ['bureau'],
-        'Profession libérale'       => ['bureau', 'local_commercial'],
-        'Commerçant / Entrepreneur' => ['local_commercial', 'entrepot', 'bureau'],
-        'Agriculteur'               => ['terrain', 'ferme'],
-    ];
-
-    /** Libellé lisible du local professionnel attendu, pour les explications. */
-    private const LOCAL_PAR_PROFESSION = [
-        'Médecin / Dentiste'        => 'un cabinet',
-        'Avocat / Notaire'          => 'un cabinet ou un bureau',
-        'Architecte'                => 'un bureau',
-        'Profession libérale'       => 'un cabinet ou un bureau',
-        'Commerçant / Entrepreneur' => 'un local commercial ou un entrepôt',
-        'Agriculteur'               => 'un terrain ou une ferme',
-    ];
-
-    public function revenuMensuel(Prospect $prospect): ?int
-    {
-        return self::REVENU_MENSUEL[$prospect->revenus_mensuels] ?? null;
-    }
 
     /**
-     * Montant maximal supportable : loyer mensuel pour une location, prix
-     * d'achat pour une vente. Null si les revenus ne sont pas renseignés.
+     * Repères de capacité de paiement donnés à l'IA comme contexte (elle reste
+     * seule juge) : loyer d'environ 40 % du revenu ; achat financé par un
+     * crédit de 20 ans dont la mensualité reste sous 40 % du revenu, soit à
+     * peu près 100 mois de revenu.
      */
-    public function budgetMax(Prospect $prospect, string $transaction): ?float
+    private function capacite(string $tranche): ?string
     {
-        $revenu = $this->revenuMensuel($prospect);
-        if (! $revenu) {
+        if (! isset(self::TRANCHES_REVENUS[$tranche])) {
             return null;
         }
+        [$min, $max] = self::TRANCHES_REVENUS[$tranche];
+        $fmt = fn (float $v) => number_format($v, 0, ',', ' ');
 
-        return $transaction === 'loyer'
-            ? $revenu * self::TAUX_EFFORT_LOYER
-            : $revenu * self::MOIS_REVENU_ACHAT;
+        return "revenu mensuel de {$fmt($min)} à {$fmt($max)} DT ; loyer supportable d'environ "
+            . "{$fmt($min * 0.4)} à {$fmt($max * 0.4)} DT/mois ; prix d'achat finançable à crédit "
+            . "d'environ {$fmt($min * 100)} à {$fmt($max * 100)} DT";
     }
 
-    /**
-     * Le prospect peut-il payer ce bien ? Null quand on ne peut pas le savoir
-     * (revenus ou prix non renseignés) : on ne pénalise pas l'inconnu.
-     */
-    public function estSolvable(Bien $bien, Prospect $prospect): ?bool
-    {
-        $max = $this->budgetMax($prospect, (string) $bien->type_transaction);
-        if (! $max || ! $bien->prix) {
-            return null;
-        }
-
-        return (float) $bien->prix <= $max;
-    }
-
-    /**
-     * Cohérence du bien avec la vie du prospect.
-     *
-     * @return array{points: int, raisons: list<string>, alertes: list<string>}
-     *   `points` entre -40 et +40 ; `raisons` (atouts) et `alertes` (réserves)
-     *   sont des phrases courtes destinées à l'agent.
-     */
-    public function coherence(Bien $bien, Prospect $prospect): array
-    {
-        $points  = 0;
-        $raisons = [];
-        $alertes = [];
-
-        $type       = (string) $bien->type_bien;
-        $habitation = in_array($type, self::HABITATION, true);
-        $profession = (string) $prospect->profession;
-        $foyer      = (array) ($prospect->composition_foyer ?? []);
-        $enfants    = in_array('enfants', $foyer, true);
-        $animaux    = in_array('animaux', $foyer, true);
-        $civilite   = (string) $prospect->civilite;
-        $chambres   = $this->chambres($bien);
-
-        // ── Profession ────────────────────────────────────────────────────
-        $adaptes = self::BIENS_PAR_PROFESSION[$profession] ?? null;
-        if ($adaptes && in_array($type, $adaptes, true)) {
-            $points += 25;
-            $raisons[] = "Adapté à sa profession ({$profession}) : " . self::LOCAL_PAR_PROFESSION[$profession];
-        } elseif (! $habitation && $type !== 'autre') {
-            // Bien professionnel ou agricole pour quelqu'un dont le métier n'en
-            // a pas l'usage (étudiant, salarié, retraité…).
-            $points -= 25;
-            $alertes[] = 'Bien professionnel ou agricole sans rapport avec sa profession'
-                . ($profession !== '' ? " ({$profession})" : '');
-        }
-
-        if ($profession === 'Étudiant' && $habitation) {
-            if ($type === 'studio' || ($chambres !== null && $chambres <= 1)) {
-                $points += 10;
-                $raisons[] = 'Petit logement adapté à un étudiant';
-            } elseif (in_array($type, ['villa', 'duplex'], true) || ($chambres !== null && $chambres >= 3)) {
-                $points -= 15;
-                $alertes[] = 'Logement grand pour un étudiant';
-            }
-        }
-
-        // ── Composition du foyer (logements seulement) ────────────────────
-        if ($habitation) {
-            $grand = in_array($type, ['villa', 'maison', 'duplex'], true) || ($chambres !== null && $chambres >= 3);
-            $petit = $type === 'studio' || ($chambres !== null && $chambres <= 1);
-            // Mme / M. avec enfants : famille. Mlle, ou sans enfants : personne seule ou couple.
-            $famille = $enfants && in_array($civilite, ['Mme', 'M.'], true);
-
-            if ($grand && $famille) {
-                $points += 15;
-                $raisons[] = 'Logement familial (S+3 ou plus) pour un foyer avec enfants';
-            } elseif ($grand && ! $enfants) {
-                $points -= 10;
-                $alertes[] = 'Logement familial pour un foyer sans enfants';
-            }
-
-            if ($petit && $enfants) {
-                $points -= 20;
-                $alertes[] = 'Trop petit pour un foyer avec enfants';
-            } elseif ($petit && ! $enfants && $civilite === 'Mlle') {
-                $points += 5;
-                $raisons[] = 'Petit logement adapté à une personne seule';
-            }
-
-            if ($animaux) {
-                if ($bien->accepte_animaux) {
-                    $points += 5;
-                    $raisons[] = 'Animaux acceptés';
-                } else {
-                    $points -= 10;
-                    $alertes[] = "N'accepte pas les animaux";
-                }
-            }
-        }
-
-        return [
-            'points'  => max(-40, min(40, $points)),
-            'raisons' => $raisons,
-            'alertes' => $alertes,
-        ];
-    }
-
-    /**
-     * Description du prospect pour l'analyse IA. Le nom n'y figure pas :
-     * seules les caractéristiques utiles à l'appariement sont transmises.
-     */
-    public function descriptionPourIa(Prospect $prospect): string
+    public function descriptionPourIa(Prospect $prospect, array $biensInteret = []): string
     {
         $foyer = (array) ($prospect->composition_foyer ?? []);
-        $revenu = $this->revenuMensuel($prospect);
 
-        return implode("\n", [
+        $lignes = [
             '- Civilité : ' . ($prospect->civilite ?: 'non précisée')
                 . ' (Mme = femme mariée, Mlle = femme non mariée, M. = homme)',
+            '- Âge : ' . ($prospect->date_naissance ? $prospect->date_naissance->age . ' ans' : 'non précisé'),
             '- Profession : ' . ($prospect->profession ?: 'non précisée'),
+            '- Moyens : ' . ($this->capacite((string) $prospect->revenus_mensuels) ?? 'revenu non précisé'),
             '- Enfants : ' . (in_array('enfants', $foyer, true) ? 'oui' : 'non'),
             '- Animaux : ' . (in_array('animaux', $foyer, true) ? 'oui' : 'non'),
-            '- Revenu mensuel estimé : ' . ($revenu ? $revenu . ' DT' : 'non précisé'),
-            '- Loyer maximal supportable : ' . ($revenu ? round($revenu * self::TAUX_EFFORT_LOYER) . ' DT/mois' : 'non précisé'),
-            '- Prix d\'achat maximal finançable : ' . ($revenu ? ($revenu * self::MOIS_REVENU_ACHAT) . ' DT' : 'non précisé'),
             '- Ville : ' . ($prospect->ville ?: 'non précisée'),
             '- Priorités : ' . (implode(', ', (array) ($prospect->hierarchie_besoins ?? [])) ?: 'non précisées'),
-        ]);
+        ];
+
+        if ($biensInteret) {
+            $lignes[] = '- Biens qui l\'intéressent déjà : ' . json_encode($biensInteret, JSON_UNESCAPED_UNICODE);
+        }
+
+        return implode("\n", $lignes);
     }
 
-    /** Nombre de chambres : champ dédié, sinon déduit des pièces (S+n = n+1 pièces). */
-    private function chambres(Bien $bien): ?int
+    /** Caractéristiques d'un bien utiles à l'appariement. */
+    public function bienPourIa(Bien $b): array
     {
-        if ($bien->nb_chambres !== null && $bien->nb_chambres !== '') {
-            return (int) $bien->nb_chambres;
-        }
-        if ($bien->nb_pieces !== null && $bien->nb_pieces !== '') {
-            return max(0, (int) $bien->nb_pieces - 1);
-        }
-
-        return null;
+        return [
+            'id'               => $b->id,
+            'type'             => $b->type_bien,
+            'transaction'      => $b->type_transaction === 'loyer' ? 'location' : 'vente',
+            'prix'             => (float) $b->prix . ($b->type_transaction === 'loyer' ? ' DT/mois' : ' DT'),
+            'meuble'           => $b->type_location === 'meuble',
+            'ville'            => $b->ville,
+            'superficie_m2'    => $b->superficie,
+            'chambres'         => $b->nb_chambres,
+            'pieces'           => $b->nb_pieces,
+            'animaux_acceptes' => (bool) $b->accepte_animaux,
+            'fumeurs_acceptes' => (bool) $b->accepte_fumeurs,
+            'options'          => array_values((array) ($b->options ?? [])),
+        ];
     }
 }

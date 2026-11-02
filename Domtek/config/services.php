@@ -77,6 +77,11 @@ return [
         //    un modèle qui répond directement.
         'model'      => env('GROQ_MODEL', 'openai/gpt-oss-120b'),
         'model_json' => env('GROQ_MODEL_JSON', 'qwen/qwen3.8-27b'),
+        // Suggestions prospect ↔ bien : un vrai jugement, qui gagne à raisonner.
+        // Le raisonnement est borné (reasoning_effort) et le budget de tokens
+        // large, pour que la réponse JSON ne soit jamais tronquée.
+        'model_suggestions'     => env('GROQ_MODEL_SUGGESTIONS', env('GROQ_MODEL', 'openai/gpt-oss-120b')),
+        'suggestions_reasoning' => env('GROQ_SUGGESTIONS_REASONING', 'low'),
     ],
 
 ];

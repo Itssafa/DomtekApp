@@ -134,6 +134,7 @@ export default function FicheProspectPage() {
   const [suggestions, setSuggestions]           = useState<BienSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSugg]    = useState(false);
   const [suggestionsLoaded, setSuggestionsLoaded] = useState(false);
+  const [erreurIa, setErreurIa] = useState('');
 
   const [errors, setErrors]         = useState<Record<string, string[]>>({});
   const [loading, setLoading]       = useState(true);
@@ -184,11 +185,15 @@ export default function FicheProspectPage() {
   const fetchSuggestions = async () => {
     if (loadingSuggestions) return;
     setLoadingSugg(true);
+    setErreurIa('');
     try {
       const { data } = await api.get(`/org/prospects/${id}/suggestions`);
       setSuggestions(data.suggestions ?? []);
       setSuggestionsLoaded(true);
-    } catch { /* noop */ }
+    } catch (err) {
+      const ax = err as { response?: { data?: { message?: string } } };
+      setErreurIa(ax.response?.data?.message ?? "L'analyse IA n'a pas pu aboutir.");
+    }
     finally { setLoadingSugg(false); }
   };
 
@@ -462,6 +467,10 @@ export default function FicheProspectPage() {
             </button>
           </div>
 
+          {erreurIa && (
+            <p role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3">{erreurIa}</p>
+          )}
+
           {suggestions.length > 0 && (
             <div className="space-y-2">
               {suggestions.map((s) => (
@@ -480,9 +489,6 @@ export default function FicheProspectPage() {
                     </p>
                     {s.raison && (
                       <p className="text-xs text-violet-700 mt-1.5">{s.raison}</p>
-                    )}
-                    {!!s.alertes?.length && (
-                      <p className="text-xs text-amber-600 mt-1">⚠ {s.alertes.join(' · ')}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-4 shrink-0">

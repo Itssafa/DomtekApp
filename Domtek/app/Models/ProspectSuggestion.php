@@ -14,6 +14,7 @@ class ProspectSuggestion extends Model
         'prospect_id',
         'bien_id',
         'score',
+        'raison',
     ];
 
     protected function casts(): array

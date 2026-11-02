@@ -17,7 +17,10 @@ class BienObserver
     public function updated(Bien $bien): void
     {
         // Recalcule uniquement si les champs pertinents pour le matching ont changé
-        $relevant = ['statut', 'prix', 'type_bien', 'type_transaction', 'ville', 'options', 'accepte_animaux'];
+        $relevant = [
+            'statut', 'prix', 'type_bien', 'type_transaction', 'type_location', 'ville', 'options',
+            'accepte_animaux', 'accepte_fumeurs', 'superficie', 'nb_pieces', 'nb_chambres',
+        ];
         if ($bien->wasChanged($relevant)) {
             $this->matching->refreshForBien($bien);
         }

@@ -959,13 +959,15 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 
 ---
 
-### A48 — Suggestions prospect ↔ bien selon le profil (IA) ✅ TERMINÉ
+### A48 — Suggestions prospect ↔ bien décidées par l'IA ✅ TERMINÉ
 
-- [x] `ProfilProspectService` : solvabilité (loyer ≤ 40 % du revenu, achat ≤ 100 mois de revenu) et cohérence du bien avec le profil (profession, enfants, civilité, animaux), avec raisons et réserves
-- [x] `ProspectMatchingService` : biens hors budget exclus, cohérence ajoutée au score ; ancienne table « budget = prix selon revenus » (fausse pour les locations) supprimée
-- [x] `ProspectSuggestionsController` : pré-filtre par les règles, prompt IA enrichi du profil, raison rédigée par bien, seuil de 30
-- [x] Fiche prospect : raison (violet) et réserves (orange) sous chaque suggestion
-- [x] Vérifié avec 4 profils : cabinet → médecin, ferme → agriculteur, S+3 → Mme avec enfants, studio → étudiante ; entrepôt proposé à personne
+- [x] `SuggestionIaService` : l'IA reçoit le profil du prospect et tous les biens disponibles ; elle détermine son besoin principal (métier, famille), juge ses moyens, note chaque bien (0–100) et rédige une raison. Aucun barème côté serveur ; un bien sous 50 n'est pas proposé
+- [x] `ProfilProspectService` : description du prospect pour l'IA (sans nom, CIN ni contact), avec repères de loyer et de prix finançable
+- [x] Modèle dédié `GROQ_MODEL_SUGGESTIONS` (gpt-oss-120b, raisonnement `low`) : nettement plus juste que le modèle JSON sans raisonnement
+- [x] Tableau de bord : suggestions recalculées par l'IA en arrière-plan (job `RafraichirSuggestionsProspect`, file traitée chaque minute par le `scheduler`), raison enregistrée (`prospect_suggestions.raison`)
+- [x] Limite Groq (429) : attente du délai indiqué puis nouvel essai ; le job est repris 2 minutes plus tard en cas d'échec
+- [x] Fiche prospect : raison affichée sous chaque bien ; message clair si l'IA est indisponible (503)
+- [x] Vérifié avec 4 profils : cabinet → médecin (90), ferme → agriculteur (90), S+3 → Mme avec enfants (90), studio → étudiante (92)
 
 ---
 
@@ -1036,6 +1038,6 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 | Améliorations | A45 — Espace client : « Mon compte » | ✅ Terminé |
 | Améliorations | A46 — Nom du compte client aligné sur sa fiche | ✅ Terminé |
 | Améliorations | A47 — Suppression des factures | ✅ Terminé |
-| Améliorations | A48 — Suggestions prospect ↔ bien selon le profil (IA) | ✅ Terminé |
+| Améliorations | A48 — Suggestions prospect ↔ bien décidées par l'IA | ✅ Terminé |
 | Intégration | 17 — Intégration complète | ⬜ À faire |
 | Déploiement | 18 — Déploiement | 🟨 En cours (Docker fait ; serveur, HTTPS et mise en ligne restent) |

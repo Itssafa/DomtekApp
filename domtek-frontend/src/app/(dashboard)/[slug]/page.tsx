@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 
 interface DashSuggestion {
   score: number;
+  raison: string | null;
   prospect: { id: number; nom: string; ville: string | null };
   bien: { id: number; designation: string; type_bien: string; type_transaction: string; prix: number | null; ville: string | null; superficie: number | null };
 }
@@ -251,6 +252,9 @@ export default function DashboardPage() {
                     </Link>
                     {s.prospect.ville && (
                       <p className="text-xs text-gray-400 truncate">{s.prospect.ville}</p>
+                    )}
+                    {s.raison && (
+                      <p className="text-xs text-violet-600 mt-0.5 line-clamp-2" title={s.raison}>{s.raison}</p>
                     )}
                   </div>
 

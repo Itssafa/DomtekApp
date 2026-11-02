@@ -27,6 +27,7 @@ class DashboardSuggestionsController extends Controller
 
         $suggestions = $rows->map(fn($row) => [
             'score'   => $row->score,
+            'raison'  => $row->raison,
             'prospect' => [
                 'id'   => $row->prospect->id,
                 'nom'  => $row->prospect->nom . ' ' . $row->prospect->prenom,
