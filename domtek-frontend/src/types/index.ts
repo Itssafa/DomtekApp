@@ -215,6 +215,10 @@ export interface BienSuggestion {
   superficie: number | null;
   nb_pieces: number | null;
   score: number;
+  /** Pourquoi ce bien convient (rédigé par l'IA, ou déduit des règles). */
+  raison?: string | null;
+  /** Réserves relevées par les règles de cohérence. */
+  alertes?: string[];
 }
 
 // ─── Employe ─────────────────────────────────────────────────────────────────

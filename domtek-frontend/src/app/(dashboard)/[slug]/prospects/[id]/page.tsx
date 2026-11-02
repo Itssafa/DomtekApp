@@ -478,6 +478,12 @@ export default function FicheProspectPage() {
                       {s.superficie && <span> · {s.superficie} m²</span>}
                       {s.nb_pieces && <span> · {s.nb_pieces} pièces</span>}
                     </p>
+                    {s.raison && (
+                      <p className="text-xs text-violet-700 mt-1.5">{s.raison}</p>
+                    )}
+                    {!!s.alertes?.length && (
+                      <p className="text-xs text-amber-600 mt-1">⚠ {s.alertes.join(' · ')}</p>
+                    )}
                   </div>
                   <div className="flex items-center gap-4 shrink-0">
                     {s.prix != null && (

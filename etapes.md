@@ -959,6 +959,16 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 
 ---
 
+### A48 — Suggestions prospect ↔ bien selon le profil (IA) ✅ TERMINÉ
+
+- [x] `ProfilProspectService` : solvabilité (loyer ≤ 40 % du revenu, achat ≤ 100 mois de revenu) et cohérence du bien avec le profil (profession, enfants, civilité, animaux), avec raisons et réserves
+- [x] `ProspectMatchingService` : biens hors budget exclus, cohérence ajoutée au score ; ancienne table « budget = prix selon revenus » (fausse pour les locations) supprimée
+- [x] `ProspectSuggestionsController` : pré-filtre par les règles, prompt IA enrichi du profil, raison rédigée par bien, seuil de 30
+- [x] Fiche prospect : raison (violet) et réserves (orange) sous chaque suggestion
+- [x] Vérifié avec 4 profils : cabinet → médecin, ferme → agriculteur, S+3 → Mme avec enfants, studio → étudiante ; entrepôt proposé à personne
+
+---
+
 ## Récapitulatif de l'avancement
 
 | Phase | Étape | Statut |
@@ -1026,5 +1036,6 @@ Annonce::where('statut', Annonce::STATUT_PLANIFIEE)
 | Améliorations | A45 — Espace client : « Mon compte » | ✅ Terminé |
 | Améliorations | A46 — Nom du compte client aligné sur sa fiche | ✅ Terminé |
 | Améliorations | A47 — Suppression des factures | ✅ Terminé |
+| Améliorations | A48 — Suggestions prospect ↔ bien selon le profil (IA) | ✅ Terminé |
 | Intégration | 17 — Intégration complète | ⬜ À faire |
 | Déploiement | 18 — Déploiement | 🟨 En cours (Docker fait ; serveur, HTTPS et mise en ligne restent) |

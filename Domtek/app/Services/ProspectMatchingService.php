@@ -9,13 +9,7 @@ use Illuminate\Support\Collection;
 
 class ProspectMatchingService
 {
-    private const REVENUS_BUDGET = [
-        'moins_1000'  => 80_000,
-        '1000_2000'   => 150_000,
-        '3000_6000'   => 300_000,
-        '7000_10000'  => 500_000,
-        'plus_10000'  => 800_000,
-    ];
+    public function __construct(private ProfilProspectService $profil) {}
 
     /**
      * Recalcule et persiste les suggestions pour un prospect donné
@@ -36,13 +30,17 @@ class ProspectMatchingService
 
         $biens = $query->get([
             'id', 'type_bien', 'type_transaction', 'prix', 'ville',
-            'accepte_animaux', 'options',
+            'accepte_animaux', 'options', 'nb_pieces', 'nb_chambres',
         ]);
+
+        // Un bien que le prospect ne peut pas payer n'est jamais suggéré.
+        $biens = $biens->reject(fn (Bien $b) => $this->profil->estSolvable($b, $prospect) === false);
 
         // Profil de référence
         [$refPrix, $refTypes, $refTransaction, $refVilles] = $this->extractProfile($prospect, $refIds);
 
-        $hasProfile = $refPrix || $refTypes || $refVilles || $refTransaction;
+        $hasProfile = $refPrix || $refTypes || $refVilles || $refTransaction
+            || $prospect->revenus_mensuels || $prospect->profession;
 
         // Calculer les scores ; si le prospect n'a aucun critère connu,
         // on lui attribue un score de base 30 (disponibilité seule)
@@ -100,10 +98,6 @@ class ProspectMatchingService
         $refTransaction = $refBiens->first()?->type_transaction;
         $refVilles      = $refBiens->pluck('ville')->filter()->unique()->values()->toArray();
 
-        if (!$refPrix && $prospect->revenus_mensuels) {
-            $refPrix = self::REVENUS_BUDGET[$prospect->revenus_mensuels] ?? null;
-        }
-
         if (!$refVilles && $prospect->ville) {
             $refVilles = [$prospect->ville];
         }
@@ -120,12 +114,18 @@ class ProspectMatchingService
             $score += 15;
         }
 
-        // Prix (35 pts)
+        // Prix proche des biens qui l'intéressent (20 pts)
         if ($refPrix && $bien->prix) {
             $ratio = abs((float) $bien->prix - $refPrix) / $refPrix;
-            if ($ratio <= 0.20)     $score += 35;
-            elseif ($ratio <= 0.30) $score += 22;
-            elseif ($ratio <= 0.40) $score += 10;
+            if ($ratio <= 0.20)     $score += 20;
+            elseif ($ratio <= 0.30) $score += 12;
+            elseif ($ratio <= 0.40) $score += 6;
+        }
+
+        // Solvabilité (20 pts) : dans son budget d'après ses revenus.
+        // Les biens hors budget ont déjà été écartés en amont.
+        if ($this->profil->estSolvable($bien, $prospect) === true) {
+            $score += 20;
         }
 
         // Type de bien (20 pts)
@@ -144,11 +144,6 @@ class ProspectMatchingService
             }
         }
 
-        // Animaux acceptés (5 pts)
-        if ($bien->accepte_animaux && in_array('animaux', $prospect->composition_foyer ?? [])) {
-            $score += 5;
-        }
-
         // Options en commun (3 pts)
         $bienOptions = (array) ($bien->options ?? []);
         $hierarchie  = $prospect->hierarchie_besoins ?? [];
@@ -156,6 +151,9 @@ class ProspectMatchingService
             $score += 3;
         }
 
-        return min(100, $score);
+        // Cohérence avec son profil (-40 à +40) : profession, enfants, civilité, animaux.
+        $score += $this->profil->coherence($bien, $prospect)['points'];
+
+        return max(0, min(100, $score));
     }
 }

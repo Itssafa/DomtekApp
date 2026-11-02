@@ -564,6 +564,16 @@ Conséquence sur UC47 : la conversion d'un prospect exige désormais que celui-c
 - created_at : datetime
 - updated_at : datetime
 ```
+#### Service `ProfilProspectService` (A48)
+```
++ revenuMensuel(Prospect) : ?int          // milieu de tranche : 800, 1 500, 4 500, 8 500, 12 000 DT
++ budgetMax(Prospect, transaction) : ?float // loyer ≤ 40 % du revenu ; achat ≤ 100 mois de revenu
++ estSolvable(Bien, Prospect) : ?bool      // null si revenu ou prix inconnu
++ coherence(Bien, Prospect) : {points (-40..+40), raisons[], alertes[]}
++ descriptionPourIa(Prospect) : string     // profil sans nom ni CIN
+```
+
+> **Adéquation prospect ↔ bien.** Un bien hors des moyens du prospect n'est jamais suggéré. La cohérence favorise le bien adapté au profil : cabinet / bureau pour un médecin, un avocat, une profession libérale ; local commercial pour un commerçant ; terrain / ferme pour un agriculteur ; studio ou S+1 pour un étudiant ; S+3 et plus, maison, villa pour une famille (Mme ou M. avec enfants), pas pour une Mlle seule ou un foyer sans enfants ; logement acceptant les animaux s'il en a. Un bien professionnel ou agricole est pénalisé pour un profil qui n'en a pas l'usage. Ce service est utilisé par `ProspectMatchingService` (suggestions enregistrées, sans IA) et par `ProspectSuggestionsController` (`GET /org/prospects/{id}/suggestions`) : règles en pré-filtre, puis l'IA (Groq) note les 15 meilleurs et rédige une raison ; un score < 30 n'est pas proposé. Réponse : `{id, designation, type_bien, …, score, raison, alertes[]}`.
 
 ---
 
